@@ -1,0 +1,73 @@
+# Caddyfile for Resumator
+
+# Local development
+localhost {
+    # Frontend
+    handle /* {
+        reverse_proxy frontend:3000
+    }
+    
+    # Backend API
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+    
+    # Health check
+    handle /health {
+        reverse_proxy backend:8000
+    }
+    
+    # Documentation
+    handle /docs {
+        reverse_proxy backend:8000
+    }
+    
+    handle /redoc {
+        reverse_proxy backend:8000
+    }
+}
+
+# Production domain (uncomment and configure for production)
+# your-domain.com {
+#     # Enable HTTPS automatically
+#     
+#     # Frontend
+#     handle /* {
+#         reverse_proxy frontend:3000
+#     }
+#     
+#     # Backend API
+#     handle /api/* {
+#         reverse_proxy backend:8000
+#     }
+#     
+#     # Security headers
+#     header {
+#         # Enable HSTS
+#         Strict-Transport-Security max-age=31536000;
+#         # Prevent clickjacking
+#         X-Frame-Options DENY
+#         # Prevent content type sniffing
+#         X-Content-Type-Options nosniff
+#         # XSS protection
+#         X-XSS-Protection "1; mode=block"
+#         # Referrer policy
+#         Referrer-Policy strict-origin-when-cross-origin
+#         # Content security policy
+#         Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+#     }
+#     
+#     # Logging
+#     log {
+#         output file /var/log/caddy/access.log {
+#             roll_size 100MB
+#             roll_keep 5
+#         }
+#         format json
+#     }
+# }
+
+# MinIO console (optional)
+minio.localhost {
+    reverse_proxy minio:9001
+}
