@@ -12,7 +12,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "react-markdown": "^9.0.1",
-    "react-scripts": "5.0.1",
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
     "remark-gfm": "^4.0.0",
     "codemirror": "^6.0.1",
     "@codemirror/lang-markdown": "^6.2.4",
@@ -25,10 +26,12 @@
     "clsx": "^2.0.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "eslintConfig": {
     "extends": [
