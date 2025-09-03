@@ -313,6 +313,11 @@ class PDFService:
                 "id": "classic", 
                 "name": "Classic",
                 "description": "Traditional black and white design"
+            },
+            {
+                "id": "minimal",
+                "name": "Minimal",
+                "description": "Clean, contemporary design with subtle gradients"
             }
         ]
 
