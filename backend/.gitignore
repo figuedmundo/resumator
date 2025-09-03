@@ -1,0 +1,87 @@
+# Backend-specific .gitignore
+
+# ========================
+# PYTHON/FASTAPI SPECIFIC
+# ========================
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments (common names)
+venv/
+env/
+.venv/
+.env/
+ENV/
+venv.bak/
+env.bak/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+app.db
+resumator.db
+
+# Alembic migration files (keep structure, ignore generated migrations)
+alembic/versions/*.py
+!alembic/versions/__init__.py
+
+# Environment configuration
+.env
+.env.local
+.env.production
+.env.development
+
+# FastAPI specific
+instance/
+tmp/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# Logs
+*.log
+logs/
+app.log
+uvicorn.log
+
+# User uploads and generated files
+uploads/
+user_files/
+resume_files/
+generated_pdfs/
+temp_files/
+
+# AI model files
+models/
+*.model
+*.pkl
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Distribution
+build/
+dist/
+*.egg-info/
+
+# Jupyter (if used for development)
+.ipynb_checkpoints/
+
+# mypy
+.mypy_cache/

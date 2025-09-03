@@ -1,0 +1,331 @@
+# Resumator Project - Global .gitignore
+
+# ========================
+# PROJECT-WIDE IGNORES
+# ========================
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ========================
+# BACKEND (Python/FastAPI)
+# ========================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Flask/Django specific
+instance/
+.webassets-cache
+db.sqlite3
+db.sqlite3-journal
+
+# FastAPI specific
+*.db
+*.sqlite
+*.sqlite3
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# ========================
+# FRONTEND (Node.js/React)
+# ========================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.nuxt/
+.vuepress/dist
+.serverless/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# NYC test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Parcel-bundler cache
+.cache
+.parcel-cache
+
+# Vite
+.vite/
+
+# Rollup.js default build output
+dist/
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Temporary folders
+tmp/
+temp/
+
+# ========================
+# DOCKER
+# ========================
+docker-compose.override.yml
+.dockerignore
+
+# ========================
+# LOGS
+# ========================
+*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ========================
+# TESTING
+# ========================
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+*.cover
+.nyc_output
+test-results/
+playwright-report/
+test-results/
+
+# ========================
+# DEPLOYMENT
+# ========================
+.vercel
+.netlify
+.firebase/
+
+# ========================
+# SECURITY
+# ========================
+# API keys and secrets
+*.pem
+*.key
+*.crt
+secrets/
+.secrets
+
+# ========================
+# USER DATA & UPLOADS
+# ========================
+uploads/
+user_data/
+*.pdf
+*.doc
+*.docx
+resume_files/
+
+# ========================
+# DATABASE
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+migrations/versions/*.py
+
+# Exclude alembic version files but keep the directory structure
+!migrations/versions/.gitkeep
+
+# ========================
+# AI/ML
+# ========================
+models/
+*.model
+*.pkl
+*.joblib
+
+# ========================
+# DOCUMENTATION
+# ========================
+docs/_build/
+site/
+
+# But keep our project documentation
+!README.md
+!TRAINING_GUIDE.md
+!QUICK_REFERENCE.md
+!docs/
+
+# ========================
+# MISC
+# ========================
+*.bak
+*.tmp
+*.temp
+.cache/
+.temp/
