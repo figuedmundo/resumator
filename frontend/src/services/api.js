@@ -180,6 +180,15 @@ class ApiService {
     }
   }
 
+  async createResume(data) {
+    try {
+      const response = await this.api.post(API_ENDPOINTS.RESUMES, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  }
+
   async getResumes(params = {}) {
     try {
       const response = await this.api.get(API_ENDPOINTS.RESUMES, { params });
