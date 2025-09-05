@@ -12,6 +12,7 @@ import DashboardPage from './pages/DashboardPage';
 import ResumesPage from './pages/ResumesPage';
 import ResumeEditorPage from './pages/ResumeEditorPage';
 import ResumeViewPage from './pages/ResumeViewPage';
+import ResumeCustomizePage from './pages/ResumeCustomizePage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import ApplicationFormPage from './pages/ApplicationFormPage';
 import ProfilePage from './pages/ProfilePage';
@@ -176,7 +177,7 @@ function App() {
           element={
             <ProtectedRoute>
               <AppLayout>
-                <ResumeEditorPage customize />
+                <ResumeCustomizePage />
               </AppLayout>
             </ProtectedRoute>
           }
