@@ -269,10 +269,10 @@ export default function DashboardPage() {
                         to={`/applications/${application.id}`}
                         className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200"
                       >
-                        {application.job_title || 'Untitled Position'}
+                        {application.position || 'Untitled Position'}
                       </Link>
                       <p className="text-xs text-gray-500 mt-1">
-                        {application.company_name} • {application.status || 'Draft'}
+                        {application.company} • {application.status || 'Applied'}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                         application.status === 'Rejected' ? 'bg-red-100 text-red-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {application.status || 'Draft'}
+                        {application.status || 'Applied'}
                       </span>
                     </div>
                   </div>

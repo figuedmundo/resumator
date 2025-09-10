@@ -102,6 +102,33 @@ export default function ResumeCustomizePage() {
     }
   };
 
+  const handleSaveAsApplication = async () => {
+    try {
+      setIsLoading(true);
+      
+      // First save the customized content as a new version
+      const versionResponse = await apiService.updateResume(id, {
+        title: resume.title,
+        content: customizedContent
+      });
+      
+      // Navigate to application form with pre-filled data
+      const applicationData = {
+        resume_id: parseInt(id),
+        job_description: currentJobDescription,
+      };
+      
+      // Store data in sessionStorage to pass to the form
+      sessionStorage.setItem('applicationFormData', JSON.stringify(applicationData));
+      
+      navigate('/applications/new');
+      
+    } catch (err) {
+      setError(err.message || 'Failed to save as application.');
+      setIsLoading(false);
+    }
+  };
+
   const handleSaveCustomization = async () => {
     try {
       setIsLoading(true);
@@ -261,6 +288,20 @@ export default function ResumeCustomizePage() {
                   <button
                     onClick={handleSaveCustomization}
                     disabled={isLoading}
+                    className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save as Version'
+                    )}
+                  </button>
+                  <button
+                    onClick={handleSaveAsApplication}
+                    disabled={isLoading}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                   >
                     {isLoading ? (
@@ -269,7 +310,7 @@ export default function ResumeCustomizePage() {
                         Saving...
                       </>
                     ) : (
-                      'Save Customization'
+                      'Save as Application'
                     )}
                   </button>
                 </div>

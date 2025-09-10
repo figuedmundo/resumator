@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
   
   // Applications
   APPLICATIONS: '/api/v1/applications',
+  APPLICATION_STATS: '/api/v1/applications/stats',
+  APPLICATION_SEARCH: '/api/v1/applications/search',
   
   // Health
   HEALTH: '/health'
@@ -25,9 +27,7 @@ export const API_ENDPOINTS = {
 
 // Application status options
 export const APPLICATION_STATUS = {
-  DRAFT: 'Draft',
   APPLIED: 'Applied',
-  REVIEWING: 'Reviewing',
   INTERVIEWING: 'Interviewing',
   OFFER: 'Offer',
   REJECTED: 'Rejected',

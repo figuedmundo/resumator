@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Base image with Debian full repos
+FROM python:3.11-bullseye
 
 # Set working directory
 WORKDIR /app
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     wkhtmltopdf \
     xvfb \
     fontconfig \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -37,5 +38,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Start the application
+# Default command (backend API)
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -7,7 +7,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
-// Main pages (we'll create these next)
+// Main pages
 import DashboardPage from './pages/DashboardPage';
 import ResumesPage from './pages/ResumesPage';
 import ResumeEditorPage from './pages/ResumeEditorPage';
@@ -16,6 +16,9 @@ import ResumeCustomizePage from './pages/ResumeCustomizePage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import ApplicationFormPage from './pages/ApplicationFormPage';
 import ProfilePage from './pages/ProfilePage';
+
+// Application components
+import ApplicationDetail from './components/application/ApplicationDetail';
 
 // 404 page
 import NotFoundPage from './pages/NotFoundPage';
@@ -198,6 +201,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <ApplicationFormPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/applications/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ApplicationDetail />
               </AppLayout>
             </ProtectedRoute>
           }
