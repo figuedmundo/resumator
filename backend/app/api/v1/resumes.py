@@ -2,7 +2,7 @@
 
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -14,7 +14,7 @@ from app.schemas.resume import (
 )
 from app.services.resume_service import ResumeService
 from app.services.pdf_service import pdf_service
-from app.api.deps import get_current_active_user, get_resume_service
+from app.api.deps import get_current_active_user, get_resume_service, get_current_user_from_token
 from app.core.exceptions import ResumeNotFoundError, ValidationError, AIServiceError
 import io
 
@@ -282,8 +282,6 @@ async def download_resume_pdf(
         )
         
         # Create streaming response
-        pdf_stream = io.BytesIO(pdf_bytes)
-        
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
@@ -299,6 +297,78 @@ async def download_resume_pdf(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to generate PDF"
+        )
+
+
+@router.get("/{resume_id}/preview")
+async def preview_resume_pdf(
+    request,
+    resume_id: int,
+    template: str = "modern",
+    version_id: Optional[int] = None,
+    token: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Preview resume as PDF in browser."""
+    from fastapi import Request
+    
+    try:
+        # Get current user from token or header
+        current_user = None
+        
+        if token:
+            current_user = get_current_user_from_token(token, db)
+        else:
+            # Try to get from authorization header
+            authorization = request.headers.get("authorization")
+            if authorization and authorization.startswith("Bearer "):
+                token_from_header = authorization.split(" ")[1]
+                current_user = get_current_user_from_token(token_from_header, db)
+        
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required"
+            )
+        
+        # Get resume version
+        if version_id:
+            version = resume_service.get_resume_version(
+                current_user.id, resume_id, version_id
+            )
+        else:
+            # Get latest version
+            versions = resume_service.list_resume_versions(current_user.id, resume_id)
+            version = versions[0] if versions else None
+        
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume version not found"
+            )
+        
+        # Generate PDF
+        pdf_bytes = pdf_service.generate_resume_pdf(
+            version.markdown_content, template
+        )
+        
+        # Create streaming response for inline viewing
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"inline; filename=resume_{template}_{version.version}.pdf"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to preview PDF for resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to preview PDF"
         )
 
 

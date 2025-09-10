@@ -65,17 +65,19 @@ class WeasyPrintRenderer(PDFRenderer):
     
     def _load_template(self, template_id: str) -> str:
         """Load HTML template."""
-        template_path = f"/app/templates/resume_{template_id}.html"
+        # First try to load from filesystem
+        template_path = Path(__file__).parent.parent / "templates" / f"resume_{template_id}.html"
         
         try:
-            if os.path.exists(template_path):
+            if template_path.exists():
                 with open(template_path, 'r', encoding='utf-8') as f:
                     return f.read()
             else:
+                logger.info(f"Template file not found: {template_path}, using embedded template")
                 return self._get_embedded_template(template_id)
         except Exception as e:
             logger.warning(f"Failed to load template {template_id}: {e}")
-            return self._get_embedded_template("modern")
+            return self._get_embedded_template(template_id)
     
     def _get_embedded_template(self, template_id: str) -> str:
         """Get embedded HTML templates."""
@@ -194,6 +196,93 @@ class WeasyPrintRenderer(PDFRenderer):
 <body>
     {{ content }}
 </body>
+</html>""",
+            
+            "minimal": """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resume</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.7;
+            color: #1a202c;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px;
+            background: white;
+        }
+        h1 {
+            color: #1a365d;
+            font-size: 3em;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #4299e1, #63b3ed);
+            margin: 20px auto;
+        }
+        h2 {
+            color: #2d3748;
+            font-size: 1.4em;
+            font-weight: 500;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            padding-left: 20px;
+        }
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #4299e1;
+            border-radius: 50%;
+        }
+        h3 {
+            color: #2d3748;
+            margin: 25px 0 12px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        ul {
+            padding-left: 25px;
+            margin-bottom: 25px;
+        }
+        li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .contact-info {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+        }
+        strong {
+            color: #1a365d;
+            font-weight: 600;
+        }
+        @page {
+            margin: 0.5in;
+        }
+    </style>
+</head>
+<body>
+    {{ content }}
+</body>
 </html>"""
         }
         return templates.get(template_id, templates["modern"])
@@ -246,17 +335,18 @@ class WKHTMLToPDFRenderer(PDFRenderer):
     def _load_template(self, template_id: str) -> str:
         """Load HTML template."""
         # Same implementation as WeasyPrintRenderer
-        template_path = f"/app/templates/resume_{template_id}.html"
+        template_path = Path(__file__).parent.parent / "templates" / f"resume_{template_id}.html"
         
         try:
-            if os.path.exists(template_path):
+            if template_path.exists():
                 with open(template_path, 'r', encoding='utf-8') as f:
                     return f.read()
             else:
+                logger.info(f"Template file not found: {template_path}, using embedded template")
                 return self._get_embedded_template(template_id)
         except Exception as e:
             logger.warning(f"Failed to load template {template_id}: {e}")
-            return self._get_embedded_template("modern")
+            return self._get_embedded_template(template_id)
     
     def _get_embedded_template(self, template_id: str) -> str:
         """Get embedded HTML templates - same as WeasyPrintRenderer."""

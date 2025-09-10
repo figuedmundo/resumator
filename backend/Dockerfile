@@ -13,6 +13,11 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     fontconfig \
     curl \
+    libcairo2 \
+    pango1.0-tools \
+    libpango-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching

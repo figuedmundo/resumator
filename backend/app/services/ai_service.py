@@ -155,8 +155,12 @@ Generate a professional cover letter:"""
                     }
                 ],
                 model=self.model,
-                temperature=0.4,
-                max_tokens=1000
+                temperature=1,
+                max_completion_tokens=8192,
+                top_p=1,
+                reasoning_effort="high",
+                stream=True,
+                stop=None
             )
             
             result = chat_completion.choices[0].message.content

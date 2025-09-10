@@ -23,12 +23,8 @@ const PDFPreview = ({
       loadPDFPreview();
     }
     
-    // Cleanup URL when component unmounts or changes
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
+    // No need to cleanup URL for preview URLs
+    return () => {};
   }, [resumeId, versionId, template]);
 
   const loadPDFPreview = async () => {
@@ -37,12 +33,6 @@ const PDFPreview = ({
       setError('');
       onLoadStart?.();
       
-      // Clean up previous URL
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-        setPdfUrl(null);
-      }
-
       const params = {
         template: template || 'modern'
       };
@@ -51,14 +41,11 @@ const PDFPreview = ({
         params.version_id = versionId;
       }
 
-      // Download PDF blob
-      const pdfBlob = await apiService.downloadResumePDF(resumeId, params);
+      // Get preview URL with authentication
+      const previewUrl = apiService.getPreviewPDFUrl(resumeId, params);
+      setPdfUrl(previewUrl);
       
-      // Create blob URL for preview
-      const url = URL.createObjectURL(pdfBlob);
-      setPdfUrl(url);
-      
-      devLog('PDF preview loaded for resume:', resumeId, 'template:', template);
+      devLog('PDF preview URL created for resume:', resumeId, 'template:', template);
       onLoadComplete?.();
       
     } catch (err) {

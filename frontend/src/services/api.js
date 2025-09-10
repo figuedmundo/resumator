@@ -268,6 +268,19 @@ class ApiService {
     }
   }
 
+  getPreviewPDFUrl(id, options = {}) {
+    // Create URL with auth token for PDF preview
+    const token = this.getToken();
+    const params = new URLSearchParams(options);
+    const baseUrl = `${this.api.defaults.baseURL}${API_ENDPOINTS.PREVIEW_PDF(id)}`;
+    
+    if (token) {
+      params.set('token', token);
+    }
+    
+    return `${baseUrl}?${params.toString()}`;
+  }
+
   async generateCoverLetter(id, jobDescription, options = {}) {
     try {
       const response = await this.api.post(API_ENDPOINTS.COVER_LETTER(id), {

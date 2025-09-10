@@ -1,7 +1,7 @@
 """API dependencies for authentication and database sessions."""
 
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -86,16 +86,68 @@ def get_application_service(db: Session = Depends(get_db)):
     return ApplicationService(db)
 
 
-# Optional dependencies for testing
-def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+def get_current_user_from_token(
+    token: str,
     db: Session = Depends(get_db)
-) -> Optional[User]:
-    """Get current user (optional for public endpoints)."""
-    if not credentials:
-        return None
+) -> User:
+    """Get current user from token string."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     
     try:
-        return get_current_user(credentials, db)
-    except HTTPException:
-        return None
+        # Verify token
+        payload = AuthService.verify_token(token)
+        if payload is None:
+            raise credentials_exception
+        
+        # Get user ID from token
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+        
+        # Get user from database
+        user_service = UserService(db)
+        user = user_service.get_user_by_id(int(user_id))
+        
+        if user is None:
+            raise credentials_exception
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user"
+            )
+        
+        return user
+        
+    except ValueError:
+        raise credentials_exception
+    except Exception:
+        raise credentials_exception
+
+
+def get_user_from_token_or_header(
+    request,
+    token: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+) -> User:
+    """Get user from token query parameter or authorization header."""
+    from fastapi import Request
+    
+    # First check for token in query parameter
+    if token:
+        return get_current_user_from_token(token, db)
+    
+    # Then check authorization header
+    authorization = request.headers.get("authorization")
+    if authorization and authorization.startswith("Bearer "):
+        token_from_header = authorization.split(" ")[1]
+        return get_current_user_from_token(token_from_header, db)
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required"
+    )

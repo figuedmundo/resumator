@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   RESUME_VERSIONS: (id) => `/api/v1/resumes/${id}/versions`,
   RESUME_VERSION: (resumeId, versionId) => `/api/v1/resumes/${resumeId}/versions/${versionId}`,
   DOWNLOAD_PDF: (id) => `/api/v1/resumes/${id}/download`,
+  PREVIEW_PDF: (id) => `/api/v1/resumes/${id}/preview`,
   COVER_LETTER: (id) => `/api/v1/resumes/${id}/cover-letter`,
   PDF_TEMPLATES: '/api/v1/resumes/templates/list',
   
