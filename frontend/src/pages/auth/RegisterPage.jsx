@@ -342,6 +342,7 @@ export default function RegisterPage() {
               type="submit"
               disabled={isLoading}
               className={clsx(
+                "group",
                 styles.submitButton,
                 isLoading && styles.submitButtonDisabled
               )}

@@ -1,0 +1,299 @@
+/**
+ * ResumesPage Component Styles
+ * Resume listing page with grid layout
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.container {
+  @apply max-w-7xl mx-auto px-4 py-8;
+}
+
+@media (min-width: 640px) {
+  .container {
+    @apply px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+/* Loading State */
+.loadingContainer {
+  @apply flex items-center justify-center min-h-96;
+}
+
+/* Header Section */
+.header {
+  @apply flex items-center;
+}
+
+@media (max-width: 639px) {
+  .header {
+    @apply block;
+  }
+}
+
+.headerContent {
+  @apply flex-auto;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-2 text-gray-700;
+}
+
+.headerActions {
+  @apply mt-4 flex-none;
+}
+
+@media (min-width: 640px) {
+  .headerActions {
+    @apply mt-0 ml-16;
+  }
+}
+
+.createButton {
+  @apply inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm;
+}
+
+@media (min-width: 640px) {
+  .createButton {
+    @apply w-auto;
+  }
+}
+
+.createButtonIcon {
+  @apply h-4 w-4 mr-2;
+}
+
+/* Error Alert */
+.errorAlert {
+  @apply mt-6 bg-red-50 border border-red-200 rounded-md p-4;
+}
+
+.errorContent {
+  @apply flex;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.errorText {
+  @apply ml-3;
+}
+
+.errorMessage {
+  @apply text-sm text-red-800;
+}
+
+/* Empty State */
+.emptyState {
+  @apply text-center py-12;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateTitle {
+  @apply mt-2 text-sm font-medium text-gray-900;
+}
+
+.emptyStateDescription {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.emptyStateActions {
+  @apply mt-6;
+}
+
+.emptyStateButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600;
+}
+
+.emptyStateButtonIcon {
+  @apply -ml-1 mr-2 h-5 w-5;
+}
+
+/* Resume Grid */
+.resumeGrid {
+  @apply mt-8 grid grid-cols-1 gap-6;
+}
+
+@media (min-width: 640px) {
+  .resumeGrid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .resumeGrid {
+    @apply grid-cols-3;
+  }
+}
+
+/* Resume Card */
+.resumeCard {
+  @apply bg-white overflow-hidden shadow rounded-lg border border-gray-200;
+  transition: box-shadow 0.2s;
+}
+
+.resumeCardContent {
+  @apply p-6;
+}
+
+.resumeCardHeader {
+  @apply flex items-center justify-between;
+}
+
+.resumeTitle {
+  @apply text-lg font-medium text-gray-900 truncate;
+}
+
+.statusBadge {
+  @apply flex-shrink-0;
+}
+
+.statusBadgeInner {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.statusActive {
+  @apply bg-green-100 text-green-800;
+}
+
+.statusDraft {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.statusDefault {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.resumeDescription {
+  @apply mt-2 text-sm text-gray-500 line-clamp-2;
+}
+
+.resumeMeta {
+  @apply mt-4 flex items-center text-sm text-gray-500;
+}
+
+.metaIcon {
+  @apply flex-shrink-0 mr-1.5 h-4 w-4;
+}
+
+.resumeFooter {
+  @apply bg-gray-50 px-6 py-3;
+}
+
+.resumeActions {
+  @apply flex space-x-3;
+}
+
+.actionLink {
+  @apply text-sm font-medium;
+}
+
+.actionLinkView {
+  @apply text-blue-600;
+}
+
+.actionLinkEdit {
+  @apply text-gray-600;
+}
+
+.actionLinkCustomize {
+  @apply text-green-600;
+}
+
+/* Dark mode support */
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .createButton {
+  @apply bg-blue-700;
+}
+
+.dark .errorAlert {
+  @apply bg-red-900 bg-opacity-20 border-red-400;
+}
+
+.dark .errorIcon {
+  @apply text-red-400;
+}
+
+.dark .errorMessage {
+  @apply text-red-300;
+}
+
+.dark .emptyStateIcon {
+  @apply text-gray-600;
+}
+
+.dark .emptyStateTitle {
+  @apply text-gray-100;
+}
+
+.dark .emptyStateDescription {
+  @apply text-gray-400;
+}
+
+.dark .emptyStateButton {
+  @apply bg-blue-700;
+}
+
+.dark .resumeCard {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .resumeTitle {
+  @apply text-gray-100;
+}
+
+.dark .statusActive {
+  @apply bg-green-900 text-green-300;
+}
+
+.dark .statusDraft {
+  @apply bg-yellow-900 text-yellow-300;
+}
+
+.dark .statusDefault {
+  @apply bg-gray-700 text-gray-300;
+}
+
+.dark .resumeDescription {
+  @apply text-gray-400;
+}
+
+.dark .resumeMeta {
+  @apply text-gray-400;
+}
+
+.dark .resumeFooter {
+  @apply bg-gray-700;
+}
+
+.dark .actionLinkView {
+  @apply text-blue-400;
+}
+
+.dark .actionLinkEdit {
+  @apply text-gray-400;
+}
+
+.dark .actionLinkCustomize {
+  @apply text-green-400;
+}

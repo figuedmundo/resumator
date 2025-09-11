@@ -237,6 +237,7 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className={clsx(
+                "group",
                 styles.submitButton,
                 isLoading && styles.submitButtonDisabled
               )}
