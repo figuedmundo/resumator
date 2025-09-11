@@ -1,34 +1,41 @@
+import clsx from 'clsx';
+import styles from './LoadingSpinner.module.css';
+
 export default function LoadingSpinner({ 
   size = 'md', 
   color = 'blue', 
   text = null,
   className = '' 
 }) {
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
-    xl: 'w-16 h-16',
+  const sizeClass = {
+    sm: styles.sizeSmall,
+    md: styles.sizeMedium,
+    lg: styles.sizeLarge,
+    xl: styles.sizeExtraLarge,
   };
 
-  const colorClasses = {
-    blue: 'text-blue-600',
-    white: 'text-white',
-    gray: 'text-gray-600',
-    red: 'text-red-600',
-    green: 'text-green-600',
+  const colorClass = {
+    blue: styles.colorBlue,
+    white: styles.colorWhite,
+    gray: styles.colorGray,
+    red: styles.colorRed,
+    green: styles.colorGreen,
   };
 
   return (
-    <div className={`flex items-center justify-center ${className}`}>
-      <div className="flex flex-col items-center space-y-2">
+    <div className={clsx(styles.container, className)}>
+      <div className={styles.spinnerWrapper}>
         <svg
-          className={`animate-spin ${sizeClasses[size]} ${colorClasses[color]}`}
+          className={clsx(
+            styles.spinner,
+            sizeClass[size],
+            colorClass[color]
+          )}
           fill="none"
           viewBox="0 0 24 24"
         >
           <circle
-            className="opacity-25"
+            className={styles.spinnerCircle}
             cx="12"
             cy="12"
             r="10"
@@ -36,7 +43,7 @@ export default function LoadingSpinner({
             strokeWidth="4"
           />
           <path
-            className="opacity-75"
+            className={styles.spinnerPath}
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 
                0 0 5.373 0 12h4zm2 5.291A7.962 
@@ -45,7 +52,7 @@ export default function LoadingSpinner({
           />
         </svg>
         {text && (
-          <p className={`text-sm ${colorClasses[color]} font-medium`}>
+          <p className={clsx(styles.text, colorClass[color])}>
             {text}
           </p>
         )}
@@ -57,7 +64,7 @@ export default function LoadingSpinner({
 // Fullscreen loading overlay
 export function LoadingOverlay({ text = 'Loading...' }) {
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+    <div className={styles.overlay}>
       <LoadingSpinner size="lg" text={text} />
     </div>
   );
@@ -66,7 +73,7 @@ export function LoadingOverlay({ text = 'Loading...' }) {
 // Page loading component
 export function PageLoading({ text = 'Loading page...' }) {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className={styles.pageLoading}>
       <LoadingSpinner size="lg" text={text} />
     </div>
   );
@@ -86,14 +93,14 @@ export function ButtonLoading({ size = 'sm', className = '' }) {
 // Card loading skeleton
 export function CardSkeleton({ className = '' }) {
   return (
-    <div className={`animate-pulse ${className}`}>
-      <div className="bg-gray-200 rounded-lg p-4 space-y-3">
-        <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-        <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-        <div className="h-3 bg-gray-300 rounded w-2/3"></div>
-        <div className="flex space-x-2 mt-4">
-          <div className="h-8 bg-gray-300 rounded w-16"></div>
-          <div className="h-8 bg-gray-300 rounded w-16"></div>
+    <div className={clsx(styles.skeleton, className)}>
+      <div className={styles.cardSkeleton}>
+        <div className={clsx(styles.skeletonLine, styles.skeletonLineLarge)}></div>
+        <div className={clsx(styles.skeletonLine, styles.skeletonLineMedium)}></div>
+        <div className={clsx(styles.skeletonLine, styles.skeletonLineSmall)}></div>
+        <div className={styles.skeletonActions}>
+          <div className={styles.skeletonButton}></div>
+          <div className={styles.skeletonButton}></div>
         </div>
       </div>
     </div>
@@ -103,16 +110,16 @@ export function CardSkeleton({ className = '' }) {
 // List item skeleton
 export function ListItemSkeleton({ items = 3 }) {
   return (
-    <div className="space-y-3">
+    <div className={styles.listSkeletonContainer}>
       {Array.from({ length: items }, (_, index) => (
-        <div key={index} className="animate-pulse">
-          <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border">
-            <div className="h-10 w-10 bg-gray-300 rounded-full"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-300 rounded w-1/3"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+        <div key={index} className={styles.listSkeletonItem}>
+          <div className={styles.listSkeletonItemInner}>
+            <div className={styles.listSkeletonAvatar}></div>
+            <div className={styles.listSkeletonContent}>
+              <div className={styles.listSkeletonTitle}></div>
+              <div className={styles.listSkeletonSubtitle}></div>
             </div>
-            <div className="h-8 w-20 bg-gray-300 rounded"></div>
+            <div className={styles.listSkeletonAction}></div>
           </div>
         </div>
       ))}

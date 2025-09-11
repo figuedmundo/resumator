@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail, validatePassword } from '../../utils/helpers';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import styles from '../../styles/modules/pages/LoginPage.module.css';
 
 export default function LoginPage() {
   const { login, isAuthenticated, error, clearError, isLoading } = useAuth();
@@ -75,34 +77,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <div className="text-blue-600 font-bold text-xl">R</div>
+    <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <div className={styles.header}>
+          <div className={styles.logoContainer}>
+            <div className={styles.logoIcon}>R</div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className={styles.title}>
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className={styles.subtitle}>
             Or{' '}
             <Link
               to="/register"
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
+              className={styles.signupLink}
             >
               create a new account
             </Link>
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formFields}>
             {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>
                 Email address
               </label>
-              <div className="mt-1 relative">
+              <div className={styles.inputContainer}>
                 <input
                   id="email"
                   name="email"
@@ -111,23 +113,24 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200 ${
-                    errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={clsx(
+                    styles.input,
+                    errors.email ? styles.inputError : styles.inputDefault
+                  )}
                   placeholder="Enter your email"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className={styles.fieldError}>{errors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <div className={styles.field}>
+              <label htmlFor="password" className={styles.label}>
                 Password
               </label>
-              <div className="mt-1 relative">
+              <div className={styles.inputContainer}>
                 <input
                   id="password"
                   name="password"
@@ -136,18 +139,20 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 pr-10 border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200 ${
-                    errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={clsx(
+                    styles.input,
+                    styles.inputWithIcon,
+                    errors.password ? styles.inputError : styles.inputDefault
+                  )}
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className={styles.passwordToggle}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={styles.passwordIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -156,7 +161,7 @@ export default function LoginPage() {
                       />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={styles.passwordIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -174,17 +179,17 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                <p className={styles.fieldError}>{errors.password}</p>
               )}
             </div>
           </div>
 
           {/* Auth Error */}
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <div className={styles.authError}>
+              <div className={styles.authErrorContent}>
+                <div className={styles.authErrorIcon}>
+                  <svg className={styles.authErrorIconSvg} viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -192,9 +197,9 @@ export default function LoginPage() {
                     />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Sign in failed</h3>
-                  <div className="mt-2 text-sm text-red-700">
+                <div className={styles.authErrorText}>
+                  <h3 className={styles.authErrorTitle}>Sign in failed</h3>
+                  <div className={styles.authErrorMessage}>
                     <p>{error}</p>
                   </div>
                 </div>
@@ -203,23 +208,23 @@ export default function LoginPage() {
           )}
 
           {/* Remember me and Forgot password */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className={styles.formOptions}>
+            <div className={styles.rememberMe}>
               <input
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className={styles.checkbox}
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className={styles.checkboxLabel}>
                 Remember me
               </label>
             </div>
 
-            <div className="text-sm">
+            <div className={styles.forgotPassword}>
               <a
                 href="#"
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
+                className={styles.forgotPasswordLink}
               >
                 Forgot your password?
               </a>
@@ -231,11 +236,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={clsx(
+                styles.submitButton,
+                isLoading && styles.submitButtonDisabled
+              )}
             >
               {isLoading ? (
-                <div className="flex items-center">
-                  <LoadingSpinner size="sm" color="white" className="mr-2" />
+                <div className={styles.submitButtonContent}>
+                  <LoadingSpinner size="sm" color="white" className={styles.submitButtonSpinner} />
                   Signing in...
                 </div>
               ) : (

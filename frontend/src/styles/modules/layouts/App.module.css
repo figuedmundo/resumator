@@ -1,0 +1,54 @@
+/**
+ * App Layout Styles
+ * Main application layouts and routing components
+ */
+
+.app {
+  /* Main app container - minimal styling */
+}
+
+/* Loading States */
+.loadingContainer {
+  @apply min-h-screen flex items-center justify-center;
+}
+
+.loadingContent {
+  @apply text-center;
+}
+
+.loadingText {
+  @apply mt-4 text-gray-600;
+}
+
+.initialLoadingContainer {
+  @apply min-h-screen flex items-center justify-center bg-gray-50;
+}
+
+/* Protected Route Loading */
+.protectedRouteLoading {
+  @apply min-h-screen flex items-center justify-center;
+}
+
+/* Layout Components */
+.appLayout {
+  @apply min-h-screen bg-gray-50;
+}
+
+.appLayoutMain {
+  @apply pb-8;
+}
+
+.authLayout {
+  @apply min-h-screen bg-gray-50;
+}
+
+/* Dark mode support */
+.dark .appLayout,
+.dark .authLayout,
+.dark .initialLoadingContainer {
+  @apply bg-gray-900;
+}
+
+.dark .loadingText {
+  @apply text-gray-400;
+}

@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
 import { useAuth } from '../../hooks/useAuth';
 import { getInitials, generateAvatarColor } from '../../utils/helpers';
+import styles from './Header.module.css';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -39,29 +41,28 @@ export default function Header() {
   const avatarColor = generateAvatarColor(user?.full_name || user?.email || 'User');
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className={styles.header}>
+      <div className={styles.container}>
+        <div className={styles.headerInner}>
           {/* Logo and Navigation */}
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0">
-              <div className="text-xl font-bold text-blue-600">
+          <div className={styles.leftSection}>
+            <Link to="/" className={styles.logo}>
+              <div className={styles.logoLink}>
                 Resumator
               </div>
             </Link>
             
             {user && (
-              <nav className="ml-8">
-                <div className="flex space-x-8">
+              <nav className={styles.nav}>
+                <div className={styles.navList}>
                   {navigationItems.map((item) => (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${
-                        item.current
-                          ? 'border-b-2 border-blue-500 text-gray-900'
-                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
+                      className={clsx(
+                        styles.navItem,
+                        item.current ? styles.navItemActive : styles.navItemDefault
+                      )}
                     >
                       {item.name}
                     </Link>
@@ -73,23 +74,24 @@ export default function Header() {
 
           {/* User Menu */}
           {user ? (
-            <div className="relative" ref={userMenuRef}>
-              <div className="flex items-center">
+            <div className={styles.userMenuContainer} ref={userMenuRef}>
+              <div className={styles.userMenuInner}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className={styles.userMenuButton}
                 >
-                  <span className="sr-only">Open user menu</span>
-                  <div className={`h-8 w-8 rounded-full ${avatarColor} flex items-center justify-center text-white text-sm font-medium`}>
+                  <span className={styles.srOnly}>Open user menu</span>
+                  <div className={clsx(styles.avatar, avatarColor)}>
                     {userInitials}
                   </div>
-                  <span className="ml-2 text-gray-700 text-sm font-medium">
+                  <span className={styles.userName}>
                     {user.full_name || user.email}
                   </span>
                   <svg
-                    className={`ml-1 h-4 w-4 text-gray-400 transition-transform duration-200 ${
-                      isUserMenuOpen ? 'rotate-180' : ''
-                    }`}
+                    className={clsx(
+                      styles.chevron,
+                      isUserMenuOpen && styles.chevronOpen
+                    )}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -106,15 +108,15 @@ export default function Header() {
 
               {/* Dropdown menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
-                  <div className="px-4 py-2 text-sm text-gray-900 border-b border-gray-100">
-                    <div className="font-medium">{user.full_name || 'User'}</div>
-                    <div className="text-gray-500 text-xs">{user.email}</div>
+                <div className={styles.dropdown}>
+                  <div className={styles.dropdownHeader}>
+                    <div className={styles.dropdownUserName}>{user.full_name || 'User'}</div>
+                    <div className={styles.dropdownUserEmail}>{user.email}</div>
                   </div>
                   
                   <Link
                     to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    className={styles.dropdownItem}
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     Profile Settings
@@ -122,7 +124,7 @@ export default function Header() {
                   
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    className={styles.dropdownButton}
                   >
                     Sign out
                   </button>
@@ -130,16 +132,16 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <div className="flex items-center space-x-4">
+            <div className={styles.guestActions}>
               <Link
                 to="/login"
-                className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                className={styles.signInLink}
               >
                 Sign in
               </Link>
               <Link
                 to="/register"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+                className={styles.getStartedLink}
               >
                 Get started
               </Link>

@@ -1,0 +1,413 @@
+/**
+ * DashboardPage Component Styles
+ * Main dashboard with stats and quick actions
+ */
+
+.container {
+  @apply max-w-7xl mx-auto px-4 py-8;
+}
+
+@media (min-width: 640px) {
+  .container {
+    @apply px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+/* Loading State */
+.loadingContainer {
+  @apply flex items-center justify-center min-h-96;
+}
+
+/* Welcome Header */
+.welcomeSection {
+  @apply mb-8;
+}
+
+.welcomeTitle {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.welcomeSubtitle {
+  @apply text-gray-600 mt-2;
+}
+
+/* Error Alert */
+.errorAlert {
+  @apply mb-8 bg-red-50 border border-red-200 rounded-md p-4;
+}
+
+.errorContent {
+  @apply flex;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.errorText {
+  @apply ml-3;
+}
+
+.errorMessage {
+  @apply text-sm text-red-800;
+}
+
+/* Statistics Cards */
+.statsGrid {
+  @apply grid grid-cols-1 gap-6 mb-8;
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    @apply grid-cols-2;
+  }
+}
+
+.statsCard {
+  @apply bg-white overflow-hidden shadow rounded-lg;
+}
+
+.statsCardContent {
+  @apply p-5;
+}
+
+.statsCardInner {
+  @apply flex items-center;
+}
+
+.statsCardIcon {
+  @apply flex-shrink-0;
+}
+
+.statsIconResumes {
+  @apply h-6 w-6 text-blue-600;
+}
+
+.statsIconApplications {
+  @apply h-6 w-6 text-green-600;
+}
+
+.statsCardData {
+  @apply ml-5 w-0 flex-1;
+}
+
+.statsCardLabel {
+  @apply text-sm font-medium text-gray-500 truncate;
+}
+
+.statsCardValue {
+  @apply text-3xl font-semibold text-gray-900;
+}
+
+.statsCardFooter {
+  @apply bg-gray-50 px-5 py-3;
+}
+
+.statsCardLink {
+  @apply font-medium hover:opacity-80;
+  transition: opacity var(--transition-fast);
+}
+
+.statsCardLinkResumes {
+  @apply text-blue-600;
+}
+
+.statsCardLinkApplications {
+  @apply text-green-600;
+}
+
+/* Quick Actions */
+.quickActionsSection {
+  @apply mb-8;
+}
+
+.quickActionsTitle {
+  @apply text-xl font-semibold text-gray-900 mb-4;
+}
+
+.quickActionsGrid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+@media (min-width: 640px) {
+  .quickActionsGrid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quickActionsGrid {
+    @apply grid-cols-3;
+  }
+}
+
+.quickActionCard {
+  @apply bg-white p-6 rounded-lg shadow hover:shadow-md border border-gray-200;
+  transition: box-shadow var(--transition-normal);
+}
+
+.quickActionContent {
+  @apply flex items-center;
+}
+
+.quickActionIcon {
+  @apply flex-shrink-0 p-2 rounded-md;
+}
+
+.quickActionIconResume {
+  @apply bg-blue-100;
+}
+
+.quickActionIconApplication {
+  @apply bg-green-100;
+}
+
+.quickActionIconRefresh {
+  @apply bg-gray-100;
+}
+
+.quickActionIconSvg {
+  @apply h-5 w-5;
+}
+
+.quickActionIconSvgResume {
+  @apply text-blue-600;
+}
+
+.quickActionIconSvgApplication {
+  @apply text-green-600;
+}
+
+.quickActionIconSvgRefresh {
+  @apply text-gray-600;
+}
+
+.quickActionText {
+  @apply ml-4;
+}
+
+.quickActionTitle {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.quickActionDescription {
+  @apply text-sm text-gray-500;
+}
+
+/* Recent Activity */
+.activityGrid {
+  @apply grid grid-cols-1 gap-8;
+}
+
+@media (min-width: 1024px) {
+  .activityGrid {
+    @apply grid-cols-2;
+  }
+}
+
+.activityCard {
+  @apply bg-white shadow rounded-lg;
+}
+
+.activityCardContent {
+  @apply px-4 py-5;
+}
+
+@media (min-width: 640px) {
+  .activityCardContent {
+    @apply p-6;
+  }
+}
+
+.activityCardTitle {
+  @apply text-lg leading-6 font-medium text-gray-900 mb-4;
+}
+
+/* Activity Items */
+.activityList {
+  @apply space-y-3;
+}
+
+.activityItem {
+  @apply flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0;
+}
+
+.activityItemContent {
+  @apply flex-1;
+}
+
+.activityItemTitle {
+  @apply text-sm font-medium text-gray-900 hover:text-blue-600;
+  transition: color var(--transition-normal);
+}
+
+.activityItemMeta {
+  @apply text-xs text-gray-500 mt-1;
+}
+
+.activityItemActions {
+  @apply flex items-center space-x-2;
+}
+
+.activityItemAction {
+  @apply text-xs text-blue-600 hover:text-blue-800;
+  transition: color var(--transition-normal);
+}
+
+/* Status Badge */
+.statusBadge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.statusBadgeApplied {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.statusBadgeInterviewing {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.statusBadgeOffer {
+  @apply bg-green-100 text-green-800;
+}
+
+.statusBadgeRejected {
+  @apply bg-red-100 text-red-800;
+}
+
+.statusBadgeDefault {
+  @apply bg-gray-100 text-gray-800;
+}
+
+/* Empty State */
+.emptyState {
+  @apply text-center py-6;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateText {
+  @apply text-sm text-gray-500 mt-2;
+}
+
+.emptyStateAction {
+  @apply text-sm font-medium mt-1 inline-block;
+}
+
+.emptyStateActionResumes {
+  @apply text-blue-600 hover:text-blue-800;
+}
+
+.emptyStateActionApplications {
+  @apply text-blue-600 hover:text-blue-800;
+}
+
+/* Dark mode support */
+.dark .welcomeTitle {
+  @apply text-gray-100;
+}
+
+.dark .welcomeSubtitle {
+  @apply text-gray-400;
+}
+
+.dark .errorAlert {
+  @apply bg-red-900 bg-opacity-20 border-red-400;
+}
+
+.dark .errorIcon {
+  @apply text-red-400;
+}
+
+.dark .errorMessage {
+  @apply text-red-300;
+}
+
+.dark .statsCard {
+  @apply bg-gray-800;
+}
+
+.dark .statsCardLabel {
+  @apply text-gray-400;
+}
+
+.dark .statsCardValue {
+  @apply text-gray-100;
+}
+
+.dark .statsCardFooter {
+  @apply bg-gray-700;
+}
+
+.dark .quickActionsTitle {
+  @apply text-gray-100;
+}
+
+.dark .quickActionCard {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .quickActionIconResume {
+  @apply bg-blue-900;
+}
+
+.dark .quickActionIconApplication {
+  @apply bg-green-900;
+}
+
+.dark .quickActionIconRefresh {
+  @apply bg-gray-700;
+}
+
+.dark .quickActionTitle {
+  @apply text-gray-100;
+}
+
+.dark .quickActionDescription {
+  @apply text-gray-400;
+}
+
+.dark .activityCard {
+  @apply bg-gray-800;
+}
+
+.dark .activityCardTitle {
+  @apply text-gray-100;
+}
+
+.dark .activityItem {
+  @apply border-gray-700;
+}
+
+.dark .activityItemTitle {
+  @apply text-gray-100 hover:text-blue-400;
+}
+
+.dark .activityItemMeta {
+  @apply text-gray-400;
+}
+
+.dark .activityItemAction {
+  @apply text-blue-400 hover:text-blue-300;
+}
+
+.dark .emptyStateIcon {
+  @apply text-gray-600;
+}
+
+.dark .emptyStateText {
+  @apply text-gray-400;
+}
+
+.dark .emptyStateActionResumes,
+.dark .emptyStateActionApplications {
+  @apply text-blue-400 hover:text-blue-300;
+}

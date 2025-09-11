@@ -1,0 +1,233 @@
+/**
+ * ConfirmDialog Component Styles
+ * Modal confirmation dialog with variants
+ */
+
+.overlay {
+  @apply fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4;
+  z-index: var(--z-modal);
+}
+
+.dialog {
+  @apply relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto;
+}
+
+.content {
+  @apply p-6;
+}
+
+.header {
+  @apply flex items-center;
+}
+
+.iconContainer {
+  @apply mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full;
+}
+
+.iconContainerDanger {
+  @apply bg-red-100;
+}
+
+.iconContainerWarning {
+  @apply bg-yellow-100;
+}
+
+.iconContainerInfo {
+  @apply bg-blue-100;
+}
+
+.icon {
+  @apply w-6 h-6;
+}
+
+.iconDanger {
+  @apply text-red-600;
+}
+
+.iconWarning {
+  @apply text-yellow-600;
+}
+
+.iconInfo {
+  @apply text-blue-600;
+}
+
+.textContainer {
+  @apply mt-0 ml-4 text-left;
+}
+
+.title {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.messageContainer {
+  @apply mt-2;
+}
+
+.message {
+  @apply text-sm text-gray-500;
+}
+
+/* Footer Actions */
+.footer {
+  @apply bg-gray-50 px-4 py-3 rounded-b-lg;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    @apply px-6 flex flex-row-reverse;
+  }
+}
+
+.confirmButton {
+  @apply w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2;
+  transition: colors var(--transition-normal);
+}
+
+@media (min-width: 640px) {
+  .confirmButton {
+    @apply ml-3 w-auto text-sm;
+  }
+}
+
+.confirmButtonDanger {
+  @apply bg-red-600 hover:bg-red-700 focus:ring-red-500;
+}
+
+.confirmButtonWarning {
+  @apply bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500;
+}
+
+.confirmButtonInfo {
+  @apply bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.confirmButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.confirmButtonLoading {
+  @apply flex items-center;
+}
+
+.loadingSpinner {
+  @apply animate-spin -ml-1 mr-2 h-4 w-4 text-white;
+}
+
+.loadingSpinnerCircle {
+  @apply opacity-25;
+  stroke: currentColor;
+  stroke-width: 4;
+}
+
+.loadingSpinnerPath {
+  @apply opacity-75;
+  fill: currentColor;
+}
+
+.cancelButton {
+  @apply mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  transition: colors var(--transition-normal);
+}
+
+@media (min-width: 640px) {
+  .cancelButton {
+    @apply mt-0 ml-3 w-auto text-sm;
+  }
+}
+
+.cancelButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Dark mode support */
+.dark .overlay {
+  @apply bg-gray-900 bg-opacity-75;
+}
+
+.dark .dialog {
+  @apply bg-gray-800;
+}
+
+.dark .iconContainerDanger {
+  @apply bg-red-900;
+}
+
+.dark .iconContainerWarning {
+  @apply bg-yellow-900;
+}
+
+.dark .iconContainerInfo {
+  @apply bg-blue-900;
+}
+
+.dark .iconDanger {
+  @apply text-red-400;
+}
+
+.dark .iconWarning {
+  @apply text-yellow-400;
+}
+
+.dark .iconInfo {
+  @apply text-blue-400;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .message {
+  @apply text-gray-400;
+}
+
+.dark .footer {
+  @apply bg-gray-700;
+}
+
+.dark .confirmButtonDanger {
+  @apply bg-red-700 hover:bg-red-600;
+}
+
+.dark .confirmButtonWarning {
+  @apply bg-yellow-700 hover:bg-yellow-600;
+}
+
+.dark .confirmButtonInfo {
+  @apply bg-blue-700 hover:bg-blue-600;
+}
+
+.dark .cancelButton {
+  @apply bg-gray-600 border-gray-500 text-gray-300 hover:bg-gray-500 focus:ring-gray-400;
+}
+
+/* Animation classes */
+.fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.fadeOut {
+  animation: fadeOut 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}

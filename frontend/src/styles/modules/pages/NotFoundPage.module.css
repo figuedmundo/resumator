@@ -1,0 +1,109 @@
+/**
+ * NotFoundPage Component Styles
+ * 404 error page with navigation options
+ */
+
+.container {
+  @apply min-h-screen bg-white px-4 py-16;
+}
+
+@media (min-width: 640px) {
+  .container {
+    @apply px-6 py-24;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    @apply grid place-items-center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+.content {
+  @apply max-w-max mx-auto;
+}
+
+.main {
+  @apply sm:flex;
+}
+
+.errorCode {
+  @apply text-4xl font-extrabold text-blue-600;
+}
+
+@media (min-width: 640px) {
+  .errorCode {
+    @apply text-5xl;
+  }
+}
+
+.messageSection {
+  @apply sm:ml-6;
+}
+
+.messageContainer {
+  @apply sm:border-l sm:border-gray-200 sm:pl-6;
+}
+
+.title {
+  @apply text-4xl font-extrabold text-gray-900 tracking-tight;
+}
+
+@media (min-width: 640px) {
+  .title {
+    @apply text-5xl;
+  }
+}
+
+.subtitle {
+  @apply mt-1 text-base text-gray-500;
+}
+
+.actionsContainer {
+  @apply mt-10 flex space-x-3 sm:border-l sm:border-transparent sm:pl-6;
+}
+
+.homeButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  transition: background-color var(--transition-normal);
+}
+
+.resumesButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  transition: background-color var(--transition-normal);
+}
+
+/* Dark mode support */
+.dark .container {
+  @apply bg-gray-900;
+}
+
+.dark .errorCode {
+  @apply text-blue-400;
+}
+
+.dark .messageContainer {
+  @apply sm:border-gray-700;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .homeButton {
+  @apply bg-blue-700 hover:bg-blue-600;
+}
+
+.dark .resumesButton {
+  @apply text-blue-300 bg-blue-900 hover:bg-blue-800;
+}

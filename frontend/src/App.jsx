@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
 import { useAuth } from './hooks/useAuth';
 import Header from './components/common/Header';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import styles from './styles/modules/layouts/App.module.css';
 
 // Auth pages
 import LoginPage from './pages/auth/LoginPage';
@@ -30,7 +32,7 @@ function ProtectedRoute({ children }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className={styles.protectedRouteLoading}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -50,7 +52,7 @@ function PublicRoute({ children }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className={styles.loadingContainer}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -66,9 +68,9 @@ function PublicRoute({ children }) {
 // Layout component for protected pages
 function AppLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={styles.appLayout}>
       <Header />
-      <main className="pb-8">
+      <main className={styles.appLayoutMain}>
         {children}
       </main>
     </div>
@@ -78,7 +80,7 @@ function AppLayout({ children }) {
 // Layout component for auth pages (no header)
 function AuthLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={styles.authLayout}>
       {children}
     </div>
   );
@@ -90,17 +92,17 @@ function App() {
   // Show loading spinner during initial auth check
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+      <div className={styles.initialLoadingContainer}>
+        <div className={styles.loadingContent}>
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className={styles.loadingText}>Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="App">
+    <div className={styles.app}>
       <Routes>
         {/* Public routes (auth pages) */}
         <Route

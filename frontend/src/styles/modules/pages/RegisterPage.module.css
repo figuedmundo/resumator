@@ -1,0 +1,263 @@
+/**
+ * RegisterPage Component Styles
+ * User registration form page - extends LoginPage styles
+ */
+
+.container {
+  @apply min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4;
+}
+
+@media (min-width: 640px) {
+  .container {
+    @apply px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+.formContainer {
+  @apply max-w-md w-full space-y-8;
+}
+
+/* Header Section */
+.header {
+  @apply text-center;
+}
+
+.logoContainer {
+  @apply mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100;
+}
+
+.logoIcon {
+  @apply text-blue-600 font-bold text-xl;
+}
+
+.title {
+  @apply mt-6 text-center text-3xl font-extrabold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-2 text-center text-sm text-gray-600;
+}
+
+.signinLink {
+  @apply font-medium text-blue-600 hover:text-blue-500;
+  transition: color var(--transition-normal);
+}
+
+/* Form Section */
+.form {
+  @apply mt-8 space-y-6;
+}
+
+.formFields {
+  @apply space-y-4;
+}
+
+/* Form Fields */
+.field {
+  /* Container for each form field */
+}
+
+.label {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.inputContainer {
+  @apply mt-1 relative;
+}
+
+.input {
+  @apply appearance-none relative block w-full px-3 py-2 border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm;
+  transition: colors var(--transition-normal);
+}
+
+.inputDefault {
+  @apply border-gray-300;
+}
+
+.inputError {
+  @apply border-red-300 bg-red-50;
+}
+
+.inputWithIcon {
+  @apply pr-10;
+}
+
+.passwordToggle {
+  @apply absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer;
+}
+
+.passwordIcon {
+  @apply h-5 w-5 text-gray-400;
+}
+
+.fieldError {
+  @apply mt-1 text-sm text-red-600;
+}
+
+.fieldHint {
+  @apply mt-1 text-xs text-gray-500;
+}
+
+/* Terms and Conditions */
+.termsContainer {
+  @apply flex items-center;
+}
+
+.termsCheckbox {
+  @apply h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded;
+}
+
+.termsCheckboxError {
+  @apply border-red-300;
+}
+
+.termsLabel {
+  @apply ml-2 block text-sm text-gray-900;
+}
+
+.termsLink {
+  @apply text-blue-600 hover:text-blue-500;
+  transition: color var(--transition-normal);
+}
+
+/* Auth Error Alert */
+.authError {
+  @apply rounded-md bg-red-50 p-4;
+}
+
+.authErrorContent {
+  @apply flex;
+}
+
+.authErrorIcon {
+  @apply flex-shrink-0;
+}
+
+.authErrorIconSvg {
+  @apply h-5 w-5 text-red-400;
+}
+
+.authErrorText {
+  @apply ml-3;
+}
+
+.authErrorTitle {
+  @apply text-sm font-medium text-red-800;
+}
+
+.authErrorMessage {
+  @apply mt-2 text-sm text-red-700;
+}
+
+/* Submit Button */
+.submitButton {
+  @apply group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  transition: background-color var(--transition-normal);
+}
+
+.submitButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.submitButtonContent {
+  @apply flex items-center;
+}
+
+.submitButtonSpinner {
+  @apply mr-2;
+}
+
+/* Dark mode support */
+.dark .container {
+  @apply bg-gray-900;
+}
+
+.dark .logoContainer {
+  @apply bg-blue-900;
+}
+
+.dark .logoIcon {
+  @apply text-blue-400;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .signinLink {
+  @apply text-blue-400 hover:text-blue-300;
+}
+
+.dark .label {
+  @apply text-gray-300;
+}
+
+.dark .input {
+  @apply bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400;
+}
+
+.dark .inputDefault {
+  @apply border-gray-600;
+}
+
+.dark .inputError {
+  @apply border-red-400 bg-red-900 bg-opacity-20;
+}
+
+.dark .inputDefault:focus {
+  @apply border-blue-400 ring-blue-400;
+}
+
+.dark .passwordIcon {
+  @apply text-gray-500;
+}
+
+.dark .fieldError {
+  @apply text-red-400;
+}
+
+.dark .fieldHint {
+  @apply text-gray-400;
+}
+
+.dark .termsLabel {
+  @apply text-gray-300;
+}
+
+.dark .termsCheckbox {
+  @apply bg-gray-800 border-gray-600;
+}
+
+.dark .termsLink {
+  @apply text-blue-400 hover:text-blue-300;
+}
+
+.dark .authError {
+  @apply bg-red-900 bg-opacity-20;
+}
+
+.dark .authErrorIconSvg {
+  @apply text-red-400;
+}
+
+.dark .authErrorTitle {
+  @apply text-red-300;
+}
+
+.dark .authErrorMessage {
+  @apply text-red-400;
+}
+
+.dark .submitButton {
+  @apply bg-blue-700 hover:bg-blue-600;
+}
