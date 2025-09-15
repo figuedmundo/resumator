@@ -1,0 +1,209 @@
+/**
+ * TemplateCard Component Styles
+ * Resume template selection card with preview
+ * Following rules: No @apply for hover:*, focus:*, group-* or interactive states
+ */
+
+.card {
+  @apply relative cursor-pointer rounded-lg border-2;
+  transition: all 0.2s;
+}
+
+.cardDefault {
+  @apply border-gray-200 bg-white;
+}
+
+.cardSelected {
+  @apply border-blue-500 bg-blue-50 shadow-md;
+}
+
+/* Selection Indicator */
+.selectionBadge {
+  @apply absolute -top-2 -right-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center;
+  z-index: 10;
+}
+
+.checkIcon {
+  @apply w-4 h-4;
+}
+
+/* Template Preview */
+.previewContainer {
+  @apply aspect-[3/4] bg-gray-100 rounded-t-lg overflow-hidden;
+}
+
+.preview {
+  @apply w-full h-full p-4 text-xs;
+}
+
+.previewModern {
+  @apply bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900;
+}
+
+.previewClassic {
+  @apply bg-white text-gray-900 border-2 border-gray-800;
+}
+
+.previewMinimal {
+  @apply bg-gradient-to-br from-gray-50 to-gray-100 text-gray-800;
+}
+
+.previewHeader {
+  @apply font-bold text-center pb-2 mb-2;
+}
+
+.previewHeaderModern {
+  @apply border-b-2 border-blue-400;
+}
+
+.previewHeaderClassic {
+  @apply border-b border-gray-800;
+}
+
+.previewHeaderMinimal {
+  @apply border-b border-gray-400;
+}
+
+.previewContent {
+  @apply text-xs space-y-1;
+}
+
+.previewContentModern {
+  @apply text-blue-800;
+}
+
+.previewContentClassic {
+  @apply text-gray-800;
+}
+
+.previewContentMinimal {
+  @apply text-gray-700;
+}
+
+.sectionTitle {
+  @apply font-semibold;
+}
+
+.sectionTitleSpaced {
+  @apply font-semibold mt-2;
+}
+
+.mockLine {
+  @apply bg-current opacity-20 rounded;
+}
+
+.mockLineLarge {
+  @apply h-2;
+}
+
+.mockLineMedium {
+  @apply h-1;
+}
+
+.mockLineThreeQuarter {
+  @apply w-3/4;
+}
+
+.mockLineHalf {
+  @apply w-1/2;
+}
+
+.mockLineFiveSixth {
+  @apply w-5/6;
+}
+
+.mockLineTwoThird {
+  @apply w-2/3;
+}
+
+.mockLineFourFifth {
+  @apply w-4/5;
+}
+
+/* Template Info */
+.info {
+  @apply p-4;
+}
+
+.title {
+  @apply font-semibold text-gray-900 mb-2;
+}
+
+.description {
+  @apply text-sm text-gray-600 mb-3;
+}
+
+.features {
+  @apply space-y-1;
+}
+
+.feature {
+  @apply flex items-center text-xs text-gray-500;
+}
+
+.featureDot {
+  @apply w-2 h-2 rounded-full mr-2;
+}
+
+.featureDotModern {
+  @apply bg-blue-400;
+}
+
+.featureDotClassic {
+  @apply bg-gray-600;
+}
+
+.featureDotMinimal {
+  @apply bg-gray-400;
+}
+
+/* Hover Overlay */
+.hoverOverlay {
+  @apply absolute inset-0 rounded-lg bg-blue-500;
+  transition: opacity 0.2s;
+}
+
+.hoverOverlayHidden {
+  @apply opacity-0;
+}
+
+.hoverOverlayVisible {
+  @apply opacity-10;
+}
+
+/* Dark mode support */
+.dark .cardDefault {
+  @apply border-gray-700 bg-gray-800;
+}
+
+.dark .cardSelected {
+  @apply border-blue-400 bg-blue-900 bg-opacity-20;
+}
+
+.dark .previewContainer {
+  @apply bg-gray-700;
+}
+
+.dark .previewClassic {
+  @apply bg-gray-800 border-gray-600 text-gray-100;
+}
+
+.dark .previewHeaderClassic {
+  @apply border-gray-600;
+}
+
+.dark .previewContentClassic {
+  @apply text-gray-300;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .description {
+  @apply text-gray-400;
+}
+
+.dark .feature {
+  @apply text-gray-400;
+}

@@ -1,0 +1,49 @@
+/**
+ * ProfilePage Component Styles
+ * User profile settings page (currently placeholder)
+ */
+
+.container {
+  @apply max-w-7xl mx-auto px-4 py-8;
+}
+
+@media (min-width: 640px) {
+  .container {
+    @apply px-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    @apply px-8;
+  }
+}
+
+.placeholder {
+  @apply text-center py-12;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-2 text-gray-600;
+}
+
+.comingSoon {
+  @apply mt-4 text-sm text-gray-500;
+}
+
+/* Dark mode support */
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .comingSoon {
+  @apply text-gray-500;
+}

@@ -1,0 +1,114 @@
+/**
+ * FileUploadZone Component Styles
+ * Drag and drop file upload interface
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.container {
+  /* Main container - inherits className */
+}
+
+.hiddenInput {
+  @apply hidden;
+}
+
+/* Upload Zone */
+.uploadZone {
+  @apply border-2 border-dashed rounded-lg p-6 text-center;
+  transition: all 0.2s;
+}
+
+.uploadZoneDefault {
+  @apply border-gray-300;
+}
+
+.uploadZoneDragOver {
+  @apply border-blue-400 bg-blue-50;
+  transform: scale(1.05);
+}
+
+.uploadContent {
+  @apply flex flex-col items-center space-y-2;
+}
+
+/* Upload Icon */
+.uploadIcon {
+  @apply w-8 h-8;
+  transition: color 0.2s;
+}
+
+.uploadIconDefault {
+  @apply text-gray-400;
+}
+
+.uploadIconDragOver {
+  @apply text-blue-500;
+}
+
+/* Upload Text */
+.uploadText {
+  /* Container for upload text */
+}
+
+.uploadLabel {
+  @apply cursor-pointer font-medium;
+  transition: color 0.2s;
+}
+
+.uploadLabelDefault {
+  @apply text-blue-500;
+}
+
+.uploadLabelDragOver {
+  @apply text-blue-600;
+}
+
+.uploadHint {
+  @apply text-xs text-gray-500;
+}
+
+/* Error Message */
+.errorMessage {
+  @apply mt-2 p-2 bg-red-50 border border-red-200 rounded-md;
+}
+
+.errorText {
+  @apply text-sm text-red-600;
+}
+
+/* Dark mode support */
+.dark .uploadZoneDefault {
+  @apply border-gray-600;
+}
+
+.dark .uploadZoneDragOver {
+  @apply border-blue-400 bg-blue-900 bg-opacity-20;
+}
+
+.dark .uploadIconDefault {
+  @apply text-gray-500;
+}
+
+.dark .uploadIconDragOver {
+  @apply text-blue-400;
+}
+
+.dark .uploadLabelDefault {
+  @apply text-blue-400;
+}
+
+.dark .uploadLabelDragOver {
+  @apply text-blue-300;
+}
+
+.dark .uploadHint {
+  @apply text-gray-400;
+}
+
+.dark .errorMessage {
+  @apply bg-red-900 bg-opacity-20 border-red-400;
+}
+
+.dark .errorText {
+  @apply text-red-400;
+}

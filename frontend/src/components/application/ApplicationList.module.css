@@ -1,0 +1,506 @@
+/**
+ * ApplicationList Component Styles
+ * Job applications list with filtering, search, and pagination
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.container {
+  @apply space-y-6;
+}
+
+/* Loading State */
+.loading {
+  @apply flex items-center justify-center py-8;
+}
+
+/* Header */
+.header {
+  @apply flex items-center justify-between;
+}
+
+.headerContent {
+  /* Content section */
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-1 text-sm text-gray-600;
+}
+
+.newButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600;
+}
+
+.newButtonIcon {
+  @apply -ml-1 mr-2 h-4 w-4;
+}
+
+/* Stats Grid */
+.statsGrid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    @apply grid-cols-5;
+  }
+}
+
+.statsCard {
+  @apply bg-white overflow-hidden shadow rounded-lg;
+}
+
+.statsCardContent {
+  @apply p-5;
+}
+
+.statsCardInner {
+  @apply flex items-center;
+}
+
+.statsCardIcon {
+  @apply flex-shrink-0;
+}
+
+.statsCardIconDefault {
+  @apply h-6 w-6 text-gray-400;
+}
+
+.statsCardData {
+  @apply ml-5 w-0 flex-1;
+}
+
+.statsCardLabel {
+  @apply text-sm font-medium text-gray-500 truncate;
+}
+
+.statsCardValue {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.statusIndicator {
+  @apply w-3 h-3 rounded-full;
+}
+
+.statusIndicatorBlue {
+  @apply bg-blue-400;
+}
+
+.statusIndicatorYellow {
+  @apply bg-yellow-400;
+}
+
+.statusIndicatorGreen {
+  @apply bg-green-400;
+}
+
+.statusIndicatorRed {
+  @apply bg-red-400;
+}
+
+.statusIndicatorGray {
+  @apply bg-gray-400;
+}
+
+/* Filters Section */
+.filtersCard {
+  @apply bg-white shadow rounded-lg;
+}
+
+.filtersHeader {
+  @apply p-4 border-b border-gray-200;
+}
+
+.filtersContent {
+  @apply flex flex-col gap-4;
+}
+
+@media (min-width: 640px) {
+  .filtersContent {
+    @apply flex-row;
+  }
+}
+
+/* Search */
+.searchForm {
+  @apply flex-1;
+}
+
+.searchContainer {
+  @apply relative;
+}
+
+.searchIcon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400;
+}
+
+.searchInput {
+  @apply block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 text-sm;
+}
+
+/* Filter Controls */
+.filterControls {
+  @apply flex items-center space-x-4;
+}
+
+.filterIcon {
+  @apply h-4 w-4 text-gray-400;
+}
+
+.statusSelect {
+  @apply block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md text-sm;
+}
+
+/* Error Message */
+.errorMessage {
+  @apply p-4 bg-red-50 border-l-4 border-red-400;
+}
+
+.errorText {
+  @apply text-sm text-red-700;
+}
+
+/* Applications List */
+.listContainer {
+  @apply overflow-hidden;
+}
+
+.applicationsGrid {
+  @apply divide-y divide-gray-200;
+}
+
+.applicationItem {
+  @apply p-6;
+}
+
+.applicationContent {
+  @apply flex items-start justify-between;
+}
+
+.applicationMain {
+  @apply flex-1;
+}
+
+.applicationHeader {
+  @apply flex items-start justify-between;
+}
+
+.applicationInfo {
+  @apply flex-1;
+}
+
+.applicationTitleRow {
+  @apply flex items-center space-x-3;
+}
+
+.applicationTitle {
+  @apply text-lg font-medium text-gray-900;
+}
+
+.applicationMeta {
+  @apply mt-2 flex items-center text-sm text-gray-500 space-x-4;
+}
+
+.metaItem {
+  @apply flex items-center;
+}
+
+.metaIcon {
+  @apply flex-shrink-0 mr-1.5 h-4 w-4;
+}
+
+.applicationNotes {
+  @apply mt-2 text-sm text-gray-600 line-clamp-2;
+}
+
+.applicationActions {
+  @apply ml-4 flex items-center space-x-2;
+}
+
+.statusSelect {
+  @apply text-sm border-gray-300 rounded-md;
+}
+
+.actionButtons {
+  @apply flex items-center space-x-1;
+}
+
+.actionButton {
+  @apply p-1 text-gray-400;
+}
+
+.actionButtonView {
+  /* Default styling in base class */
+}
+
+.actionButtonEdit {
+  /* Default styling in base class */
+}
+
+.actionButtonDelete {
+  /* Default styling in base class */
+}
+
+.actionButtonDisabled {
+  @apply opacity-50;
+}
+
+/* Status Badges */
+.statusBadge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border;
+}
+
+.statusBadgeBlue {
+  @apply bg-blue-100 text-blue-800 border-blue-200;
+}
+
+.statusBadgeYellow {
+  @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+}
+
+.statusBadgeGreen {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.statusBadgeRed {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+.statusBadgeGray {
+  @apply bg-gray-100 text-gray-800 border-gray-200;
+}
+
+/* Empty State */
+.emptyState {
+  @apply text-center py-12;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateTitle {
+  @apply mt-2 text-sm font-medium text-gray-900;
+}
+
+.emptyStateDescription {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.emptyStateActions {
+  @apply mt-6;
+}
+
+.emptyStateButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600;
+}
+
+.emptyStateButtonIcon {
+  @apply -ml-1 mr-2 h-4 w-4;
+}
+
+/* Pagination */
+.pagination {
+  @apply bg-white px-4 py-3 border-t border-gray-200;
+}
+
+@media (min-width: 640px) {
+  .pagination {
+    @apply px-6;
+  }
+}
+
+.paginationContent {
+  @apply flex items-center justify-between;
+}
+
+/* Mobile pagination */
+.paginationMobile {
+  @apply flex-1 flex justify-between;
+}
+
+@media (min-width: 640px) {
+  .paginationMobile {
+    @apply hidden;
+  }
+}
+
+.paginationButton {
+  @apply relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white;
+}
+
+.paginationButtonNext {
+  @apply ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white;
+}
+
+.paginationButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Desktop pagination */
+.paginationDesktop {
+  @apply hidden;
+}
+
+@media (min-width: 640px) {
+  .paginationDesktop {
+    @apply flex-1 flex items-center justify-between;
+  }
+}
+
+.paginationInfo {
+  /* Stats info */
+}
+
+.paginationInfoText {
+  @apply text-sm text-gray-700;
+}
+
+.paginationInfoNumber {
+  @apply font-medium;
+}
+
+.paginationNav {
+  @apply relative z-0 inline-flex rounded-md shadow-sm -space-x-px;
+}
+
+.paginationNavButton {
+  @apply relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500;
+}
+
+.paginationNavButtonFirst {
+  @apply rounded-l-md;
+}
+
+.paginationNavButtonLast {
+  @apply rounded-r-md;
+}
+
+.paginationNavButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.pageNumber {
+  @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.pageNumberActive {
+  @apply z-10 bg-blue-50 border-blue-500 text-blue-600;
+}
+
+.pageNumberInactive {
+  @apply bg-white border-gray-300 text-gray-500;
+}
+
+/* Dark mode support */
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .newButton {
+  @apply bg-blue-700;
+}
+
+.dark .statsCard {
+  @apply bg-gray-800;
+}
+
+.dark .statsCardLabel {
+  @apply text-gray-400;
+}
+
+.dark .statsCardValue {
+  @apply text-gray-100;
+}
+
+.dark .filtersCard {
+  @apply bg-gray-800;
+}
+
+.dark .filtersHeader {
+  @apply border-gray-700;
+}
+
+.dark .searchInput {
+  @apply bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400;
+}
+
+.dark .statusSelect {
+  @apply bg-gray-700 border-gray-600 text-gray-100;
+}
+
+.dark .errorMessage {
+  @apply bg-red-900 bg-opacity-20 border-red-400;
+}
+
+.dark .errorText {
+  @apply text-red-300;
+}
+
+.dark .applicationsGrid {
+  @apply divide-gray-700;
+}
+
+.dark .applicationTitle {
+  @apply text-gray-100;
+}
+
+.dark .applicationMeta {
+  @apply text-gray-400;
+}
+
+.dark .applicationNotes {
+  @apply text-gray-300;
+}
+
+.dark .actionButton {
+  @apply text-gray-500;
+}
+
+.dark .emptyStateIcon {
+  @apply text-gray-600;
+}
+
+.dark .emptyStateTitle {
+  @apply text-gray-100;
+}
+
+.dark .emptyStateDescription {
+  @apply text-gray-400;
+}
+
+.dark .emptyStateButton {
+  @apply bg-blue-700;
+}
+
+.dark .pagination {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .paginationButton,
+.dark .paginationButtonNext {
+  @apply bg-gray-700 border-gray-600 text-gray-300;
+}
+
+.dark .paginationInfoText {
+  @apply text-gray-300;
+}
+
+.dark .paginationNavButton {
+  @apply bg-gray-700 border-gray-600 text-gray-400;
+}
+
+.dark .pageNumberActive {
+  @apply bg-blue-900 border-blue-400 text-blue-300;
+}
+
+.dark .pageNumberInactive {
+  @apply bg-gray-700 border-gray-600 text-gray-400;
+}

@@ -12,11 +12,13 @@ import {
   CalendarIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ConfirmDialog from '../common/ConfirmDialog';
 import apiService from '../../services/api';
 import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../utils/constants';
 import { devLog, formatDate } from '../../utils/helpers';
+import styles from './ApplicationList.module.css';
 
 const ApplicationList = () => {
   const navigate = useNavigate();
@@ -186,20 +188,38 @@ const ApplicationList = () => {
     }
   };
 
+  const getStatusBadgeClass = (status) => {
+    const statusOption = statusOptions.find(opt => opt.value === status);
+    if (!statusOption) return styles.statusBadgeGray;
+
+    const colorClasses = {
+      blue: styles.statusBadgeBlue,
+      yellow: styles.statusBadgeYellow,
+      green: styles.statusBadgeGreen,
+      red: styles.statusBadgeRed,
+      gray: styles.statusBadgeGray
+    };
+
+    return colorClasses[statusOption.color];
+  };
+
+  const getStatusIndicatorClass = (color) => {
+    const colorClasses = {
+      blue: styles.statusIndicatorBlue,
+      yellow: styles.statusIndicatorYellow,
+      green: styles.statusIndicatorGreen,
+      red: styles.statusIndicatorRed,
+      gray: styles.statusIndicatorGray
+    };
+    return colorClasses[color];
+  };
+
   const getStatusBadge = (status) => {
     const statusOption = statusOptions.find(opt => opt.value === status);
     if (!statusOption) return null;
 
-    const colorClasses = {
-      blue: 'bg-blue-100 text-blue-800 border-blue-200',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      green: 'bg-green-100 text-green-800 border-green-200',
-      red: 'bg-red-100 text-red-800 border-red-200',
-      gray: 'bg-gray-100 text-gray-800 border-gray-200'
-    };
-
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClasses[statusOption.color]}`}>
+      <span className={clsx(styles.statusBadge, getStatusBadgeClass(status))}>
         {statusOption.label}
       </span>
     );
@@ -211,43 +231,46 @@ const ApplicationList = () => {
 
   if (loading && applications.length === 0) {
     return (
-      <div className="flex items-center justify-center py-8">
+      <div className={styles.loading}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={styles.container}>
       {/* Header with Stats */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job Applications</h1>
-          <p className="mt-1 text-sm text-gray-600">
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Job Applications</h1>
+          <p className={styles.subtitle}>
             Track and manage your job applications
           </p>
         </div>
         <Link
           to="/applications/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className={clsx(
+            styles.newButton,
+            "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          )}
         >
-          <PlusIcon className="-ml-1 mr-2 h-4 w-4" />
+          <PlusIcon className={styles.newButtonIcon} />
           New Application
         </Link>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <DocumentTextIcon className="h-6 w-6 text-gray-400" />
+      <div className={styles.statsGrid}>
+        <div className={styles.statsCard}>
+          <div className={styles.statsCardContent}>
+            <div className={styles.statsCardInner}>
+              <div className={styles.statsCardIcon}>
+                <DocumentTextIcon className={styles.statsCardIconDefault} />
               </div>
-              <div className="ml-5 w-0 flex-1">
+              <div className={styles.statsCardData}>
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total</dt>
-                  <dd className="text-lg font-medium text-gray-900">{totalCount}</dd>
+                  <dt className={styles.statsCardLabel}>Total</dt>
+                  <dd className={styles.statsCardValue}>{totalCount}</dd>
                 </dl>
               </div>
             </div>
@@ -255,22 +278,19 @@ const ApplicationList = () => {
         </div>
 
         {statusOptions.slice(1).map((status) => (
-          <div key={status.value} className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className={`w-3 h-3 rounded-full ${
-                    status.color === 'blue' ? 'bg-blue-400' :
-                    status.color === 'yellow' ? 'bg-yellow-400' :
-                    status.color === 'green' ? 'bg-green-400' :
-                    status.color === 'red' ? 'bg-red-400' :
-                    'bg-gray-400'
-                  }`} />
+          <div key={status.value} className={styles.statsCard}>
+            <div className={styles.statsCardContent}>
+              <div className={styles.statsCardInner}>
+                <div className={styles.statsCardIcon}>
+                  <div className={clsx(
+                    styles.statusIndicator,
+                    getStatusIndicatorClass(status.color)
+                  )} />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className={styles.statsCardData}>
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">{status.label}</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats[status.value] || 0}</dd>
+                    <dt className={styles.statsCardLabel}>{status.label}</dt>
+                    <dd className={styles.statsCardValue}>{stats[status.value] || 0}</dd>
                   </dl>
                 </div>
               </div>
@@ -280,30 +300,36 @@ const ApplicationList = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-4">
+      <div className={styles.filtersCard}>
+        <div className={styles.filtersHeader}>
+          <div className={styles.filtersContent}>
             {/* Search */}
-            <form onSubmit={handleSearch} className="flex-1">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <form onSubmit={handleSearch} className={styles.searchForm}>
+              <div className={styles.searchContainer}>
+                <MagnifyingGlassIcon className={styles.searchIcon} />
                 <input
                   type="text"
                   placeholder="Search companies, positions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className={clsx(
+                    styles.searchInput,
+                    "focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  )}
                 />
               </div>
             </form>
 
             {/* Status Filter */}
-            <div className="flex items-center space-x-4">
-              <FunnelIcon className="h-4 w-4 text-gray-400" />
+            <div className={styles.filterControls}>
+              <FunnelIcon className={styles.filterIcon} />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className={clsx(
+                  styles.statusSelect,
+                  "focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                )}
               >
                 {statusOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -317,74 +343,83 @@ const ApplicationList = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="p-4 bg-red-50 border-l-4 border-red-400">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className={styles.errorMessage}>
+            <p className={styles.errorText}>{error}</p>
           </div>
         )}
 
         {/* Applications List */}
-        <div className="overflow-hidden">
+        <div className={styles.listContainer}>
           {applications.length === 0 && !loading ? (
-            <div className="text-center py-12">
-              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No applications</h3>
-              <p className="mt-1 text-sm text-gray-500">
+            <div className={styles.emptyState}>
+              <DocumentTextIcon className={styles.emptyStateIcon} />
+              <h3 className={styles.emptyStateTitle}>No applications</h3>
+              <p className={styles.emptyStateDescription}>
                 {searchQuery || statusFilter 
                   ? 'No applications match your current filters.'
                   : 'Get started by creating your first job application.'
                 }
               </p>
               {!searchQuery && !statusFilter && (
-                <div className="mt-6">
+                <div className={styles.emptyStateActions}>
                   <Link
                     to="/applications/new"
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className={clsx(
+                      styles.emptyStateButton,
+                      "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    )}
                   >
-                    <PlusIcon className="-ml-1 mr-2 h-4 w-4" />
+                    <PlusIcon className={styles.emptyStateButtonIcon} />
                     New Application
                   </Link>
                 </div>
               )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className={styles.applicationsGrid}>
               {applications.map((application) => (
-                <div key={application.id} className="p-6 hover:bg-gray-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="text-lg font-medium text-gray-900">
+                <div
+                  key={application.id}
+                  className={clsx(styles.applicationItem, "hover:bg-gray-50")}
+                >
+                  <div className={styles.applicationContent}>
+                    <div className={styles.applicationMain}>
+                      <div className={styles.applicationHeader}>
+                        <div className={styles.applicationInfo}>
+                          <div className={styles.applicationTitleRow}>
+                            <h3 className={styles.applicationTitle}>
                               {application.position}
                             </h3>
                             {getStatusBadge(application.status)}
                           </div>
                           
-                          <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-                            <div className="flex items-center">
-                              <BuildingOfficeIcon className="flex-shrink-0 mr-1.5 h-4 w-4" />
+                          <div className={styles.applicationMeta}>
+                            <div className={styles.metaItem}>
+                              <BuildingOfficeIcon className={styles.metaIcon} />
                               {application.company}
                             </div>
-                            <div className="flex items-center">
-                              <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4" />
+                            <div className={styles.metaItem}>
+                              <CalendarIcon className={styles.metaIcon} />
                               {formatDate(application.applied_date)}
                             </div>
                           </div>
 
                           {application.notes && (
-                            <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                            <p className={styles.applicationNotes}>
                               {application.notes}
                             </p>
                           )}
                         </div>
 
-                        <div className="ml-4 flex items-center space-x-2">
+                        <div className={styles.applicationActions}>
                           {/* Status Dropdown */}
                           <select
                             value={application.status}
                             onChange={(e) => handleStatusChange(application.id, e.target.value)}
-                            className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            className={clsx(
+                              styles.statusSelect,
+                              "focus:ring-blue-500 focus:border-blue-500"
+                            )}
                           >
                             {statusOptions.slice(1).map(option => (
                               <option key={option.value} value={option.value}>
@@ -394,17 +429,25 @@ const ApplicationList = () => {
                           </select>
 
                           {/* Actions */}
-                          <div className="flex items-center space-x-1">
+                          <div className={styles.actionButtons}>
                             <button
                               onClick={() => navigate(`/applications/${application.id}`)}
-                              className="p-1 text-gray-400 hover:text-gray-600"
+                              className={clsx(
+                                styles.actionButton,
+                                styles.actionButtonView,
+                                "hover:text-gray-600"
+                              )}
                               title="View details"
                             >
                               <EyeIcon className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => navigate(`/applications/${application.id}/edit`)}
-                              className="p-1 text-gray-400 hover:text-blue-600"
+                              className={clsx(
+                                styles.actionButton,
+                                styles.actionButtonEdit,
+                                "hover:text-blue-600"
+                              )}
                               title="Edit application"
                             >
                               <PencilIcon className="h-4 w-4" />
@@ -412,7 +455,11 @@ const ApplicationList = () => {
                             <button
                               onClick={() => confirmDeleteApplication(application)}
                               disabled={deleting === application.id}
-                              className="p-1 text-gray-400 hover:text-red-600 disabled:opacity-50"
+                              className={clsx(
+                                styles.actionButton,
+                                styles.actionButtonDelete,
+                                "hover:text-red-600 disabled:opacity-50"
+                              )}
                               title="Delete application"
                             >
                               {deleting === application.id ? (
@@ -434,44 +481,54 @@ const ApplicationList = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 flex justify-between sm:hidden">
+          <div className={styles.pagination}>
+            <div className={styles.paginationContent}>
+              <div className={styles.paginationMobile}>
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx(
+                    styles.paginationButton,
+                    "hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx(
+                    styles.paginationButtonNext,
+                    "hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  )}
                 >
                   Next
                 </button>
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
+              <div className={styles.paginationDesktop}>
+                <div className={styles.paginationInfo}>
+                  <p className={styles.paginationInfoText}>
                     Showing{' '}
-                    <span className="font-medium">{(currentPage - 1) * perPage + 1}</span>
+                    <span className={styles.paginationInfoNumber}>{(currentPage - 1) * perPage + 1}</span>
                     {' '}to{' '}
-                    <span className="font-medium">
+                    <span className={styles.paginationInfoNumber}>
                       {Math.min(currentPage * perPage, totalCount)}
                     </span>
                     {' '}of{' '}
-                    <span className="font-medium">{totalCount}</span>
+                    <span className={styles.paginationInfoNumber}>{totalCount}</span>
                     {' '}results
                   </p>
                 </div>
                 <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <nav className={styles.paginationNav}>
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={clsx(
+                        styles.paginationNavButton,
+                        styles.paginationNavButtonFirst,
+                        "hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      )}
                     >
                       Previous
                     </button>
@@ -483,11 +540,12 @@ const ApplicationList = () => {
                         <button
                           key={page}
                           onClick={() => handlePageChange(page)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                            currentPage === page
-                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                          }`}
+                          className={clsx(
+                            styles.pageNumber,
+                            currentPage === page 
+                              ? clsx(styles.pageNumberActive, "hover:bg-blue-100")
+                              : clsx(styles.pageNumberInactive, "hover:bg-gray-50")
+                          )}
                         >
                           {page}
                         </button>
@@ -497,7 +555,11 @@ const ApplicationList = () => {
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={clsx(
+                        styles.paginationNavButton,
+                        styles.paginationNavButtonLast,
+                        "hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      )}
                     >
                       Next
                     </button>
@@ -516,8 +578,8 @@ const ApplicationList = () => {
         onConfirm={handleDeleteApplication}
         title="Delete Application"
         message={`Are you sure you want to delete your application to ${applicationToDelete?.company} for the ${applicationToDelete?.position} position? This action cannot be undone.`}
-        confirmLabel="Delete"
-        confirmStyle="danger"
+        confirmText="Delete"
+        variant="danger"
       />
     </div>
   );

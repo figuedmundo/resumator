@@ -1,0 +1,124 @@
+/**
+ * TemplateSelector Component Styles
+ * Template selection interface with grid layout
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.container {
+  @apply bg-white rounded-lg border border-gray-200;
+}
+
+.loadingContainer {
+  @apply bg-white rounded-lg border border-gray-200 p-6;
+}
+
+.loadingContent {
+  @apply flex items-center justify-center py-8;
+}
+
+/* Header */
+.header {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.headerContent {
+  @apply flex items-center justify-between;
+}
+
+.headerText {
+  /* Container for header text */
+}
+
+.title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.subtitle {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.error {
+  @apply text-sm text-red-600 bg-red-50 px-3 py-1 rounded-md;
+}
+
+/* Template Grid */
+.content {
+  @apply p-6;
+}
+
+.templateGrid {
+  @apply grid grid-cols-1 gap-6;
+}
+
+@media (min-width: 768px) {
+  .templateGrid {
+    @apply grid-cols-3;
+  }
+}
+
+/* Selected Template Info */
+.selectedInfo {
+  @apply mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg;
+}
+
+.selectedInfoContent {
+  @apply flex items-center;
+}
+
+.selectedIcon {
+  @apply w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3;
+}
+
+.selectedIconSvg {
+  @apply w-5 h-5;
+}
+
+.selectedText {
+  /* Container for selected template text */
+}
+
+.selectedTitle {
+  @apply font-medium text-blue-900;
+}
+
+.selectedDescription {
+  @apply text-sm text-blue-700;
+}
+
+/* Dark mode support */
+.dark .container,
+.dark .loadingContainer {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .header {
+  @apply border-gray-700;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .error {
+  @apply text-red-400 bg-red-900 bg-opacity-20;
+}
+
+.dark .selectedInfo {
+  @apply bg-blue-900 bg-opacity-20 border-blue-400;
+}
+
+.dark .selectedIcon {
+  @apply bg-blue-600;
+}
+
+.dark .selectedTitle {
+  @apply text-blue-300;
+}
+
+.dark .selectedDescription {
+  @apply text-blue-400;
+}

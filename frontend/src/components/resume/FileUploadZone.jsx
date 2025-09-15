@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
+import clsx from 'clsx';
 import { MAX_FILE_SIZE } from '../../utils/constants';
+import styles from './FileUploadZone.module.css';
 
 export default function FileUploadZone({ onFileSelect, accept = '.md,.txt', className = '' }) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -83,14 +85,14 @@ export default function FileUploadZone({ onFileSelect, accept = '.md,.txt', clas
   }, [handleFiles]);
 
   return (
-    <div className={className}>
+    <div className={clsx(styles.container, className)}>
       {/* Hidden file input */}
       <input
         id="file-upload"
         type="file"
         accept={accept}
         onChange={handleFileInputChange}
-        className="hidden"
+        className={styles.hiddenInput}
       />
       
       {/* Drag and drop zone */}
@@ -98,19 +100,17 @@ export default function FileUploadZone({ onFileSelect, accept = '.md,.txt', clas
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`
-          border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
-          ${isDragOver 
-            ? 'border-blue-400 bg-blue-50 scale-105' 
-            : 'border-gray-300 hover:border-gray-400'
-          }
-        `}
+        className={clsx(
+          styles.uploadZone,
+          isDragOver ? styles.uploadZoneDragOver : clsx(styles.uploadZoneDefault, "hover:border-gray-400")
+        )}
       >
-        <div className="flex flex-col items-center space-y-2">
+        <div className={styles.uploadContent}>
           <svg 
-            className={`w-8 h-8 transition-colors duration-200 ${
-              isDragOver ? 'text-blue-500' : 'text-gray-400'
-            }`} 
+            className={clsx(
+              styles.uploadIcon,
+              isDragOver ? styles.uploadIconDragOver : styles.uploadIconDefault
+            )} 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -123,18 +123,21 @@ export default function FileUploadZone({ onFileSelect, accept = '.md,.txt', clas
             />
           </svg>
           
-          <div>
+          <div className={styles.uploadText}>
             <label
               htmlFor="file-upload"
-              className={`cursor-pointer font-medium transition-colors duration-200 ${
-                isDragOver ? 'text-blue-600' : 'text-blue-500 hover:text-blue-600'
-              }`}
+              className={clsx(
+                styles.uploadLabel,
+                isDragOver 
+                  ? styles.uploadLabelDragOver 
+                  : clsx(styles.uploadLabelDefault, "hover:text-blue-600")
+              )}
             >
               {isDragOver ? 'Drop your file here' : 'Click to upload or drag and drop'}
             </label>
           </div>
           
-          <p className="text-xs text-gray-500">
+          <p className={styles.uploadHint}>
             {accept.replace(/\./g, '').toUpperCase()} files up to {Math.round(MAX_FILE_SIZE.RESUME_MD / 1024)}KB
           </p>
         </div>
@@ -142,8 +145,8 @@ export default function FileUploadZone({ onFileSelect, accept = '.md,.txt', clas
       
       {/* Error message */}
       {error && (
-        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className={styles.errorMessage}>
+          <p className={styles.errorText}>{error}</p>
         </div>
       )}
     </div>
