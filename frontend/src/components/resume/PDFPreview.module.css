@@ -1,0 +1,244 @@
+/**
+ * PDFPreview Component Styles
+ * PDF preview with download and print functionality
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.container {
+  @apply bg-white rounded-lg border border-gray-200;
+}
+
+/* Empty State */
+.emptyState {
+  @apply bg-white rounded-lg border border-gray-200 p-6;
+}
+
+.emptyStateContent {
+  @apply text-center py-12;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateText {
+  @apply text-gray-500 mt-2;
+}
+
+/* Header */
+.header {
+  @apply px-4 py-3 border-b border-gray-200 bg-gray-50;
+}
+
+.headerContent {
+  @apply flex items-center justify-between;
+}
+
+.headerLeft {
+  @apply flex items-center space-x-2;
+}
+
+.headerIcon {
+  @apply w-5 h-5 text-gray-600;
+}
+
+.headerTitle {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.templateBadge {
+  @apply text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full capitalize;
+}
+
+.headerActions {
+  @apply flex items-center space-x-2;
+}
+
+/* Action Buttons */
+.actionButton {
+  @apply p-2 text-gray-600 rounded-md;
+  transition: all 0.2s;
+}
+
+.actionButtonDisabled {
+  @apply opacity-50;
+}
+
+.actionIcon {
+  @apply w-4 h-4;
+}
+
+.actionIconSpin {
+  animation: spin 1s linear infinite;
+}
+
+.downloadButton {
+  @apply inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600;
+  transition: background-color 0.2s;
+}
+
+.downloadButtonDisabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.downloadIcon {
+  @apply w-4 h-4 mr-2;
+}
+
+.downloadSpinner {
+  @apply mr-2;
+}
+
+/* Content Area */
+.content {
+  @apply relative;
+}
+
+/* Loading State */
+.loadingOverlay {
+  @apply absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center;
+  z-index: 10;
+}
+
+.loadingContent {
+  @apply text-center;
+}
+
+.loadingText {
+  @apply text-gray-600 mt-4;
+}
+
+/* Error State */
+.errorState {
+  @apply p-8;
+}
+
+.errorContent {
+  @apply text-center;
+}
+
+.errorIcon {
+  @apply mx-auto h-12 w-12 text-red-400;
+}
+
+.errorTitle {
+  @apply mt-4 text-lg font-medium text-gray-900;
+}
+
+.errorMessage {
+  @apply mt-2 text-gray-600;
+}
+
+.errorActions {
+  @apply mt-6;
+}
+
+.retryButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600;
+}
+
+.retryIcon {
+  @apply w-4 h-4 mr-2;
+}
+
+/* PDF Preview */
+.previewContainer {
+  @apply bg-gray-100 p-4;
+}
+
+.previewWrapper {
+  @apply bg-white shadow-lg mx-auto;
+  width: fit-content;
+}
+
+.previewIframe {
+  @apply w-full border-0;
+  width: 800px;
+  height: 1100px;
+  max-width: 100%;
+}
+
+.mobileMessage {
+  @apply mt-4 text-center text-sm text-gray-600;
+}
+
+@media (min-width: 768px) {
+  .mobileMessage {
+    @apply hidden;
+  }
+}
+
+/* Dark mode support */
+.dark .container,
+.dark .emptyState {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .header {
+  @apply bg-gray-700 border-gray-600;
+}
+
+.dark .headerIcon {
+  @apply text-gray-400;
+}
+
+.dark .headerTitle {
+  @apply text-gray-100;
+}
+
+.dark .templateBadge {
+  @apply text-gray-300 bg-gray-600;
+}
+
+.dark .actionButton {
+  @apply text-gray-400;
+}
+
+.dark .downloadButton {
+  @apply bg-blue-700;
+}
+
+.dark .emptyStateIcon {
+  @apply text-gray-600;
+}
+
+.dark .emptyStateText {
+  @apply text-gray-400;
+}
+
+.dark .loadingOverlay {
+  @apply bg-gray-800 bg-opacity-90;
+}
+
+.dark .loadingText {
+  @apply text-gray-400;
+}
+
+.dark .errorTitle {
+  @apply text-gray-100;
+}
+
+.dark .errorMessage {
+  @apply text-gray-400;
+}
+
+.dark .retryButton {
+  @apply bg-blue-700;
+}
+
+.dark .previewContainer {
+  @apply bg-gray-700;
+}
+
+.dark .mobileMessage {
+  @apply text-gray-400;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

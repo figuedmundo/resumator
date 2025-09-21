@@ -1,0 +1,261 @@
+/* ResumeCustomizer Component */
+
+.container {
+  @apply bg-white rounded-lg border border-gray-200;
+}
+
+.loadingContainer {
+  @apply bg-white rounded-lg border border-gray-200 p-6;
+}
+
+.loadingContent {
+  @apply flex items-center justify-center py-12;
+}
+
+.header {
+  @apply border-b border-gray-200 px-6 py-4;
+}
+
+.headerContent {
+  @apply flex items-center justify-between;
+}
+
+.headerText h2 {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.headerText p {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.headerInfo {
+  @apply flex items-center space-x-2 text-sm text-gray-500;
+}
+
+.headerIcon {
+  @apply w-4 h-4;
+}
+
+.content {
+  @apply p-6 space-y-6;
+}
+
+/* Job Description Section */
+.inputGroup {
+  /* No styles needed - using spacing from parent */
+}
+
+.inputHeader {
+  @apply flex items-center justify-between mb-3;
+}
+
+.inputLabel {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.pasteButton {
+  @apply text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center space-x-1;
+}
+
+.pasteIcon {
+  @apply w-3 h-3;
+}
+
+.textarea {
+  @apply w-full px-4 py-3 border rounded-lg resize-y transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.textareaDefault {
+  @apply border-gray-300 hover:border-gray-400;
+}
+
+.textareaError {
+  @apply border-red-300 bg-red-50;
+}
+
+.inputFooter {
+  @apply flex justify-between items-center mt-2;
+}
+
+.errorMessages {
+  @apply space-y-1;
+}
+
+.errorText {
+  @apply text-sm text-red-600;
+}
+
+.characterCount {
+  @apply text-xs;
+}
+
+.characterCountNormal {
+  @apply text-gray-500;
+}
+
+.characterCountWarning {
+  @apply text-yellow-600;
+}
+
+.characterCountError {
+  @apply text-red-600;
+}
+
+/* Custom Instructions Section */
+.customInstructions {
+  /* Uses same styles as inputGroup but smaller */
+}
+
+.customTextarea {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg resize-y hover:border-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.helperText {
+  @apply text-xs text-gray-500 mt-2;
+}
+
+/* Resume Info Section */
+.resumeInfo {
+  @apply bg-gray-50 rounded-lg p-4 border border-gray-200;
+}
+
+.resumeContent {
+  @apply flex items-center space-x-3;
+}
+
+.resumeIcon {
+  @apply flex-shrink-0;
+}
+
+.resumeIconSvg {
+  @apply w-8 h-8 text-blue-600;
+}
+
+.resumeDetails {
+  @apply flex-1 min-w-0;
+}
+
+.resumeTitle {
+  @apply text-sm font-medium text-gray-900 truncate;
+}
+
+.resumeMeta {
+  @apply text-xs text-gray-500;
+}
+
+/* Action Section */
+.actionSection {
+  @apply flex justify-end pt-4 border-t border-gray-200;
+}
+
+.customizeButton {
+  @apply inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200;
+}
+
+.buttonIcon {
+  @apply w-5 h-5 mr-3;
+}
+
+.buttonSpinner {
+  @apply mr-3;
+}
+
+/* Tips Section */
+.tipsSection {
+  @apply bg-blue-50 border border-blue-200 rounded-lg p-4;
+}
+
+.tipsContainer {
+  @apply flex;
+}
+
+.tipsIcon {
+  @apply flex-shrink-0;
+}
+
+.tipsIconSvg {
+  @apply h-5 w-5 text-blue-400;
+}
+
+.tipsContent {
+  @apply ml-3;
+}
+
+.tipsTitle {
+  @apply text-sm font-medium text-blue-800;
+}
+
+.tipsList {
+  @apply mt-2 text-sm text-blue-700;
+}
+
+.tipsListUl {
+  @apply list-disc list-inside space-y-1;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .container {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .loadingContainer {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .header {
+    @apply border-gray-700;
+  }
+
+  .headerText h2 {
+    @apply text-white;
+  }
+
+  .headerText p {
+    @apply text-gray-300;
+  }
+
+  .headerInfo {
+    @apply text-gray-400;
+  }
+
+  .inputLabel {
+    @apply text-gray-300;
+  }
+
+  .textareaDefault {
+    @apply border-gray-600 hover:border-gray-500 bg-gray-700 text-white;
+  }
+
+  .textareaError {
+    @apply border-red-500 bg-red-900;
+  }
+
+  .resumeInfo {
+    @apply bg-gray-700 border-gray-600;
+  }
+
+  .resumeTitle {
+    @apply text-white;
+  }
+
+  .resumeMeta {
+    @apply text-gray-400;
+  }
+
+  .actionSection {
+    @apply border-gray-700;
+  }
+
+  .tipsSection {
+    @apply bg-blue-900 border-blue-800;
+  }
+
+  .tipsTitle {
+    @apply text-blue-200;
+  }
+
+  .tipsList {
+    @apply text-blue-300;
+  }
+}

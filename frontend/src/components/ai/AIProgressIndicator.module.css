@@ -1,0 +1,141 @@
+/**
+ * AIProgressIndicator Component Styles
+ * AI processing modal with progress indication
+ * Following rules: No @apply for hover:*, focus:*, or interactive states
+ */
+
+.overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center;
+  z-index: 50;
+}
+
+.modal {
+  @apply bg-white rounded-xl shadow-xl p-8 m-4 max-w-md w-full;
+}
+
+/* Header */
+.header {
+  @apply text-center mb-6;
+}
+
+.iconContainer {
+  @apply inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4;
+}
+
+.icon {
+  @apply text-blue-600 animate-pulse;
+}
+
+.iconSvg {
+  @apply w-6 h-6;
+}
+
+.title {
+  @apply text-xl font-semibold text-gray-900 mb-2;
+}
+
+.message {
+  @apply text-sm text-gray-600;
+}
+
+/* Progress Bar */
+.progressSection {
+  @apply mb-6;
+}
+
+.progressHeader {
+  @apply flex justify-between text-sm text-gray-600 mb-2;
+}
+
+.progressLabel {
+  /* Progress label */
+}
+
+.progressValue {
+  /* Progress percentage */
+}
+
+.progressTrack {
+  @apply w-full bg-gray-200 rounded-full h-3;
+}
+
+.progressBar {
+  @apply bg-blue-600 h-3 rounded-full;
+  transition: all 0.3s ease-out;
+}
+
+/* Spinner */
+.spinnerContainer {
+  @apply flex justify-center;
+}
+
+/* Tips Section */
+.tipsSection {
+  @apply mt-8 p-4 bg-blue-50 rounded-lg;
+}
+
+.tipsTitle {
+  @apply text-sm font-medium text-blue-800 mb-2;
+}
+
+.tipsContent {
+  @apply text-sm text-blue-700;
+}
+
+/* Footer */
+.footer {
+  @apply mt-6 text-center;
+}
+
+.footerText {
+  @apply text-xs text-gray-500;
+}
+
+/* Dark mode support */
+.dark .modal {
+  @apply bg-gray-800;
+}
+
+.dark .iconContainer {
+  @apply bg-blue-900;
+}
+
+.dark .icon {
+  @apply text-blue-400;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .message {
+  @apply text-gray-400;
+}
+
+.dark .progressHeader {
+  @apply text-gray-400;
+}
+
+.dark .progressTrack {
+  @apply bg-gray-600;
+}
+
+.dark .progressBar {
+  @apply bg-blue-500;
+}
+
+.dark .tipsSection {
+  @apply bg-blue-900 bg-opacity-20;
+}
+
+.dark .tipsTitle {
+  @apply text-blue-300;
+}
+
+.dark .tipsContent {
+  @apply text-blue-400;
+}
+
+.dark .footerText {
+  @apply text-gray-400;
+}

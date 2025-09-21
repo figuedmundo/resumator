@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import clsx from 'clsx';
 import LoadingSpinner from '../common/LoadingSpinner';
 import apiService from '../../services/api';
 import { devLog, downloadBlob } from '../../utils/helpers';
+import styles from './PDFPreview.module.css';
 
 const PDFPreview = ({ 
   resumeId, 
@@ -109,41 +111,45 @@ const PDFPreview = ({
 
   if (!resumeId) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
-        <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={clsx(styles.emptyState, className)}>
+        <div className={styles.emptyStateContent}>
+          <svg className={styles.emptyStateIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <p className="text-gray-500 mt-2">No resume selected</p>
+          <p className={styles.emptyStateText}>No resume selected</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 ${className}`}>
+    <div className={clsx(styles.container, className)}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
+            <svg className={styles.headerIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span className="text-sm font-medium text-gray-900">PDF Preview</span>
-            <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full capitalize">
+            <span className={styles.headerTitle}>PDF Preview</span>
+            <span className={styles.templateBadge}>
               {template} Template
             </span>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className={styles.headerActions}>
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 disabled:opacity-50"
+              className={clsx(
+                styles.actionButton,
+                "hover:text-gray-900 hover:bg-gray-100",
+                loading && styles.actionButtonDisabled
+              )}
               title="Refresh preview"
             >
-              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={clsx(styles.actionIcon, loading && styles.actionIconSpin)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -152,10 +158,14 @@ const PDFPreview = ({
             <button
               onClick={handlePrint}
               disabled={loading || error || !pdfUrl}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 disabled:opacity-50"
+              className={clsx(
+                styles.actionButton,
+                "hover:text-gray-900 hover:bg-gray-100",
+                (loading || error || !pdfUrl) && styles.actionButtonDisabled
+              )}
               title="Print resume"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
             </button>
@@ -164,16 +174,20 @@ const PDFPreview = ({
             <button
               onClick={handleDownload}
               disabled={loading || error || isDownloading}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className={clsx(
+                styles.downloadButton,
+                "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+                (loading || error || isDownloading) && styles.downloadButtonDisabled
+              )}
             >
               {isDownloading ? (
                 <>
-                  <LoadingSpinner size="sm" className="mr-2" />
+                  <LoadingSpinner size="sm" className={styles.downloadSpinner} />
                   <span>Downloading...</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={styles.downloadIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span>Download</span>
@@ -185,32 +199,32 @@ const PDFPreview = ({
       </div>
 
       {/* Content */}
-      <div className="relative">
+      <div className={styles.content}>
         {/* Loading State */}
         {loading && (
-          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10">
-            <div className="text-center">
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingContent}>
               <LoadingSpinner size="lg" />
-              <p className="text-gray-600 mt-4">Generating PDF preview...</p>
+              <p className={styles.loadingText}>Generating PDF preview...</p>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <div className="p-8">
-            <div className="text-center">
-              <svg className="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={styles.errorState}>
+            <div className={styles.errorContent}>
+              <svg className={styles.errorIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">Preview Error</h3>
-              <p className="mt-2 text-gray-600">{error}</p>
-              <div className="mt-6">
+              <h3 className={styles.errorTitle}>Preview Error</h3>
+              <p className={styles.errorMessage}>{error}</p>
+              <div className={styles.errorActions}>
                 <button
                   onClick={handleRefresh}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  className={clsx(styles.retryButton, "hover:bg-blue-700")}
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={styles.retryIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   Try Again
@@ -222,17 +236,12 @@ const PDFPreview = ({
 
         {/* PDF Preview */}
         {pdfUrl && !loading && !error && (
-          <div className="bg-gray-100 p-4">
-            <div className="bg-white shadow-lg mx-auto" style={{ width: 'fit-content' }}>
+          <div className={styles.previewContainer}>
+            <div className={styles.previewWrapper}>
               <iframe
                 ref={iframeRef}
                 src={pdfUrl}
-                className="w-full border-0"
-                style={{ 
-                  width: '800px', 
-                  height: '1100px',
-                  maxWidth: '100%'
-                }}
+                className={styles.previewIframe}
                 title="Resume PDF Preview"
                 onLoad={() => devLog('PDF iframe loaded')}
                 onError={() => setError('Failed to display PDF preview')}
@@ -240,7 +249,7 @@ const PDFPreview = ({
             </div>
             
             {/* Mobile Message */}
-            <div className="mt-4 text-center text-sm text-gray-600 md:hidden">
+            <div className={styles.mobileMessage}>
               <p>For best viewing experience, use the download button to open the PDF in your device's PDF viewer.</p>
             </div>
           </div>

@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
+import clsx from 'clsx';
 import { formatDate } from '../../utils/helpers';
+import styles from './VersionComparison.module.css';
 
 export default function VersionComparison({ 
   versions, 
@@ -60,53 +62,53 @@ export default function VersionComparison({
 
   if (!versions || versions.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 h-full">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Version History</h3>
+      <div className={styles.emptyContainer}>
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <h3 className={styles.title}>Version History</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              className={styles.closeButton}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={styles.closeIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <p className="text-gray-500 text-sm">No version history available yet.</p>
+          <p className={styles.emptyMessage}>No version history available yet.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 flex flex-col h-full">
+    <div className={styles.container}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Version History</h3>
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <h3 className={styles.title}>Version History</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            className={styles.closeButton}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={styles.closeIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Search */}
-        <div className="mb-4">
-          <div className="relative">
+        <div className={styles.searchContainer}>
+          <div className={styles.searchWrapper}>
             <input
               type="text"
               placeholder="Search versions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={styles.searchInput}
             />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={styles.searchIcon}>
+              <svg className={styles.searchIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -114,20 +116,19 @@ export default function VersionComparison({
         </div>
 
         {selectedVersion && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className={styles.actionButtons}>
             <button
               onClick={() => setShowDiff(!showDiff)}
-              className={`px-3 py-1 text-sm rounded-md transition-colors duration-200 ${
-                showDiff 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={clsx(
+                styles.diffButton,
+                showDiff ? styles.diffButtonActive : styles.diffButtonInactive
+              )}
             >
               {showDiff ? 'Hide Diff' : 'Show Diff'}
             </button>
             <button
               onClick={handleRestoreVersion}
-              className="px-3 py-1 text-sm bg-green-100 text-green-800 hover:bg-green-200 rounded-md transition-colors duration-200"
+              className={styles.restoreButton}
             >
               Restore Version
             </button>
@@ -136,22 +137,22 @@ export default function VersionComparison({
       </div>
 
       {/* Version List */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-3">
+      <div className={styles.versionList}>
+        <div className={styles.versionListContent}>
           {/* Current Version */}
           {showCurrentFirst && (
-            <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-blue-900">{currentVersionLabel}</div>
-                  <div className="text-sm text-blue-700">{formatDate(new Date(), 'relative')}</div>
+            <div className={styles.currentVersion}>
+              <div className={styles.currentVersionContent}>
+                <div className={styles.currentVersionInfo}>
+                  <div className={styles.currentVersionLabel}>{currentVersionLabel}</div>
+                  <div className={styles.currentVersionDate}>{formatDate(new Date(), 'relative')}</div>
                 </div>
-                <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full">
+                <span className={styles.currentBadge}>
                   Current
                 </span>
               </div>
               {/* Content preview */}
-              <div className="mt-2 text-xs text-blue-600">
+              <div className={styles.currentVersionPreview}>
                 {currentContent ? `${currentContent.length} characters` : 'No content'}
               </div>
             </div>
@@ -159,48 +160,49 @@ export default function VersionComparison({
 
           {/* Version History */}
           {filteredVersions.length === 0 && searchTerm && (
-            <div className="text-center py-4">
-              <p className="text-sm text-gray-500">No versions found for "{searchTerm}"</p>
+            <div className={styles.noResults}>
+              <p className={styles.noResultsText}>No versions found for "{searchTerm}"</p>
             </div>
           )}
           
           {filteredVersions.map((version, index) => (
             <div
               key={version.id}
-              className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+              className={clsx(
+                styles.versionItem,
                 selectedVersion?.id === version.id
-                  ? 'border-blue-300 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
+                  ? styles.versionItemSelected
+                  : styles.versionItemDefault
+              )}
               onClick={() => handleVersionSelect(version)}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900">
+              <div className={styles.versionItemHeader}>
+                <div className={styles.versionInfo}>
+                  <div className={styles.versionNumber}>
                     Version {versions.length - versions.indexOf(version)}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className={styles.versionDateRelative}>
                     {formatDate(version.created_at, 'relative')}
                   </div>
-                  <div className="text-xs text-gray-400 mt-1">
+                  <div className={styles.versionDateAbsolute}>
                     {formatDate(version.created_at, 'MMM dd, yyyy HH:mm')}
                   </div>
                 </div>
                 {selectedVersion?.id === version.id && (
-                  <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full">
+                  <span className={styles.selectedBadge}>
                     Selected
                   </span>
                 )}
               </div>
               
               {/* Version stats and type */}
-              <div className="mt-2 flex items-center justify-between">
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <div className={styles.versionStats}>
+                <div className={styles.versionMetrics}>
                   <span>{version.content?.length || 0} characters</span>
                   <span>{(version.content?.split('\n') || []).length} lines</span>
                 </div>
                 {version.customization_context && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                  <span className={styles.aiBadge}>
                     AI Customized
                   </span>
                 )}
@@ -212,13 +214,13 @@ export default function VersionComparison({
 
       {/* Diff View */}
       {showDiff && selectedVersion && generateDiff && (
-        <div className="flex-1 border-t border-gray-200 bg-gray-50">
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 mb-3">
+        <div className={styles.diffView}>
+          <div className={styles.diffContent}>
+            <h4 className={styles.diffTitle}>
               Changes from Version {versions.length - versions.findIndex(v => v.id === selectedVersion.id)} to Current
             </h4>
-            <div className="bg-white border rounded-lg max-h-96 overflow-y-auto">
-              <div className="divide-y divide-gray-100">
+            <div className={styles.diffContainer}>
+              <div className={styles.diffList}>
                 {generateDiff
                   .filter(line => line.type !== 'equal')
                   .slice(0, 50) // Limit to first 50 differences for performance

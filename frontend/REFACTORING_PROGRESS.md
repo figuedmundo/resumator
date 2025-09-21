@@ -1,6 +1,6 @@
 # Refactoring Progress: Replace Inline Tailwind with CSS Modules
 
-## ✅ Completed Files (17/33)
+## ✅ Completed Files (21/33)
 
 ### Infrastructure
 - ✅ CSS Modules directory structure created
@@ -25,8 +25,12 @@
 14. **✅ TemplateSelector.jsx** - Template selection interface
 15. **✅ FileUploadZone.jsx** - Drag & drop file upload
 16. **✅ MarkdownToolbar.jsx** - Rich text editing toolbar
+17. **✅ PDFPreview.jsx** - PDF preview with download/print
+18. **✅ AIProgressIndicator.jsx** - AI processing modal
+19. **✅ useAuth.jsx** - Authentication hook (logic only)
+20. **✅ main.jsx** - App entry point (no styling needed)
 
-## 🔄 In Progress / Next Up (16 remaining)
+## 🔄 In Progress / Next Up (12 remaining)
 
 ### High Priority (Common Components)
 - All common components completed! ✅

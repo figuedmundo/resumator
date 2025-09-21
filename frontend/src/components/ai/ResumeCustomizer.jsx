@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import clsx from 'clsx';
 import LoadingSpinner from '../common/LoadingSpinner';
 import AIProgressIndicator from './AIProgressIndicator';
 import { MAX_FILE_SIZE } from '../../utils/constants';
+import styles from './ResumeCustomizer.module.css';
 
 export default function ResumeCustomizer({ 
   resume, 
@@ -146,8 +148,8 @@ export default function ResumeCustomizer({
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
-        <div className="flex items-center justify-center py-12">
+      <div className={clsx(styles.loadingContainer, className)}>
+        <div className={styles.loadingContent}>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -164,20 +166,20 @@ export default function ResumeCustomizer({
         progress={aiProgress}
       />
       
-      <div className={`bg-white rounded-lg border border-gray-200 ${className}`}>
+      <div className={clsx(styles.container, className)}>
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerText}>
+            <h2>
               AI Resume Customization
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p>
               Tailor your resume to match a specific job description using AI
             </p>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={styles.headerInfo}>
+            <svg className={styles.headerIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>AI-powered customization</span>
@@ -185,19 +187,19 @@ export default function ResumeCustomizer({
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className={styles.content}>
         {/* Job Description Input */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <label htmlFor="job-description" className="block text-sm font-medium text-gray-700">
+        <div className={styles.inputGroup}>
+          <div className={styles.inputHeader}>
+            <label htmlFor="job-description" className={styles.inputLabel}>
               Job Description *
             </label>
             <button
               onClick={handlePasteJobDescription}
-              className="text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center space-x-1"
+              className={styles.pasteButton}
               title="Paste from clipboard"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={styles.pasteIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               <span>Paste</span>
@@ -210,34 +212,38 @@ export default function ResumeCustomizer({
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste the job description here. Include key requirements, responsibilities, and qualifications..."
             rows={10}
-            className={`w-full px-4 py-3 border rounded-lg resize-vertical transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={clsx(
+              styles.textarea,
               errors.jobDescription || errors.size
-                ? 'border-red-300 bg-red-50' 
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
+                ? styles.textareaError
+                : styles.textareaDefault
+            )}
           />
           
           {/* Character count */}
-          <div className="flex justify-between items-center mt-2">
-            <div className="space-y-1">
+          <div className={styles.inputFooter}>
+            <div className={styles.errorMessages}>
               {errors.jobDescription && (
-                <p className="text-sm text-red-600">{errors.jobDescription}</p>
+                <p className={styles.errorText}>{errors.jobDescription}</p>
               )}
               {errors.size && (
-                <p className="text-sm text-red-600">{errors.size}</p>
+                <p className={styles.errorText}>{errors.size}</p>
               )}
             </div>
-            <div className={`text-xs ${
-              isOverLimit ? 'text-red-600' : isNearLimit ? 'text-yellow-600' : 'text-gray-500'
-            }`}>
+            <div className={clsx(
+              styles.characterCount,
+              isOverLimit ? styles.characterCountError : 
+              isNearLimit ? styles.characterCountWarning : 
+              styles.characterCountNormal
+            )}>
               {characterCount.toLocaleString()} / {maxChars.toLocaleString()} characters
             </div>
           </div>
         </div>
 
         {/* Custom Instructions */}
-        <div>
-          <label htmlFor="custom-instructions" className="block text-sm font-medium text-gray-700 mb-3">
+        <div className={styles.customInstructions}>
+          <label htmlFor="custom-instructions" className={styles.inputLabel}>
             Additional Instructions (Optional)
           </label>
           <textarea
@@ -246,27 +252,27 @@ export default function ResumeCustomizer({
             onChange={(e) => setCustomInstructions(e.target.value)}
             placeholder="Add specific instructions for customization (e.g., 'Focus on highlighting leadership experience' or 'Emphasize technical skills')..."
             rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-vertical hover:border-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={styles.customTextarea}
           />
-          <p className="text-xs text-gray-500 mt-2">
+          <p className={styles.helperText}>
             Provide specific guidance on what aspects to emphasize or how to tailor the resume.
           </p>
         </div>
 
         {/* Resume Info */}
         {resume && (
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={styles.resumeInfo}>
+            <div className={styles.resumeContent}>
+              <div className={styles.resumeIcon}>
+                <svg className={styles.resumeIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+              <div className={styles.resumeDetails}>
+                <p className={styles.resumeTitle}>
                   {resume.title}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className={styles.resumeMeta}>
                   {resume.content ? `${resume.content.length} characters` : 'No content'} • 
                   Last updated {new Date(resume.updated_at).toLocaleDateString()}
                 </p>
@@ -276,20 +282,20 @@ export default function ResumeCustomizer({
         )}
 
         {/* Action Button */}
-        <div className="flex justify-end pt-4 border-t border-gray-200">
+        <div className={styles.actionSection}>
           <button
             onClick={handleCustomize}
             disabled={isCustomizing || !jobDescription.trim() || isOverLimit}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className={styles.customizeButton}
           >
             {isCustomizing ? (
               <>
-                <LoadingSpinner size="sm" className="mr-3" />
+                <LoadingSpinner size="sm" className={styles.buttonSpinner} />
                 <span>Customizing Resume...</span>
               </>
             ) : (
               <>
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>Customize Resume</span>
@@ -299,17 +305,17 @@ export default function ResumeCustomizer({
         </div>
 
         {/* Tips */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className={styles.tipsSection}>
+          <div className={styles.tipsContainer}>
+            <div className={styles.tipsIcon}>
+              <svg className={styles.tipsIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div className="ml-3">
-              <h4 className="text-sm font-medium text-blue-800">Tips for better results:</h4>
-              <div className="mt-2 text-sm text-blue-700">
-                <ul className="list-disc list-inside space-y-1">
+            <div className={styles.tipsContent}>
+              <h4 className={styles.tipsTitle}>Tips for better results:</h4>
+              <div className={styles.tipsList}>
+                <ul className={styles.tipsListUl}>
                   <li>Include complete job descriptions with requirements and responsibilities</li>
                   <li>Paste the full job posting text for comprehensive matching</li>
                   <li>Use specific instructions to highlight particular skills or experiences</li>

@@ -1,0 +1,344 @@
+/* VersionComparison Component */
+
+.container {
+  @apply bg-white rounded-lg border border-gray-200 flex flex-col h-full;
+}
+
+.emptyContainer {
+  @apply bg-white rounded-lg border border-gray-200 h-full;
+}
+
+/* Header Section */
+.header {
+  @apply p-4 border-b border-gray-200 flex-shrink-0;
+}
+
+.headerTop {
+  @apply flex items-center justify-between mb-4;
+}
+
+.title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.closeButton {
+  @apply text-gray-400 hover:text-gray-600 transition-colors duration-200;
+}
+
+.closeIcon {
+  @apply w-5 h-5;
+}
+
+.emptyMessage {
+  @apply text-gray-500 text-sm;
+}
+
+/* Search Section */
+.searchContainer {
+  @apply mb-4;
+}
+
+.searchWrapper {
+  @apply relative;
+}
+
+.searchInput {
+  @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.searchIcon {
+  @apply absolute inset-y-0 left-0 pl-3 flex items-center;
+}
+
+.searchIconSvg {
+  @apply h-4 w-4 text-gray-400;
+}
+
+/* Action Buttons */
+.actionButtons {
+  @apply flex flex-wrap gap-2 mb-4;
+}
+
+.diffButton {
+  @apply px-3 py-1 text-sm rounded-md transition-colors duration-200;
+}
+
+.diffButtonActive {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.diffButtonInactive {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+}
+
+.restoreButton {
+  @apply px-3 py-1 text-sm bg-green-100 text-green-800 hover:bg-green-200 rounded-md transition-colors duration-200;
+}
+
+/* Version List */
+.versionList {
+  @apply flex-1 overflow-y-auto;
+}
+
+.versionListContent {
+  @apply p-4 space-y-3;
+}
+
+/* Current Version */
+.currentVersion {
+  @apply border border-blue-200 rounded-lg p-3 bg-blue-50;
+}
+
+.currentVersionContent {
+  @apply flex items-center justify-between;
+}
+
+.currentVersionInfo {
+  /* No specific styles needed */
+}
+
+.currentVersionLabel {
+  @apply font-medium text-blue-900;
+}
+
+.currentVersionDate {
+  @apply text-sm text-blue-700;
+}
+
+.currentBadge {
+  @apply px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full;
+}
+
+.currentVersionPreview {
+  @apply mt-2 text-xs text-blue-600;
+}
+
+/* Version Items */
+.noResults {
+  @apply text-center py-4;
+}
+
+.noResultsText {
+  @apply text-sm text-gray-500;
+}
+
+.versionItem {
+  @apply border rounded-lg p-3 cursor-pointer transition-all duration-200;
+}
+
+.versionItemDefault {
+  @apply border-gray-200 hover:border-gray-300 hover:bg-gray-50;
+}
+
+.versionItemSelected {
+  @apply border-blue-300 bg-blue-50;
+}
+
+.versionItemHeader {
+  @apply flex items-center justify-between;
+}
+
+.versionInfo {
+  /* No specific styles needed */
+}
+
+.versionNumber {
+  @apply font-medium text-gray-900;
+}
+
+.versionDateRelative {
+  @apply text-sm text-gray-500;
+}
+
+.versionDateAbsolute {
+  @apply text-xs text-gray-400 mt-1;
+}
+
+.selectedBadge {
+  @apply px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full;
+}
+
+.versionStats {
+  @apply mt-2 flex items-center justify-between;
+}
+
+.versionMetrics {
+  @apply flex items-center space-x-4 text-xs text-gray-500;
+}
+
+.aiBadge {
+  @apply px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full;
+}
+
+/* Diff View */
+.diffView {
+  @apply flex-1 border-t border-gray-200 bg-gray-50;
+}
+
+.diffContent {
+  @apply p-4;
+}
+
+.diffTitle {
+  @apply font-medium text-gray-900 mb-3;
+}
+
+.diffContainer {
+  @apply bg-white border rounded-lg max-h-96 overflow-y-auto;
+}
+
+.diffList {
+  @apply divide-y divide-gray-100;
+}
+
+.diffLine {
+  @apply px-4 py-2 text-sm font-mono;
+}
+
+.diffLineContent {
+  @apply flex items-start space-x-2;
+}
+
+.diffLineNumber {
+  @apply text-gray-400 text-xs w-8 flex-shrink-0;
+}
+
+.diffLineText {
+  @apply flex-1 min-w-0;
+}
+
+.diffAdded {
+  @apply bg-green-50 text-green-800 px-2 py-1 rounded;
+}
+
+.diffAddedPrefix {
+  @apply text-green-600 mr-1;
+}
+
+.diffRemoved {
+  @apply bg-red-50 text-red-800 px-2 py-1 rounded;
+}
+
+.diffRemovedPrefix {
+  @apply text-red-600 mr-1;
+}
+
+.diffChanged {
+  @apply space-y-1;
+}
+
+.diffTruncated {
+  @apply px-4 py-2 text-center text-sm text-gray-500 bg-gray-50;
+}
+
+/* Version Preview */
+.previewView {
+  @apply flex-1 border-t border-gray-200 bg-gray-50;
+}
+
+.previewContent {
+  @apply p-4;
+}
+
+.previewTitle {
+  @apply font-medium text-gray-900 mb-3;
+}
+
+.aiContext {
+  @apply mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg;
+}
+
+.aiContextTitle {
+  @apply text-xs text-purple-800 font-medium mb-1;
+}
+
+.aiContextText {
+  @apply text-xs text-purple-700;
+}
+
+.previewContainer {
+  @apply bg-white border rounded-lg p-4 max-h-96 overflow-y-auto;
+}
+
+.previewText {
+  @apply text-sm text-gray-700 whitespace-pre-wrap font-mono;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .container,
+  .emptyContainer {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .header {
+    @apply border-gray-700;
+  }
+
+  .title {
+    @apply text-white;
+  }
+
+  .emptyMessage {
+    @apply text-gray-400;
+  }
+
+  .searchInput {
+    @apply border-gray-600 bg-gray-700 text-white;
+  }
+
+  .diffButtonInactive {
+    @apply bg-gray-700 text-gray-300 hover:bg-gray-600;
+  }
+
+  .versionItemDefault {
+    @apply border-gray-600 hover:border-gray-500 hover:bg-gray-700;
+  }
+
+  .versionNumber {
+    @apply text-white;
+  }
+
+  .versionDateRelative {
+    @apply text-gray-300;
+  }
+
+  .versionDateAbsolute {
+    @apply text-gray-400;
+  }
+
+  .versionMetrics {
+    @apply text-gray-400;
+  }
+
+  .diffView,
+  .previewView {
+    @apply border-gray-700 bg-gray-700;
+  }
+
+  .diffTitle,
+  .previewTitle {
+    @apply text-white;
+  }
+
+  .diffContainer,
+  .previewContainer {
+    @apply bg-gray-800 border-gray-600;
+  }
+
+  .diffList {
+    @apply divide-gray-600;
+  }
+
+  .diffLineNumber {
+    @apply text-gray-500;
+  }
+
+  .previewText {
+    @apply text-gray-300;
+  }
+
+  .diffTruncated {
+    @apply text-gray-400 bg-gray-700;
+  }
+}

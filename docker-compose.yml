@@ -100,7 +100,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: python -m celery worker -A app.worker:celery_app --loglevel=info
+    command: python -m celery -A app.worker.celery_app worker --loglevel=info
     restart: unless-stopped
 
   # Frontend
