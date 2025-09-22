@@ -65,14 +65,14 @@ async def login(
         
         # Authenticate user
         user = user_service.authenticate_user(
-            username=user_login.username,
+            email=user_login.email,
             password=user_login.password
         )
         
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password",
+                detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
@@ -90,7 +90,7 @@ async def login(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login failed for user {user_login.username}: {e}")
+        logger.error(f"Login failed for user {user_login.email}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed"

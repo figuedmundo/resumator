@@ -6,7 +6,7 @@ class ApiService {
   constructor() {
     // Create axios instance with base configuration
     this.api = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -100,19 +100,8 @@ class ApiService {
 
   async login(credentials) {
     try {
-      // FastAPI expects form data for OAuth2 login 
-      // const formData = new FormData();
-      // formData.append('username', credentials.email);
-      // formData.append('password', credentials.password);
-
-      // const response = await this.api.post(API_ENDPOINTS.LOGIN, formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // });
-      // [TODO] currently not working OAuth2 login, changing to json
       const response = await this.api.post(API_ENDPOINTS.LOGIN, {
-        username: credentials.email,
+        email: credentials.email,
         password: credentials.password,
       });
 
@@ -135,7 +124,7 @@ class ApiService {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${API_ENDPOINTS.REFRESH_TOKEN}`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${API_ENDPOINTS.REFRESH_TOKEN}`,
         { refresh_token: refreshToken }
       );
 

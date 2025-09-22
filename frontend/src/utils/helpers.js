@@ -273,7 +273,7 @@ export function getErrorMessage(error) {
  * Check if current environment is development
  */
 export function isDevelopment() {
-  return process.env.NODE_ENV === 'development';
+  return import.meta.env.DEV;
 }
 
 /**

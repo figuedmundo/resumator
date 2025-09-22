@@ -63,30 +63,30 @@ class UserService:
                 raise
             raise ValidationError(f"Failed to create user: {str(e)}")
     
-    def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """Authenticate a user by username and password."""
+    def authenticate_user(self, email: str, password: str) -> Optional[User]:
+        """Authenticate a user by email and password."""
         db = self._get_db()
         
         try:
-            user = db.query(User).filter(User.username == username).first()
+            user = db.query(User).filter(User.email == email).first()
             
             if not user:
-                logger.warning(f"Authentication failed - user not found: {username}")
+                logger.warning(f"Authentication failed - user not found: {email}")
                 return None
             
             if not user.is_active:
-                logger.warning(f"Authentication failed - user inactive: {username}")
+                logger.warning(f"Authentication failed - user inactive: {email}")
                 return None
             
             if not AuthService.verify_password(password, user.hashed_password):
-                logger.warning(f"Authentication failed - invalid password: {username}")
+                logger.warning(f"Authentication failed - invalid password: {email}")
                 return None
             
-            logger.info(f"User authenticated successfully: {username}")
+            logger.info(f"User authenticated successfully: {email}")
             return user
             
         except Exception as e:
-            logger.error(f"Authentication error for user {username}: {e}")
+            logger.error(f"Authentication error for user {email}: {e}")
             return None
     
     def get_user_by_id(self, user_id: int) -> Optional[User]:

@@ -13,7 +13,6 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     email: '',
     username: '',
-    full_name: '',
     password: '',
     confirmPassword: '',
   });
@@ -65,11 +64,6 @@ export default function RegisterPage() {
     const usernameError = validateUsername(formData.username);
     if (usernameError) newErrors.username = usernameError;
 
-    // Full name validation
-    if (!formData.full_name.trim()) {
-      newErrors.full_name = 'Full name is required';
-    }
-
     // Password validation
     const passwordError = validatePassword(formData.password);
     if (passwordError) newErrors.password = passwordError;
@@ -95,7 +89,6 @@ export default function RegisterPage() {
     const userData = {
       email: formData.email,
       username: formData.username,
-      full_name: formData.full_name,
       password: formData.password,
     };
 
@@ -181,31 +174,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* Full Name Field */}
-            <div className={styles.field}>
-              <label htmlFor="full_name" className={styles.label}>
-                Full name *
-              </label>
-              <div className={styles.inputContainer}>
-                <input
-                  id="full_name"
-                  name="full_name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  className={clsx(
-                    styles.input,
-                    errors.full_name ? styles.inputError : styles.inputDefault
-                  )}
-                  placeholder="Enter your full name"
-                />
-              </div>
-              {errors.full_name && (
-                <p className={styles.fieldError}>{errors.full_name}</p>
-              )}
-            </div>
+
 
             {/* Password Field */}
             <div className={styles.field}>
