@@ -262,7 +262,7 @@ export default function VersionComparison({
               </div>
               
               {generateDiff.filter(line => line.type !== 'equal').length > 50 && (
-                <div className="px-4 py-2 text-center text-sm text-gray-500 bg-gray-50">
+                <div className={styles.diffTruncated}>
                   Showing first 50 changes. Full diff available in editor.
                 </div>
               )}
@@ -273,21 +273,21 @@ export default function VersionComparison({
 
       {/* Selected Version Preview */}
       {selectedVersion && !showDiff && (
-        <div className="flex-1 border-t border-gray-200 bg-gray-50">
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 mb-3">
+        <div className={styles.previewView}>
+          <div className={styles.previewContent}>
+            <h4 className={styles.previewTitle}>
               Version {versions.length - versions.findIndex(v => v.id === selectedVersion.id)} Preview
             </h4>
             {selectedVersion.customization_context && (
-              <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-xs text-purple-800 font-medium mb-1">AI Customization Context:</p>
-                <p className="text-xs text-purple-700">
+              <div className={styles.aiContext}>
+                <p className={styles.aiContextTitle}>AI Customization Context:</p>
+                <p className={styles.aiContextText}>
                   {selectedVersion.customization_context.substring(0, 200)}...
                 </p>
               </div>
             )}
-            <div className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto">
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+            <div className={styles.previewContainer}>
+              <pre className={styles.previewText}>
                 {selectedVersion.content}
               </pre>
             </div>

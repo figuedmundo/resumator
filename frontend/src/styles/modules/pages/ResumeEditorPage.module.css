@@ -1,0 +1,281 @@
+/* ResumeEditorPage Component */
+
+.pageContainer {
+  @apply flex flex-col h-screen;
+}
+
+.loadingContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.loadingContent {
+  @apply flex items-center justify-center min-h-96;
+}
+
+/* Header Section */
+.header {
+  @apply bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0;
+}
+
+.headerContent {
+  @apply max-w-7xl mx-auto flex items-center justify-between;
+}
+
+.headerLeft {
+  @apply flex items-center space-x-4;
+}
+
+.backButton {
+  @apply flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200;
+}
+
+.backIcon {
+  @apply w-5 h-5 mr-2;
+}
+
+.titleSection {
+  @apply flex items-center;
+}
+
+.titleInput {
+  @apply text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-2 py-1;
+}
+
+.saveStatus {
+  @apply ml-3 text-sm;
+}
+
+.saveStatusSaved {
+  @apply text-green-600;
+}
+
+.saveStatusSaving {
+  @apply text-blue-600;
+}
+
+.saveStatusUnsaved {
+  @apply text-yellow-600;
+}
+
+.saveStatusError {
+  @apply text-red-600;
+}
+
+.headerRight {
+  @apply flex items-center space-x-2;
+}
+
+/* View Mode Toggle */
+.viewModeToggle {
+  @apply flex items-center bg-gray-100 rounded-lg p-1;
+}
+
+.viewModeButton {
+  @apply px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.viewModeButtonActive {
+  @apply bg-white text-gray-900 shadow;
+}
+
+.viewModeButtonInactive {
+  @apply text-gray-600 hover:text-gray-900;
+}
+
+/* Action Buttons */
+.actionButton {
+  @apply p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200;
+}
+
+.actionButtonActive {
+  @apply text-blue-600 bg-blue-50;
+}
+
+.actionIcon {
+  @apply w-5 h-5;
+}
+
+.hiddenFileInput {
+  @apply hidden;
+}
+
+.saveButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200;
+}
+
+.saveButtonIcon {
+  @apply w-4 h-4 mr-2;
+}
+
+/* Upload Modal */
+.uploadModal {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.uploadModalContent {
+  @apply bg-white rounded-lg p-6 m-4 max-w-md w-full;
+}
+
+.uploadModalHeader {
+  @apply flex items-center justify-between mb-4;
+}
+
+.uploadModalTitle {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.uploadModalClose {
+  @apply text-gray-400 hover:text-gray-600 transition-colors duration-200;
+}
+
+.uploadModalCloseIcon {
+  @apply w-5 h-5;
+}
+
+/* Error Message */
+.errorContainer {
+  @apply flex-shrink-0 px-4 py-2;
+}
+
+.errorContent {
+  @apply max-w-7xl mx-auto;
+}
+
+.errorAlert {
+  @apply bg-red-50 border border-red-200 rounded-md p-3 flex items-center;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400 mr-3;
+}
+
+.errorText {
+  @apply text-sm text-red-800;
+}
+
+.errorClose {
+  @apply ml-auto text-red-600 hover:text-red-800;
+}
+
+.errorCloseIcon {
+  @apply w-4 h-4;
+}
+
+/* Main Content Area */
+.mainContent {
+  @apply flex-1 flex overflow-hidden;
+}
+
+/* Version Sidebar */
+.versionSidebar {
+  @apply w-80 border-r border-gray-200 flex-shrink-0;
+}
+
+/* Editor Area */
+.editorArea {
+  @apply flex-1 flex;
+}
+
+.editorPanel {
+  @apply border-r border-gray-200;
+}
+
+.editorPanelSplit {
+  @apply w-1/2;
+}
+
+.editorPanelFull {
+  @apply w-full;
+}
+
+.editorWrapper {
+  @apply h-full;
+}
+
+/* Preview Panel */
+.previewPanel {
+  @apply overflow-auto bg-white;
+}
+
+.previewPanelSplit {
+  @apply w-1/2;
+}
+
+.previewPanelFull {
+  @apply w-full;
+}
+
+.previewContent {
+  @apply max-w-4xl mx-auto p-8;
+}
+
+.previewProse {
+  @apply prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .headerContent {
+    /* Inherits from parent */
+  }
+
+  .backButton {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .titleInput {
+    @apply text-white bg-transparent;
+  }
+
+  .viewModeToggle {
+    @apply bg-gray-700;
+  }
+
+  .viewModeButtonActive {
+    @apply bg-gray-600 text-white;
+  }
+
+  .viewModeButtonInactive {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .actionButton {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .actionButtonActive {
+    @apply text-blue-400 bg-blue-900;
+  }
+
+  .uploadModalContent {
+    @apply bg-gray-800;
+  }
+
+  .uploadModalTitle {
+    @apply text-white;
+  }
+
+  .uploadModalClose {
+    @apply text-gray-400 hover:text-gray-200;
+  }
+
+  .editorPanel {
+    @apply border-gray-700;
+  }
+
+  .previewPanel {
+    @apply bg-gray-800;
+  }
+
+  .previewProse {
+    @apply prose-invert;
+  }
+
+  .versionSidebar {
+    @apply border-gray-700;
+  }
+}

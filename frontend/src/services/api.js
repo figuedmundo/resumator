@@ -37,10 +37,10 @@ class ApiService {
       },
       async (error) => {
         const originalRequest = error.config;
-        
+
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
-          
+
           try {
             await this.refreshToken();
             const token = this.getToken();
@@ -54,7 +54,7 @@ class ApiService {
             window.location.href = '/login';
           }
         }
-        
+
         devLog('API Error:', error.response?.status, error.response?.data);
         return Promise.reject(error);
       }
@@ -88,10 +88,10 @@ class ApiService {
     try {
       const response = await this.api.post(API_ENDPOINTS.REGISTER, userData);
       const { access_token, refresh_token, user } = response.data;
-      
+
       this.setTokens(access_token, refresh_token);
       localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-      
+
       return { user, access_token, refresh_token };
     } catch (error) {
       throw new Error(getErrorMessage(error));
@@ -100,22 +100,27 @@ class ApiService {
 
   async login(credentials) {
     try {
-      // FastAPI expects form data for OAuth2 login
-      const formData = new FormData();
-      formData.append('username', credentials.email);
-      formData.append('password', credentials.password);
+      // FastAPI expects form data for OAuth2 login 
+      // const formData = new FormData();
+      // formData.append('username', credentials.email);
+      // formData.append('password', credentials.password);
 
-      const response = await this.api.post(API_ENDPOINTS.LOGIN, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      // const response = await this.api.post(API_ENDPOINTS.LOGIN, formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      // });
+      // [TODO] currently not working OAuth2 login, changing to json
+      const response = await this.api.post(API_ENDPOINTS.LOGIN, {
+        username: credentials.email,
+        password: credentials.password,
       });
-      
+
       const { access_token, refresh_token, user } = response.data;
-      
+
       this.setTokens(access_token, refresh_token);
       localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-      
+
       return { user, access_token, refresh_token };
     } catch (error) {
       throw new Error(getErrorMessage(error));
@@ -133,10 +138,10 @@ class ApiService {
         `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${API_ENDPOINTS.REFRESH_TOKEN}`,
         { refresh_token: refreshToken }
       );
-      
+
       const { access_token, refresh_token: newRefreshToken } = response.data;
       this.setTokens(access_token, newRefreshToken);
-      
+
       return access_token;
     } catch (error) {
       this.clearTokens();
@@ -162,7 +167,7 @@ class ApiService {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       // Add metadata if provided
       Object.keys(metadata).forEach(key => {
         formData.append(key, metadata[key]);
@@ -173,7 +178,7 @@ class ApiService {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       return response.data;
     } catch (error) {
       throw new Error(getErrorMessage(error));
@@ -261,7 +266,7 @@ class ApiService {
         params: options,
         responseType: 'blob',
       });
-      
+
       return response.data;
     } catch (error) {
       throw new Error(getErrorMessage(error));
@@ -273,11 +278,11 @@ class ApiService {
     const token = this.getToken();
     const params = new URLSearchParams(options);
     const baseUrl = `${this.api.defaults.baseURL}${API_ENDPOINTS.PREVIEW_PDF(id)}`;
-    
+
     if (token) {
       params.set('token', token);
     }
-    
+
     return `${baseUrl}?${params.toString()}`;
   }
 

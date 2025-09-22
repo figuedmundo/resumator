@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -13,6 +14,7 @@ import VersionComparison from '../components/resume/VersionComparison';
 import FileUploadZone from '../components/resume/FileUploadZone';
 import apiService from '../services/api';
 import { AUTO_SAVE_DELAY, MAX_FILE_SIZE } from '../utils/constants';
+import styles from '../styles/modules/pages/ResumeEditorPage.module.css';
 
 export default function ResumeEditorPage() {
   const { id } = useParams();
@@ -293,10 +295,10 @@ export default function ResumeEditorPage() {
 
   const getSaveStatusColor = () => {
     switch (saveStatus) {
-      case 'saved': return 'text-green-600';
-      case 'saving': return 'text-blue-600';
-      case 'unsaved': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
+      case 'saved': return styles.saveStatusSaved;
+      case 'saving': return styles.saveStatusSaving;
+      case 'unsaved': return styles.saveStatusUnsaved;
+      case 'error': return styles.saveStatusError;
       default: return 'text-gray-600';
     }
   };
@@ -379,8 +381,8 @@ Write a brief summary of your professional background, key skills, and career ob
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center min-h-96">
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingContent}>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -388,7 +390,7 @@ Write a brief summary of your professional background, key skills, and career ob
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className={styles.pageContainer}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
