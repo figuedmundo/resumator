@@ -1,0 +1,122 @@
+/* ResumeCustomizePage Component */
+
+.pageContainer {
+  @apply flex flex-col h-screen bg-gray-50;
+}
+
+.loadingContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.loadingContent {
+  @apply flex items-center justify-center min-h-96;
+}
+
+.errorContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.errorAlert {
+  @apply bg-red-50 border border-red-200 rounded-lg p-6;
+}
+
+.errorContent {
+  @apply flex;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.errorDetails {
+  @apply ml-3;
+}
+
+.errorTitle {
+  @apply text-sm font-medium text-red-800;
+}
+
+.errorMessage {
+  @apply text-sm text-red-700 mt-1;
+}
+
+.errorBackLink {
+  @apply mt-3 text-sm font-medium text-red-800 hover:text-red-900;
+}
+
+/* Header */
+.header {
+  @apply bg-white border-b border-gray-200 px-4 py-4 flex-shrink-0;
+}
+
+.headerContainer {
+  @apply max-w-7xl mx-auto;
+}
+
+.headerContent {
+  @apply flex items-center justify-between;
+}
+
+.headerLeft {
+  @apply flex items-center space-x-4;
+}
+
+.backButton {
+  @apply flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200;
+}
+
+.backIcon {
+  @apply w-5 h-5 mr-2;
+}
+
+.title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.subtitle {
+  @apply text-sm text-gray-500;
+}
+
+.headerRight {
+  @apply flex items-center space-x-3;
+}
+
+/* View Mode Toggle */
+.viewModeToggle {
+  @apply flex items-center bg-gray-100 rounded-lg p-1;
+}
+
+.viewModeButton {
+  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.viewModeButtonActive {
+  @apply bg-white text-gray-900 shadow;
+}
+
+.viewModeButtonInactive {
+  @apply text-gray-600 hover:text-gray-900 disabled:opacity-50;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pageContainer {
+    @apply bg-gray-900;
+  }
+
+  .header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .backButton {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .title {
+    @apply text-white;
+  }
+
+  .subtitle {
+    @apply text-gray-400;
+  }
+}

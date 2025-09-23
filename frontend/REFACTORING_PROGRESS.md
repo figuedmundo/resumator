@@ -1,6 +1,6 @@
 # Refactoring Progress: Replace Inline Tailwind with CSS Modules
 
-## ✅ Completed Files (25/33)
+## ✅ Completed Files (27/33)
 
 ### Infrastructure
 - ✅ CSS Modules directory structure created
@@ -33,17 +33,18 @@
 22. **✅ VersionComparison.jsx** - Version comparison with diff view
 23. **✅ ApplicationDetail.jsx** - Application details page with full CRUD operations
 24. **✅ ApplicationForm.jsx** - Application form with validation and resume selection
+25. **✅ ResumeViewPage.jsx** - Resume preview page with multi-mode viewing
+26. **✅ ApplicationFormPage.jsx** - Application form page wrapper
 
-## 🔄 In Progress / Next Up (8 remaining)
+## 🔄 In Progress / Next Up (6 remaining)
 
 ### High Priority (Common Components)
 - All common components completed! ✅
 
-### Page Components (4 remaining)
+### Page Components (3 remaining)
 - ⏳ ResumeEditorPage.jsx - Resume editing interface (partially started)
-- ⏳ ResumeViewPage.jsx - Resume preview page
-- ⏳ ResumeCustomizePage.jsx - AI customization page
-- ⏳ ApplicationFormPage.jsx - Application form
+- ⏳ ResumeCustomizePage.jsx - AI customization page (partially started)
+- ⏳ ApplicationFormPage.jsx - Application form page
 
 ### AI Components (0 remaining)
 - All AI components completed! ✅
@@ -62,10 +63,10 @@
 
 ## 📊 Progress Statistics
 
-- **Completed**: 25/33 files (76%)
+- **Completed**: 27/33 files (82%)
 - **Infrastructure Setup**: Complete ✅
 - **Common Components**: 3/3 (100%) ✅
-- **Page Components**: 7/11 (64%)
+- **Page Components**: 9/11 (82%)
 - **Specialized Components**: 14/14 (100%) ✅
 - **Hooks**: 1/1 (100%) ✅
 
@@ -100,5 +101,5 @@
 - **Tailwind CSS**: For utility classes via @apply
 
 ---
-**Last Updated**: Progress through ApplicationDetail.jsx and ApplicationForm.jsx
-**Estimated Time Remaining**: ~3-4 hours for remaining 8 files
+**Last Updated**: Progress through ResumeViewPage.jsx
+**Estimated Time Remaining**: ~2-3 hours for remaining 7 files

@@ -1,0 +1,36 @@
+/* ApplicationFormPage Component */
+
+.container {
+  @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.header {
+  @apply mb-8;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.subtitle {
+  @apply mt-1 text-sm text-gray-600;
+}
+
+.formCard {
+  @apply bg-white shadow rounded-lg p-6;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .title {
+    @apply text-white;
+  }
+
+  .subtitle {
+    @apply text-gray-400;
+  }
+
+  .formCard {
+    @apply bg-gray-800;
+  }
+}

@@ -140,7 +140,7 @@ class ApiService {
 
   async verifyToken() {
     try {
-      const response = await this.api.get(API_ENDPOINTS.VERIFY_TOKEN);
+      const response = await this.api.post(API_ENDPOINTS.VERIFY_TOKEN);
       return response.data;
     } catch (error) {
       throw new Error(getErrorMessage(error));
