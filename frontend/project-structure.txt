@@ -2,6 +2,7 @@
 ├── Dockerfile
 ├── Dockerfile.dev
 ├── index.html
+├── old_pack.json
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
@@ -13,36 +14,15 @@
 ├── REFACTORING_PROGRESS.md
 ├── src
 │   ├── App.jsx
+│   ├── App.module.css
 │   ├── components
-│   │   ├── ai
-│   │   │   ├── AIProgressIndicator.jsx
-│   │   │   ├── AIProgressIndicator.module.css
-│   │   │   ├── ResumeCustomizer.jsx
-│   │   │   └── ResumeCustomizer.module.css
-│   │   ├── application
-│   │   │   ├── ApplicationDetail.jsx
-│   │   │   ├── ApplicationDetail.module.css
-│   │   │   ├── ApplicationForm.jsx
-│   │   │   ├── ApplicationList.jsx
-│   │   │   └── ApplicationList.module.css
-│   │   ├── common
-│   │   │   ├── ConfirmDialog.jsx
-│   │   │   ├── ConfirmDialog.module.css
+│   │   ├── Header
 │   │   │   ├── Header.jsx
-│   │   │   ├── Header.module.css
+│   │   │   └── Header.module.css
+│   │   ├── LoadingSpinner
 │   │   │   ├── LoadingSpinner.jsx
 │   │   │   └── LoadingSpinner.module.css
-│   │   └── resume
-│   │       ├── FileUploadZone.jsx
-│   │       ├── FileUploadZone.module.css
-│   │       ├── MarkdownToolbar.jsx
-│   │       ├── MarkdownToolbar.module.css
-│   │       ├── PDFPreview.jsx
-│   │       ├── PDFPreview.module.css
-│   │       ├── TemplateCard.jsx
-│   │       ├── TemplateCard.module.css
-│   │       ├── TemplateSelector.jsx
-│   │       ├── TemplateSelector.module.css
+│   │   └── VersionComparison
 │   │       ├── VersionComparison.jsx
 │   │       └── VersionComparison.module.css
 │   ├── config
@@ -51,41 +31,71 @@
 │   │   └── useAuth.jsx
 │   ├── main.jsx
 │   ├── pages
-│   │   ├── ApplicationFormPage.jsx
-│   │   ├── ApplicationsPage.jsx
+│   │   ├── ApplicationForm
+│   │   │   ├── ApplicationFormPage.jsx
+│   │   │   ├── ApplicationFormPage.module.css
+│   │   │   └── components
+│   │   │       ├── ApplicationForm.jsx
+│   │   │       └── ApplicationForm.module.css
+│   │   ├── Applications
+│   │   │   ├── ApplicationsPage.jsx
+│   │   │   ├── ApplicationsPage.module.css
+│   │   │   └── components
+│   │   │       ├── ApplicationDetail.jsx
+│   │   │       ├── ApplicationDetail.module.css
+│   │   │       ├── ApplicationList.jsx
+│   │   │       ├── ApplicationList.module.css
+│   │   │       ├── ConfirmDialog.jsx
+│   │   │       └── ConfirmDialog.module.css
 │   │   ├── auth
-│   │   │   ├── LoginPage.jsx
-│   │   │   └── RegisterPage.jsx
-│   │   ├── DashboardPage.jsx
-│   │   ├── NotFoundPage.jsx
-│   │   ├── ProfilePage.jsx
-│   │   ├── ResumeCustomizePage.jsx
-│   │   ├── ResumeEditorPage.jsx
-│   │   ├── ResumesPage.jsx
-│   │   ├── ResumeViewPage.jsx
-│   │   └── temp
+│   │   │   ├── Login
+│   │   │   │   ├── LoginPage.jsx
+│   │   │   │   └── LoginPage.module.css
+│   │   │   └── Register
+│   │   │       ├── RegisterPage.jsx
+│   │   │       └── RegisterPage.module.css
+│   │   ├── Dashboard
+│   │   │   ├── DashboardPage.jsx
+│   │   │   └── DashboardPage.module.css
+│   │   ├── NotFound
+│   │   │   ├── NotFoundPage.jsx
+│   │   │   └── NotFoundPage.module.css
+│   │   ├── Profile
+│   │   │   ├── ProfilePage.jsx
+│   │   │   └── ProfilePage.module.css
+│   │   ├── ResumeCustomize
+│   │   │   ├── components
+│   │   │   │   ├── AIProgressIndicator.jsx
+│   │   │   │   ├── AIProgressIndicator.module.css
+│   │   │   │   ├── ResumeCustomizer.jsx
+│   │   │   │   └── ResumeCustomizer.module.css
+│   │   │   ├── ResumeCustomizePage.jsx
+│   │   │   └── ResumeCustomizePage.module.css
+│   │   ├── ResumeEditor
+│   │   │   ├── components
+│   │   │   │   ├── FileUploadZone.jsx
+│   │   │   │   ├── FileUploadZone.module.css
+│   │   │   │   ├── MarkdownToolbar.jsx
+│   │   │   │   └── MarkdownToolbar.module.css
+│   │   │   ├── ResumeEditorPage.jsx
+│   │   │   └── ResumeEditorPage.module.css
+│   │   ├── Resumes
+│   │   │   ├── ResumesPage.jsx
+│   │   │   └── ResumesPage.module.css
+│   │   └── ResumeView
+│   │       ├── components
+│   │       │   ├── PDFPreview.jsx
+│   │       │   ├── PDFPreview.module.css
+│   │       │   ├── TemplateCard.jsx
+│   │       │   ├── TemplateCard.module.css
+│   │       │   ├── TemplateSelector.jsx
+│   │       │   └── TemplateSelector.module.css
+│   │       ├── ResumeViewPage.jsx
+│   │       └── ResumeViewPage.module.css
 │   ├── services
 │   │   └── api.js
 │   ├── styles
 │   │   ├── globals.css
-│   │   ├── modules
-│   │   │   ├── components
-│   │   │   │   └── application
-│   │   │   │       └── ApplicationForm.module.css
-│   │   │   ├── layouts
-│   │   │   │   └── App.module.css
-│   │   │   └── pages
-│   │   │       ├── ApplicationFormPage.module.css
-│   │   │       ├── ApplicationsPage.module.css
-│   │   │       ├── DashboardPage.module.css
-│   │   │       ├── LoginPage.module.css
-│   │   │       ├── NotFoundPage.module.css
-│   │   │       ├── ProfilePage.module.css
-│   │   │       ├── RegisterPage.module.css
-│   │   │       ├── ResumeCustomizePage.module.css
-│   │   │       ├── ResumeEditorPage.module.css
-│   │   │       ├── ResumesPage.module.css
-│   │   │       └── ResumeViewPage.module.css
 │   │   └── variables.css
 │   └── utils
 │       ├── constants.js
@@ -93,4 +103,4 @@
 ├── tailwind.config.js
 └── vite.config.mjs
 
-21 directories, 74 files
+30 directories, 74 files

@@ -1,29 +1,29 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from './hooks/useAuth';
-import Header from './components/common/Header';
-import LoadingSpinner from './components/common/LoadingSpinner';
-import styles from './styles/modules/layouts/App.module.css';
+import Header from './components/Header/Header';
+import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
+import styles from './App.module.css';
 
 // Auth pages
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
+import LoginPage from './pages/auth/Login/LoginPage';
+import RegisterPage from './pages/auth/Register/RegisterPage';
 
 // Main pages
-import DashboardPage from './pages/DashboardPage';
-import ResumesPage from './pages/ResumesPage';
-import ResumeEditorPage from './pages/ResumeEditorPage';
-import ResumeViewPage from './pages/ResumeViewPage';
-import ResumeCustomizePage from './pages/ResumeCustomizePage';
-import ApplicationsPage from './pages/ApplicationsPage';
-import ApplicationFormPage from './pages/ApplicationFormPage';
-import ProfilePage from './pages/ProfilePage';
+import DashboardPage from './pages/Dashboard/DashboardPage';
+import ResumesPage from './pages/Resumes/ResumesPage';
+import ResumeEditorPage from './pages/ResumeEditor/ResumeEditorPage';
+import ResumeViewPage from './pages/ResumeView/ResumeViewPage';
+import ResumeCustomizePage from './pages/ResumeCustomize/ResumeCustomizePage';
+import ApplicationsPage from './pages/Applications/ApplicationsPage';
+import ApplicationFormPage from './pages/ApplicationForm/ApplicationFormPage';
+import ProfilePage from './pages/Profile/ProfilePage';
 
 // Application components
-import ApplicationDetail from './components/application/ApplicationDetail';
+import ApplicationDetail from './pages/Applications/components/ApplicationDetail';
 
 // 404 page
-import NotFoundPage from './pages/NotFoundPage';
+import NotFoundPage from './pages/NotFound/NotFoundPage';
 
 // Protected Route component
 function ProtectedRoute({ children }) {
