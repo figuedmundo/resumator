@@ -1,0 +1,96 @@
+.
+├── Dockerfile
+├── Dockerfile.dev
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── project-structure.txt
+├── public
+│   ├── favicon.svg
+│   └── index.html
+├── README.md
+├── REFACTORING_PROGRESS.md
+├── src
+│   ├── App.jsx
+│   ├── components
+│   │   ├── ai
+│   │   │   ├── AIProgressIndicator.jsx
+│   │   │   ├── AIProgressIndicator.module.css
+│   │   │   ├── ResumeCustomizer.jsx
+│   │   │   └── ResumeCustomizer.module.css
+│   │   ├── application
+│   │   │   ├── ApplicationDetail.jsx
+│   │   │   ├── ApplicationDetail.module.css
+│   │   │   ├── ApplicationForm.jsx
+│   │   │   ├── ApplicationList.jsx
+│   │   │   └── ApplicationList.module.css
+│   │   ├── common
+│   │   │   ├── ConfirmDialog.jsx
+│   │   │   ├── ConfirmDialog.module.css
+│   │   │   ├── Header.jsx
+│   │   │   ├── Header.module.css
+│   │   │   ├── LoadingSpinner.jsx
+│   │   │   └── LoadingSpinner.module.css
+│   │   └── resume
+│   │       ├── FileUploadZone.jsx
+│   │       ├── FileUploadZone.module.css
+│   │       ├── MarkdownToolbar.jsx
+│   │       ├── MarkdownToolbar.module.css
+│   │       ├── PDFPreview.jsx
+│   │       ├── PDFPreview.module.css
+│   │       ├── TemplateCard.jsx
+│   │       ├── TemplateCard.module.css
+│   │       ├── TemplateSelector.jsx
+│   │       ├── TemplateSelector.module.css
+│   │       ├── VersionComparison.jsx
+│   │       └── VersionComparison.module.css
+│   ├── config
+│   │   └── templateConfig.js
+│   ├── hooks
+│   │   └── useAuth.jsx
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── ApplicationFormPage.jsx
+│   │   ├── ApplicationsPage.jsx
+│   │   ├── auth
+│   │   │   ├── LoginPage.jsx
+│   │   │   └── RegisterPage.jsx
+│   │   ├── DashboardPage.jsx
+│   │   ├── NotFoundPage.jsx
+│   │   ├── ProfilePage.jsx
+│   │   ├── ResumeCustomizePage.jsx
+│   │   ├── ResumeEditorPage.jsx
+│   │   ├── ResumesPage.jsx
+│   │   ├── ResumeViewPage.jsx
+│   │   └── temp
+│   ├── services
+│   │   └── api.js
+│   ├── styles
+│   │   ├── globals.css
+│   │   ├── modules
+│   │   │   ├── components
+│   │   │   │   └── application
+│   │   │   │       └── ApplicationForm.module.css
+│   │   │   ├── layouts
+│   │   │   │   └── App.module.css
+│   │   │   └── pages
+│   │   │       ├── ApplicationFormPage.module.css
+│   │   │       ├── ApplicationsPage.module.css
+│   │   │       ├── DashboardPage.module.css
+│   │   │       ├── LoginPage.module.css
+│   │   │       ├── NotFoundPage.module.css
+│   │   │       ├── ProfilePage.module.css
+│   │   │       ├── RegisterPage.module.css
+│   │   │       ├── ResumeCustomizePage.module.css
+│   │   │       ├── ResumeEditorPage.module.css
+│   │   │       ├── ResumesPage.module.css
+│   │   │       └── ResumeViewPage.module.css
+│   │   └── variables.css
+│   └── utils
+│       ├── constants.js
+│       └── helpers.js
+├── tailwind.config.js
+└── vite.config.mjs
+
+21 directories, 74 files

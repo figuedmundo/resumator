@@ -98,6 +98,59 @@
   @apply text-gray-600 hover:text-gray-900 disabled:opacity-50;
 }
 
+/* Messages */
+.messagesContainer {
+  @apply flex-shrink-0 px-4 py-3;
+}
+
+.messagesContent {
+  @apply max-w-7xl mx-auto;
+}
+
+.errorMessage {
+  @apply bg-red-50 border border-red-200 rounded-md p-4 mb-3;
+}
+
+.successMessage {
+  @apply bg-green-50 border border-green-200 rounded-md p-4;
+}
+
+.messageContent {
+  @apply flex;
+}
+
+.messageIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.successMessage .messageIcon {
+  @apply text-green-400;
+}
+
+.messageText {
+  @apply ml-3;
+}
+
+.messageText p {
+  @apply text-sm text-red-800;
+}
+
+.successMessage .messageText p {
+  @apply text-sm text-green-800;
+}
+
+.messageClose {
+  @apply ml-auto text-red-600 hover:text-red-800;
+}
+
+.successMessage .messageClose {
+  @apply text-green-600 hover:text-green-800;
+}
+
+.messageCloseIcon {
+  @apply w-4 h-4;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .pageContainer {
@@ -118,5 +171,29 @@
 
   .subtitle {
     @apply text-gray-400;
+  }
+
+  .errorMessage {
+    @apply bg-red-900 border-red-800;
+  }
+
+  .errorMessage .messageText p {
+    @apply text-red-200;
+  }
+
+  .errorMessage .messageClose {
+    @apply text-red-200 hover:text-red-100;
+  }
+
+  .successMessage {
+    @apply bg-green-900 border-green-800;
+  }
+
+  .successMessage .messageText p {
+    @apply text-green-200;
+  }
+
+  .successMessage .messageClose {
+    @apply text-green-200 hover:text-green-100;
   }
 }

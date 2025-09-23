@@ -84,6 +84,8 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state on app load
   useEffect(() => {
+    console.log("useAuth init effect running...");
+
     const initializeAuth = async () => {
       const token = apiService.getToken();
       const user = apiService.getCurrentUser();
@@ -163,7 +165,9 @@ export function AuthProvider({ children }) {
 
   // Clear error function
   const clearError = () => {
-    dispatch({ type: AuthActions.CLEAR_ERROR });
+    // if (state.error) {
+      dispatch({ type: AuthActions.CLEAR_ERROR });
+    // }
   };
 
   // Update user function

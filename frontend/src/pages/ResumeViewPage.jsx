@@ -210,9 +210,9 @@ export default function ResumeViewPage() {
               {/* Action Buttons */}
               <Link
                 to={`/resumes/${id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className={styles.editButton}
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Edit
@@ -220,9 +220,9 @@ export default function ResumeViewPage() {
 
               <Link
                 to={`/resumes/${id}/customize`}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className={styles.customizeButton}
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 Customize
@@ -305,30 +305,30 @@ export default function ResumeViewPage() {
         )}
 
         {viewMode === 'markdown' && (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Markdown Source</h3>
-                    <p className="text-sm text-gray-600 mt-1">
+          <div className={styles.markdownContainer}>
+            <div className={styles.markdownCard}>
+              <div className={styles.markdownHeader}>
+                <div className={styles.markdownHeaderContent}>
+                  <div className={styles.markdownHeaderInfo}>
+                    <h3 className={styles.markdownTitle}>Markdown Source</h3>
+                    <p className={styles.markdownSubtitle}>
                       Raw markdown content of your resume
                     </p>
                   </div>
                   <button
                     onClick={() => navigator.clipboard.writeText(currentContent)}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    className={styles.copyButton}
                     title="Copy to clipboard"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={styles.copyIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     Copy
                   </button>
                 </div>
               </div>
-              <div className="p-6">
-                <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 bg-gray-50 p-4 rounded-lg border overflow-auto">
+              <div className={styles.markdownContent}>
+                <pre className={styles.markdownSource}>
                   {currentContent || 'No content available'}
                 </pre>
               </div>

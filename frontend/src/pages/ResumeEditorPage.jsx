@@ -392,56 +392,59 @@ Write a brief summary of your professional background, key skills, and career ob
   return (
     <div className={styles.pageContainer}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
             <button
               onClick={() => navigate('/resumes')}
-              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className={styles.backButton}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={styles.backIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Back to Resumes
             </button>
-            <div className="flex items-center">
+            <div className={styles.titleSection}>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-2 py-1"
+                className={styles.titleInput}
                 placeholder="Resume Title"
               />
-              <span className={`ml-3 text-sm ${getSaveStatusColor()}`}>
+              <span className={clsx(styles.saveStatus, getSaveStatusColor())}>
                 {getSaveStatusText()}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className={styles.headerRight}>
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className={styles.viewModeToggle}>
               <button
                 onClick={() => setViewMode('edit')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  viewMode === 'edit' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={clsx(
+                  styles.viewModeButton,
+                  viewMode === 'edit' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                )}
               >
                 Edit
               </button>
               <button
                 onClick={() => setViewMode('split')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  viewMode === 'split' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={clsx(
+                  styles.viewModeButton,
+                  viewMode === 'split' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                )}
               >
                 Split
               </button>
               <button
                 onClick={() => setViewMode('preview')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  viewMode === 'preview' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={clsx(
+                  styles.viewModeButton,
+                  viewMode === 'preview' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                )}
               >
                 Preview
               </button>
@@ -451,14 +454,13 @@ Write a brief summary of your professional background, key skills, and career ob
             {viewMode === 'split' && (
               <button
                 onClick={() => setIsScrollSyncing(!isScrollSyncing)}
-                className={`p-2 rounded transition-colors duration-200 ${
-                  isScrollSyncing 
-                    ? 'text-blue-600 bg-blue-50' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={clsx(
+                  styles.actionButton,
+                  isScrollSyncing ? styles.actionButtonActive : ''
+                )}
                 title="Toggle scroll synchronization"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
               </button>
@@ -468,10 +470,10 @@ Write a brief summary of your professional background, key skills, and career ob
             {versions.length > 0 && (
               <button
                 onClick={() => setShowVersions(!showVersions)}
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className={styles.actionButton}
                 title="Version History"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
@@ -480,15 +482,15 @@ Write a brief summary of your professional background, key skills, and career ob
             {/* Theme Toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className={styles.actionButton}
               title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
             >
               {isDarkMode ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
               )}
@@ -497,10 +499,10 @@ Write a brief summary of your professional background, key skills, and career ob
             {/* File Upload */}
             <button
               onClick={() => setShowUploadZone(!showUploadZone)}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className={styles.actionButton}
               title="Upload file"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </button>
@@ -511,7 +513,7 @@ Write a brief summary of your professional background, key skills, and career ob
               type="file"
               accept=".md,.txt"
               onChange={handleLegacyFileUpload}
-              className="hidden"
+              className={styles.hiddenFileInput}
             />
 
             {/* Save Button */}
@@ -540,15 +542,15 @@ Write a brief summary of your professional background, key skills, and career ob
 
       {/* Upload Zone Modal */}
       {showUploadZone && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 m-4 max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upload Resume</h3>
+        <div className={styles.uploadModal}>
+          <div className={styles.uploadModalContent}>
+            <div className={styles.uploadModalHeader}>
+              <h3 className={styles.uploadModalTitle}>Upload Resume</h3>
               <button
                 onClick={() => setShowUploadZone(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                className={styles.uploadModalClose}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.uploadModalCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -560,18 +562,18 @@ Write a brief summary of your professional background, key skills, and career ob
 
       {/* Error Message */}
       {error && (
-        <div className="flex-shrink-0 px-4 py-2">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
-              <svg className="h-5 w-5 text-red-400 mr-3" viewBox="0 0 20 20" fill="currentColor">
+        <div className={styles.errorContainer}>
+          <div className={styles.errorContent}>
+            <div className={styles.errorAlert}>
+              <svg className={styles.errorIcon} viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <p className="text-sm text-red-800">{error}</p>
+              <p className={styles.errorText}>{error}</p>
               <button
                 onClick={() => setError(null)}
-                className="ml-auto text-red-600 hover:text-red-800"
+                className={styles.errorClose}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.errorCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -586,10 +588,10 @@ Write a brief summary of your professional background, key skills, and career ob
       )}
 
       {/* Editor/Preview Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className={styles.mainContent}>
         {/* Version Comparison Sidebar */}
         {showVersions && (
-          <div className="w-80 border-r border-gray-200 flex-shrink-0">
+          <div className={styles.versionSidebar}>
             <VersionComparison 
               versions={versions}
               currentContent={content}
@@ -604,10 +606,13 @@ Write a brief summary of your professional background, key skills, and career ob
         )}
 
         {/* Main Editor Area */}
-        <div className="flex-1 flex">
+        <div className={styles.editorArea}>
           {(viewMode === 'edit' || viewMode === 'split') && (
-            <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} border-r border-gray-200`}>
-              <div ref={editorRef} className="h-full">
+            <div className={clsx(
+              styles.editorPanel,
+              viewMode === 'split' ? styles.editorPanelSplit : styles.editorPanelFull
+            )}>
+              <div ref={editorRef} className={styles.editorWrapper}>
                 <CodeMirror
                   value={content}
                   onChange={(value) => setContent(value)}
@@ -651,12 +656,15 @@ Write a brief summary of your professional background, key skills, and career ob
 
           {(viewMode === 'preview' || viewMode === 'split') && (
             <div 
-              className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} overflow-auto bg-white`}
+              className={clsx(
+                styles.previewPanel,
+                viewMode === 'split' ? styles.previewPanelSplit : styles.previewPanelFull
+              )}
               ref={previewRef}
               onScroll={handlePreviewScroll}
             >
-              <div className="max-w-4xl mx-auto p-8">
-                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+              <div className={styles.previewContent}>
+                <div className={styles.previewProse}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {content}
                   </ReactMarkdown>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ResumeCustomizer from '../components/ai/ResumeCustomizer';
@@ -7,6 +8,7 @@ import VersionComparison from '../components/resume/VersionComparison';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import apiService from '../services/api';
 import { formatDate } from '../utils/helpers';
+import styles from '../styles/modules/pages/ResumeCustomizePage.module.css';
 
 export default function ResumeCustomizePage() {
   const { id } = useParams();
@@ -173,8 +175,8 @@ export default function ResumeCustomizePage() {
 
   if (isLoading && !resume) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center min-h-96">
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingContent}>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -206,58 +208,61 @@ export default function ResumeCustomizePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className={styles.pageContainer}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+      <div className={styles.header}>
+        <div className={styles.headerContainer}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerLeft}>
               <button
                 onClick={() => navigate(`/resumes/${id}`)}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className={styles.backButton}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.backIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Resume
               </button>
               
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+              <div className={styles.headerInfo}>
+                <h1 className={styles.title}>
                   Customize: {resume?.title}
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className={styles.subtitle}>
                   Use AI to tailor your resume for specific job descriptions
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className={styles.headerRight}>
               {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <div className={styles.viewModeToggle}>
                 <button
                   onClick={() => setViewMode('customize')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'customize' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={clsx(
+                    styles.viewModeButton,
+                    viewMode === 'customize' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                  )}
                 >
                   Customize
                 </button>
                 <button
                   onClick={() => setViewMode('compare')}
                   disabled={!hasChanges}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'compare' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900 disabled:opacity-50'
-                  }`}
+                  className={clsx(
+                    styles.viewModeButton,
+                    viewMode === 'compare' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                  )}
                 >
                   Compare
                 </button>
                 <button
                   onClick={() => setViewMode('preview')}
                   disabled={!hasChanges}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'preview' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900 disabled:opacity-50'
-                  }`}
+                  className={clsx(
+                    styles.viewModeButton,
+                    viewMode === 'preview' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                  )}
                 >
                   Preview
                 </button>
@@ -322,22 +327,22 @@ export default function ResumeCustomizePage() {
 
       {/* Messages */}
       {(error || successMessage) && (
-        <div className="flex-shrink-0 px-4 py-3">
-          <div className="max-w-7xl mx-auto">
+        <div className={styles.messagesContainer}>
+          <div className={styles.messagesContent}>
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-3">
-                <div className="flex">
-                  <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={styles.errorMessage}>
+                <div className={styles.messageContent}>
+                  <svg className={styles.messageIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-800">{error}</p>
+                  <div className={styles.messageText}>
+                    <p>{error}</p>
                   </div>
                   <button
                     onClick={() => setError(null)}
-                    className="ml-auto text-red-600 hover:text-red-800"
+                    className={styles.messageClose}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={styles.messageCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
@@ -346,19 +351,19 @@ export default function ResumeCustomizePage() {
             )}
 
             {successMessage && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="flex">
-                  <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={styles.successMessage}>
+                <div className={styles.messageContent}>
+                  <svg className={styles.messageIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="ml-3">
-                    <p className="text-sm text-green-800">{successMessage}</p>
+                  <div className={styles.messageText}>
+                    <p>{successMessage}</p>
                   </div>
                   <button
                     onClick={() => setSuccessMessage('')}
-                    className="ml-auto text-green-600 hover:text-green-800"
+                    className={styles.messageClose}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={styles.messageCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>

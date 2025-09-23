@@ -20,6 +20,7 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log("LoginPage redirect effect, isAuthenticated:", isAuthenticated);
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
