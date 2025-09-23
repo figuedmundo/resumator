@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -8,6 +9,7 @@ import PDFPreview from '../components/resume/PDFPreview';
 import apiService from '../services/api';
 import { formatDate, devLog } from '../utils/helpers';
 import { STORAGE_KEYS } from '../utils/constants';
+import styles from '../styles/modules/pages/ResumeViewPage.module.css';
 
 export default function ResumeViewPage() {
   const { id } = useParams();
@@ -95,8 +97,8 @@ export default function ResumeViewPage() {
   // Loading state
   if (isLoading && !resume) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center min-h-96">
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingContent}>
           <LoadingSpinner size="lg" />
         </div>
       </div>
@@ -106,18 +108,18 @@ export default function ResumeViewPage() {
   // Error state
   if (error && !resume) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="flex">
-            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={styles.errorContainer}>
+        <div className={styles.errorAlert}>
+          <div className={styles.errorContent}>
+            <svg className={styles.errorIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error Loading Resume</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+            <div className={styles.errorDetails}>
+              <h3 className={styles.errorTitle}>Error Loading Resume</h3>
+              <p className={styles.errorMessage}>{error}</p>
               <button
                 onClick={() => navigate('/resumes')}
-                className="mt-3 text-sm font-medium text-red-800 hover:text-red-900"
+                className={styles.errorBackLink}
               >
                 Back to Resumes →
               </button>
@@ -231,30 +233,30 @@ export default function ResumeViewPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={styles.mainContent}>
         {viewMode === 'preview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className={styles.previewGrid}>
             {/* Template Selector */}
-            <div className="lg:col-span-1">
+            <div className={styles.templateColumn}>
               <TemplateSelector
                 selectedTemplate={selectedTemplate}
                 onTemplateChange={handleTemplateChange}
-                className="h-fit"
+                className={styles.templateFit}
               />
             </div>
 
             {/* Content Preview */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Resume Preview</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+            <div className={styles.previewColumn}>
+              <div className={styles.previewCard}>
+                <div className={styles.previewHeader}>
+                  <h3 className={styles.previewTitle}>Resume Preview</h3>
+                  <p className={styles.previewSubtitle}>
                     Formatted preview using {selectedTemplate} template
                   </p>
                 </div>
-                <div className="p-8 bg-gray-50">
-                  <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-                    <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+                <div className={styles.previewContent}>
+                  <div className={styles.previewDocument}>
+                    <div className={styles.previewProse}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {currentContent}
                       </ReactMarkdown>
@@ -267,28 +269,28 @@ export default function ResumeViewPage() {
         )}
 
         {viewMode === 'pdf' && (
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          <div className={styles.pdfGrid}>
             {/* Template Selector */}
-            <div className="xl:col-span-1">
+            <div className={styles.pdfTemplateColumn}>
               <TemplateSelector
                 selectedTemplate={selectedTemplate}
                 onTemplateChange={handleTemplateChange}
-                className="h-fit"
+                className={styles.templateFit}
               />
 
               {/* PDF Loading Status */}
               {pdfLoading && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center">
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    <span className="text-sm text-blue-800">Generating PDF...</span>
+                <div className={styles.pdfLoadingStatus}>
+                  <div className={styles.pdfLoadingContent}>
+                    <LoadingSpinner size="sm" className={styles.pdfLoadingSpinner} />
+                    <span className={styles.pdfLoadingText}>Generating PDF...</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* PDF Preview */}
-            <div className="xl:col-span-3">
+            <div className={styles.pdfPreviewColumn}>
               <PDFPreview
                 resumeId={parseInt(id)}
                 versionId={selectedVersion?.id}
@@ -296,7 +298,7 @@ export default function ResumeViewPage() {
                 onLoadStart={handlePDFLoadStart}
                 onLoadComplete={handlePDFLoadComplete}
                 onError={handlePDFError}
-                className="h-fit"
+                className={styles.templateFit}
               />
             </div>
           </div>

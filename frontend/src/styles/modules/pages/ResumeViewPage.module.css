@@ -1,0 +1,362 @@
+/* ResumeViewPage Component */
+
+.pageContainer {
+  @apply min-h-screen bg-gray-50;
+}
+
+.loadingContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.loadingContent {
+  @apply flex items-center justify-center min-h-96;
+}
+
+.errorContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+.errorAlert {
+  @apply bg-red-50 border border-red-200 rounded-lg p-6;
+}
+
+.errorContent {
+  @apply flex;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.errorDetails {
+  @apply ml-3;
+}
+
+.errorTitle {
+  @apply text-sm font-medium text-red-800;
+}
+
+.errorMessage {
+  @apply text-sm text-red-700 mt-1;
+}
+
+.errorBackLink {
+  @apply mt-3 text-sm font-medium text-red-800 hover:text-red-900;
+}
+
+/* Header */
+.header {
+  @apply bg-white border-b border-gray-200;
+}
+
+.headerContainer {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.headerContent {
+  @apply flex items-center justify-between py-4;
+}
+
+.headerLeft {
+  @apply flex items-center space-x-4;
+}
+
+.backLink {
+  @apply flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200;
+}
+
+.backIcon {
+  @apply w-5 h-5 mr-2;
+}
+
+.headerInfo {
+  /* No specific styles */
+}
+
+.title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.metadata {
+  @apply flex items-center space-x-4 mt-1;
+}
+
+.updatedText {
+  @apply text-sm text-gray-500;
+}
+
+.versionSelector {
+  @apply flex items-center space-x-2;
+}
+
+.versionLabel {
+  @apply text-sm text-gray-500;
+}
+
+.versionSelect {
+  @apply text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500;
+}
+
+.headerRight {
+  @apply flex items-center space-x-3;
+}
+
+/* View Mode Toggle */
+.viewModeToggle {
+  @apply flex items-center bg-gray-100 rounded-lg p-1;
+}
+
+.viewModeButton {
+  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.viewModeButtonActive {
+  @apply bg-white text-gray-900 shadow;
+}
+
+.viewModeButtonInactive {
+  @apply text-gray-600 hover:text-gray-900;
+}
+
+/* Action Buttons */
+.editButton {
+  @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.customizeButton {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.buttonIcon {
+  @apply w-4 h-4 mr-2;
+}
+
+/* Main Content */
+.mainContent {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+/* Preview Mode Layout */
+.previewGrid {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-8;
+}
+
+.templateColumn {
+  @apply lg:col-span-1;
+}
+
+.previewColumn {
+  @apply lg:col-span-2;
+}
+
+.previewCard {
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+}
+
+.previewHeader {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.previewTitle {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.previewSubtitle {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.previewContent {
+  @apply p-8 bg-gray-50;
+}
+
+.previewDocument {
+  @apply max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg;
+}
+
+.previewProse {
+  @apply prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700;
+}
+
+/* PDF Mode Layout */
+.pdfGrid {
+  @apply grid grid-cols-1 xl:grid-cols-4 gap-8;
+}
+
+.pdfTemplateColumn {
+  @apply xl:col-span-1;
+}
+
+.pdfLoadingStatus {
+  @apply mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg;
+}
+
+.pdfLoadingContent {
+  @apply flex items-center;
+}
+
+.pdfLoadingSpinner {
+  @apply mr-2;
+}
+
+.pdfLoadingText {
+  @apply text-sm text-blue-800;
+}
+
+.pdfPreviewColumn {
+  @apply xl:col-span-3;
+}
+
+/* Markdown Mode Layout */
+.markdownContainer {
+  @apply max-w-4xl mx-auto;
+}
+
+.markdownCard {
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+}
+
+.markdownHeader {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.markdownHeaderContent {
+  @apply flex items-center justify-between;
+}
+
+.markdownHeaderInfo {
+  /* No specific styles */
+}
+
+.markdownTitle {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.markdownSubtitle {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.copyButton {
+  @apply inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50;
+}
+
+.copyIcon {
+  @apply w-4 h-4 mr-2;
+}
+
+.markdownContent {
+  @apply p-6;
+}
+
+.markdownSource {
+  @apply whitespace-pre-wrap font-mono text-sm text-gray-800 bg-gray-50 p-4 rounded-lg border overflow-auto;
+}
+
+/* Common utility classes */
+.templateFit {
+  @apply h-fit;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .pageContainer {
+    @apply bg-gray-900;
+  }
+
+  .header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .backLink {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .title {
+    @apply text-white;
+  }
+
+  .updatedText,
+  .versionLabel {
+    @apply text-gray-400;
+  }
+
+  .versionSelect {
+    @apply bg-gray-700 border-gray-600 text-white;
+  }
+
+  .viewModeToggle {
+    @apply bg-gray-700;
+  }
+
+  .viewModeButtonActive {
+    @apply bg-gray-600 text-white;
+  }
+
+  .viewModeButtonInactive {
+    @apply text-gray-300 hover:text-white;
+  }
+
+  .editButton,
+  .copyButton {
+    @apply bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600;
+  }
+
+  .previewCard,
+  .markdownCard {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .previewHeader,
+  .markdownHeader {
+    @apply border-gray-700;
+  }
+
+  .previewTitle,
+  .markdownTitle {
+    @apply text-white;
+  }
+
+  .previewSubtitle,
+  .markdownSubtitle {
+    @apply text-gray-300;
+  }
+
+  .previewContent {
+    @apply bg-gray-700;
+  }
+
+  .previewDocument {
+    @apply bg-gray-800;
+  }
+
+  .previewProse {
+    @apply prose-invert;
+  }
+
+  .markdownSource {
+    @apply text-gray-200 bg-gray-700 border-gray-600;
+  }
+
+  .pdfLoadingStatus {
+    @apply bg-blue-900 border-blue-800;
+  }
+
+  .pdfLoadingText {
+    @apply text-blue-200;
+  }
+
+  .errorAlert {
+    @apply bg-red-900 border-red-800;
+  }
+
+  .errorTitle {
+    @apply text-red-200;
+  }
+
+  .errorMessage {
+    @apply text-red-300;
+  }
+
+  .errorBackLink {
+    @apply text-red-200 hover:text-red-100;
+  }
+}

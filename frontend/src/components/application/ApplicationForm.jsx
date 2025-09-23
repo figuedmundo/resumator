@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import LoadingSpinner from '../common/LoadingSpinner';
 import apiService from '../../services/api';
 import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../utils/constants';
 import { devLog } from '../../utils/helpers';
+import styles from './ApplicationForm.module.css';
 
 const ApplicationForm = ({ applicationId = null, onSuccess }) => {
   const navigate = useNavigate();
@@ -212,24 +214,24 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
 
   if (loadingResumes || (applicationId && loading)) {
     return (
-      <div className="flex items-center justify-center py-8">
+      <div className={styles.loadingContainer}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className={styles.form}>
       {errors.general && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+        <div className={styles.errorAlert}>
           {errors.general}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={styles.gridTwoCol}>
         {/* Company */}
-        <div>
-          <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className={styles.fieldGroup}>
+          <label htmlFor="company" className={styles.label}>
             Company *
           </label>
           <input
@@ -238,14 +240,15 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
             name="company"
             value={formData.company}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.company ? 'border-red-300' : 'border-gray-300'
-            }`}
+            className={clsx(
+              styles.input,
+              errors.company ? styles.inputError : styles.inputDefault
+            )}
             placeholder="Enter company name"
             required
           />
           {errors.company && (
-            <p className="mt-1 text-sm text-red-600">{errors.company}</p>
+            <p className={styles.errorText}>{errors.company}</p>
           )}
         </div>
 
@@ -408,11 +411,11 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+      <div className={styles.actions}>
         <button
           type="button"
           onClick={() => navigate('/applications')}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={styles.cancelButton}
           disabled={loading}
         >
           Cancel
@@ -420,7 +423,7 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          className={styles.submitButton}
         >
           {loading && <LoadingSpinner size="sm" />}
           <span>{applicationId ? 'Update Application' : 'Create Application'}</span>

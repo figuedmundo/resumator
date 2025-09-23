@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import clsx from 'clsx';
 import { 
   ArrowLeftIcon, 
   PencilIcon, 
@@ -16,6 +17,7 @@ import ConfirmDialog from '../common/ConfirmDialog';
 import apiService from '../../services/api';
 import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../utils/constants';
 import { devLog, formatDate } from '../../utils/helpers';
+import styles from './ApplicationDetail.module.css';
 
 const ApplicationDetail = () => {
   const { id } = useParams();
@@ -86,15 +88,15 @@ const ApplicationDetail = () => {
     if (!statusOption) return null;
 
     const colorClasses = {
-      blue: 'bg-blue-100 text-blue-800 border-blue-200',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      green: 'bg-green-100 text-green-800 border-green-200',
-      red: 'bg-red-100 text-red-800 border-red-200',
-      gray: 'bg-gray-100 text-gray-800 border-gray-200'
+      blue: styles.statusBlue,
+      yellow: styles.statusYellow,
+      green: styles.statusGreen,
+      red: styles.statusRed,
+      gray: styles.statusGray
     };
 
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${colorClasses[statusOption.color]}`}>
+      <span className={clsx(styles.statusBadge, colorClasses[statusOption.color])}>
         {statusOption.label}
       </span>
     );
@@ -102,7 +104,7 @@ const ApplicationDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
+      <div className={styles.loadingContainer}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -110,15 +112,15 @@ const ApplicationDetail = () => {
 
   if (error || !application) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+      <div className={styles.errorContainer}>
+        <div className={styles.errorContent}>
+          <div className={styles.errorAlert}>
             {error || 'Application not found'}
           </div>
-          <div className="mt-4">
+          <div className={styles.errorBackLink}>
             <Link
               to="/applications"
-              className="text-blue-600 hover:text-blue-700"
+              className={styles.backLinkText}
             >
               ← Back to Applications
             </Link>
@@ -129,37 +131,37 @@ const ApplicationDetail = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className={styles.container}>
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <div className={styles.headerLeft}>
             <Link
               to="/applications"
-              className="flex items-center text-gray-600 hover:text-gray-900"
+              className={styles.backLink}
             >
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              <ArrowLeftIcon className={styles.backIcon} />
               Back to Applications
             </Link>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className={styles.headerActions}>
             <Link
               to={`/applications/${id}/edit`}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className={styles.editButton}
             >
-              <PencilIcon className="h-4 w-4 mr-2" />
+              <PencilIcon className={styles.buttonIcon} />
               Edit
             </Link>
             <button
               onClick={() => setShowDeleteDialog(true)}
               disabled={deleting}
-              className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              className={styles.deleteButton}
             >
               {deleting ? (
                 <LoadingSpinner size="sm" />
               ) : (
-                <TrashIcon className="h-4 w-4 mr-2" />
+                <TrashIcon className={styles.buttonIcon} />
               )}
               Delete
             </button>
@@ -168,39 +170,39 @@ const ApplicationDetail = () => {
       </div>
 
       {/* Application Details */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div className={styles.detailsContainer}>
         {/* Header Section */}
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-bold text-gray-900">
+        <div className={styles.detailsHeader}>
+          <div className={styles.detailsHeaderContent}>
+            <div className={styles.detailsHeaderLeft}>
+              <div className={styles.detailsHeaderTitleRow}>
+                <h1 className={styles.detailsTitle}>
                   {application.position}
                 </h1>
                 {getStatusBadge(application.status)}
               </div>
               
-              <div className="mt-2 flex items-center text-lg text-gray-600 space-x-4">
-                <div className="flex items-center">
-                  <BuildingOfficeIcon className="flex-shrink-0 mr-2 h-5 w-5" />
+              <div className={styles.detailsSubtitle}>
+                <div className={styles.detailsSubtitleItem}>
+                  <BuildingOfficeIcon className={styles.detailsIcon} />
                   {application.company}
                 </div>
-                <div className="flex items-center">
-                  <CalendarIcon className="flex-shrink-0 mr-2 h-5 w-5" />
+                <div className={styles.detailsSubtitleItem}>
+                  <CalendarIcon className={styles.detailsIcon} />
                   Applied: {formatDate(application.applied_date)}
                 </div>
               </div>
             </div>
 
             {/* Status Dropdown */}
-            <div className="ml-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className={styles.statusDropdownContainer}>
+              <label className={styles.statusDropdownLabel}>
                 Update Status
               </label>
               <select
                 value={application.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className={styles.statusDropdown}
               >
                 {statusOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -213,15 +215,15 @@ const ApplicationDetail = () => {
         </div>
 
         {/* Details Section */}
-        <div className="px-4 py-5 sm:p-6">
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+        <div className={styles.detailsGrid}>
+          <dl className={styles.detailsList}>
             {/* Job Description */}
             {application.job_description && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Job Description</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  <div className="bg-gray-50 rounded-md p-4 max-h-64 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap font-sans">{application.job_description}</pre>
+              <div className={styles.detailItem}>
+                <dt className={styles.detailLabel}>Job Description</dt>
+                <dd className={styles.detailValue}>
+                  <div className={styles.detailTextArea}>
+                    <pre className={styles.detailPreformatted}>{application.job_description}</pre>
                   </div>
                 </dd>
               </div>
@@ -229,29 +231,29 @@ const ApplicationDetail = () => {
 
             {/* Notes */}
             {application.notes && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  <div className="bg-gray-50 rounded-md p-4">
-                    <pre className="whitespace-pre-wrap font-sans">{application.notes}</pre>
+              <div className={styles.detailItem}>
+                <dt className={styles.detailLabel}>Notes</dt>
+                <dd className={styles.detailValue}>
+                  <div className={styles.detailTextAreaSmall}>
+                    <pre className={styles.detailPreformatted}>{application.notes}</pre>
                   </div>
                 </dd>
               </div>
             )}
 
             {/* Resume Information */}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Resume Used</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                <div className="flex items-center space-x-2">
-                  <DocumentTextIcon className="h-4 w-4 text-gray-400" />
+            <div className={styles.detailItemSingle}>
+              <dt className={styles.detailLabel}>Resume Used</dt>
+              <dd className={styles.detailValue}>
+                <div className={styles.detailLinkRow}>
+                  <DocumentTextIcon className={styles.detailLinkIcon} />
                   <span>Resume ID: {application.resume_id}</span>
                   <Link
                     to={`/resumes/${application.resume_id}`}
-                    className="text-blue-600 hover:text-blue-700"
+                    className={styles.detailLink}
                     title="View resume"
                   >
-                    <EyeIcon className="h-4 w-4" />
+                    <EyeIcon className={styles.detailLinkIconButton} />
                   </Link>
                 </div>
               </dd>
@@ -313,24 +315,24 @@ const ApplicationDetail = () => {
         </div>
 
         {/* Actions Section */}
-        <div className="px-4 py-4 sm:px-6 bg-gray-50 border-t border-gray-200">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+        <div className={styles.actionsFooter}>
+          <div className={styles.actionsContent}>
+            <div className={styles.actionsId}>
               Application #{application.id}
             </div>
-            <div className="flex space-x-3">
+            <div className={styles.actionsButtons}>
               <Link
                 to={`/applications/${id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className={styles.actionButton}
               >
-                <PencilIcon className="h-4 w-4 mr-2" />
+                <PencilIcon className={styles.actionButtonIcon} />
                 Edit Application
               </Link>
               <Link
                 to={`/resumes/${application.resume_id}`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className={styles.actionButton}
               >
-                <DocumentTextIcon className="h-4 w-4 mr-2" />
+                <DocumentTextIcon className={styles.actionButtonIcon} />
                 View Resume
               </Link>
             </div>
@@ -340,7 +342,7 @@ const ApplicationDetail = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+        <div className={styles.errorMessage}>
           {error}
         </div>
       )}
