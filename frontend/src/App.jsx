@@ -18,9 +18,7 @@ import ResumeCustomizePage from './pages/ResumeCustomize/ResumeCustomizePage';
 import ApplicationsPage from './pages/Applications/ApplicationsPage';
 import ApplicationFormPage from './pages/ApplicationForm/ApplicationFormPage';
 import ProfilePage from './pages/Profile/ProfilePage';
-
-// Application components
-import ApplicationDetail from './pages/Applications/components/ApplicationDetail';
+import ApplicationDetailPage from './pages/ApplicationDetail/ApplicationDetailPage';
 
 // 404 page
 import NotFoundPage from './pages/NotFound/NotFoundPage';
@@ -212,7 +210,7 @@ function App() {
           element={
             <ProtectedRoute>
               <AppLayout>
-                <ApplicationDetail />
+                <ApplicationDetailPage />
               </AppLayout>
             </ProtectedRoute>
           }

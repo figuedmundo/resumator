@@ -6,39 +6,54 @@ import {
   PencilIcon, 
   TrashIcon,
   BuildingOfficeIcon,
-  BriefcaseIcon,
   CalendarIcon,
   DocumentTextIcon,
   EyeIcon,
   LinkIcon
 } from '@heroicons/react/24/outline';
-import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
-import ConfirmDialog from './ConfirmDialog';
-import apiService from '../../../services/api';
-import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../../utils/constants';
-import { devLog, formatDate } from '../../../utils/helpers';
-import styles from './ApplicationDetail.module.css';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ConfirmDialog from '../Applications/components/ConfirmDialog';
+import { StatusBadge, StatusSelect } from '../../components/Applications';
+import { useApplications, useApplicationDeletion } from '../../hooks/applications';
+import apiService from '../../services/api';
+import { devLog, formatDate } from '../../utils/helpers';
+import styles from './ApplicationDetailPage.module.css';
 
-const ApplicationDetail = () => {
+const ApplicationDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
-  const statusOptions = [
-    { value: APPLICATION_STATUS.APPLIED, label: 'Applied', color: 'blue' },
-    { value: APPLICATION_STATUS.INTERVIEWING, label: 'Interviewing', color: 'yellow' },
-    { value: APPLICATION_STATUS.OFFER, label: 'Offer', color: 'green' },
-    { value: APPLICATION_STATUS.REJECTED, label: 'Rejected', color: 'red' },
-    { value: APPLICATION_STATUS.WITHDRAWN, label: 'Withdrawn', color: 'gray' }
-  ];
+  // Custom hooks
+  const { 
+    loading: operationLoading, 
+    error: operationError, 
+    updateApplicationStatus, 
+    deleteApplication, 
+    clearError: clearOperationError 
+  } = useApplications();
+
+  const {
+    applicationToDelete,
+    confirmDeleteApplication,
+    cancelDeletion,
+    getDeleteDialogProps
+  } = useApplicationDeletion();
 
   useEffect(() => {
     loadApplication();
   }, [id]);
+
+  // Clear operation errors when they change
+  useEffect(() => {
+    if (operationError) {
+      setError(operationError);
+      const timer = setTimeout(clearOperationError, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [operationError, clearOperationError]);
 
   const loadApplication = async () => {
     setLoading(true);
@@ -57,49 +72,31 @@ const ApplicationDetail = () => {
   };
 
   const handleStatusChange = async (newStatus) => {
-    try {
-      await apiService.updateApplication(id, { status: newStatus });
-      setApplication(prev => ({ ...prev, status: newStatus }));
-      devLog(`Application ${id} status updated to ${newStatus}`);
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      setError('Failed to update status');
-    }
+    const success = await updateApplicationStatus(
+      id, 
+      newStatus, 
+      (applicationId, status) => {
+        setApplication(prev => ({ ...prev, status }));
+      }
+    );
   };
 
   const handleDeleteApplication = async () => {
-    setDeleting(true);
-    setShowDeleteDialog(false);
-    
-    try {
-      await apiService.deleteApplication(id);
-      navigate('/applications');
-      devLog(`Application ${id} deleted`);
-    } catch (error) {
-      console.error('Failed to delete application:', error);
-      setError('Failed to delete application');
-    } finally {
-      setDeleting(false);
-    }
+    if (!applicationToDelete) return;
+
+    const success = await deleteApplication(
+      applicationToDelete.id,
+      () => {
+        navigate('/applications');
+        cancelDeletion();
+      }
+    );
   };
 
-  const getStatusBadge = (status) => {
-    const statusOption = statusOptions.find(opt => opt.value === status);
-    if (!statusOption) return null;
-
-    const colorClasses = {
-      blue: styles.statusBlue,
-      yellow: styles.statusYellow,
-      green: styles.statusGreen,
-      red: styles.statusRed,
-      gray: styles.statusGray
-    };
-
-    return (
-      <span className={clsx(styles.statusBadge, colorClasses[statusOption.color])}>
-        {statusOption.label}
-      </span>
-    );
+  const handleDeleteClick = () => {
+    if (application) {
+      confirmDeleteApplication(application);
+    }
   };
 
   if (loading) {
@@ -154,11 +151,11 @@ const ApplicationDetail = () => {
               Edit
             </Link>
             <button
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={deleting}
+              onClick={handleDeleteClick}
+              disabled={operationLoading}
               className={styles.deleteButton}
             >
-              {deleting ? (
+              {operationLoading ? (
                 <LoadingSpinner size="sm" />
               ) : (
                 <TrashIcon className={styles.buttonIcon} />
@@ -179,7 +176,7 @@ const ApplicationDetail = () => {
                 <h1 className={styles.detailsTitle}>
                   {application.position}
                 </h1>
-                {getStatusBadge(application.status)}
+                <StatusBadge status={application.status} />
               </div>
               
               <div className={styles.detailsSubtitle}>
@@ -199,17 +196,12 @@ const ApplicationDetail = () => {
               <label className={styles.statusDropdownLabel}>
                 Update Status
               </label>
-              <select
+              <StatusSelect
                 value={application.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
+                onChange={handleStatusChange}
+                disabled={operationLoading}
                 className={styles.statusDropdown}
-              >
-                {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
         </div>
@@ -260,52 +252,52 @@ const ApplicationDetail = () => {
             </div>
 
             {/* Resume Version */}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Resume Version</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                <div className="flex items-center space-x-2">
+            <div className={styles.detailItemSingle}>
+              <dt className={styles.detailLabel}>Resume Version</dt>
+              <dd className={styles.detailValue}>
+                <div className={styles.detailLinkRow}>
                   <span>Version ID: {application.resume_version_id}</span>
                   <Link
                     to={`/resumes/${application.resume_id}/versions/${application.resume_version_id}`}
-                    className="text-blue-600 hover:text-blue-700"
+                    className={styles.detailLink}
                     title="View version"
                   >
-                    <LinkIcon className="h-4 w-4" />
+                    <LinkIcon className={styles.detailLinkIconButton} />
                   </Link>
                 </div>
               </dd>
             </div>
 
             {/* Created Date */}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Created</dt>
-              <dd className="mt-1 text-sm text-gray-900">
+            <div className={styles.detailItemSingle}>
+              <dt className={styles.detailLabel}>Created</dt>
+              <dd className={styles.detailValue}>
                 {formatDate(application.created_at)}
               </dd>
             </div>
 
             {/* Last Updated */}
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-              <dd className="mt-1 text-sm text-gray-900">
+            <div className={styles.detailItemSingle}>
+              <dt className={styles.detailLabel}>Last Updated</dt>
+              <dd className={styles.detailValue}>
                 {formatDate(application.updated_at)}
               </dd>
             </div>
 
             {/* Cover Letter */}
             {application.cover_letter_id && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Cover Letter</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  <div className="flex items-center space-x-2">
-                    <DocumentTextIcon className="h-4 w-4 text-gray-400" />
+              <div className={styles.detailItem}>
+                <dt className={styles.detailLabel}>Cover Letter</dt>
+                <dd className={styles.detailValue}>
+                  <div className={styles.detailLinkRow}>
+                    <DocumentTextIcon className={styles.detailLinkIcon} />
                     <span>Cover Letter ID: {application.cover_letter_id}</span>
                     <Link
                       to={`/cover-letters/${application.cover_letter_id}`}
-                      className="text-blue-600 hover:text-blue-700"
+                      className={styles.detailLink}
                       title="View cover letter"
                     >
-                      <EyeIcon className="h-4 w-4" />
+                      <EyeIcon className={styles.detailLinkIconButton} />
                     </Link>
                   </div>
                 </dd>
@@ -349,11 +341,8 @@ const ApplicationDetail = () => {
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
+        {...getDeleteDialogProps()}
         onConfirm={handleDeleteApplication}
-        title="Delete Application"
-        message={`Are you sure you want to delete your application to ${application.company} for the ${application.position} position? This action cannot be undone.`}
         confirmLabel="Delete"
         confirmStyle="danger"
       />
@@ -361,4 +350,4 @@ const ApplicationDetail = () => {
   );
 };
 
-export default ApplicationDetail;
+export default ApplicationDetailPage;

@@ -8,15 +8,15 @@ import {
   PencilIcon,
   TrashIcon,
   BuildingOfficeIcon,
-  BriefcaseIcon,
   CalendarIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import ConfirmDialog from './ConfirmDialog';
+import { StatusBadge, StatusSelect, StatusIndicator, STATUS_CONFIG } from '../../../components/Applications';
+import { useApplications, useApplicationDeletion } from '../../../hooks/applications';
 import apiService from '../../../services/api';
-import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../../utils/constants';
 import { devLog, formatDate } from '../../../utils/helpers';
 import styles from './ApplicationList.module.css';
 
@@ -24,12 +24,9 @@ const ApplicationList = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(null);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [applicationToDelete, setApplicationToDelete] = useState(null);
   const [stats, setStats] = useState({});
 
   // Pagination
@@ -38,19 +35,35 @@ const ApplicationList = () => {
   const [totalCount, setTotalCount] = useState(0);
   const perPage = 20;
 
-  const statusOptions = [
-    { value: '', label: 'All Statuses' },
-    { value: APPLICATION_STATUS.APPLIED, label: 'Applied', color: 'blue' },
-    { value: APPLICATION_STATUS.INTERVIEWING, label: 'Interviewing', color: 'yellow' },
-    { value: APPLICATION_STATUS.OFFER, label: 'Offer', color: 'green' },
-    { value: APPLICATION_STATUS.REJECTED, label: 'Rejected', color: 'red' },
-    { value: APPLICATION_STATUS.WITHDRAWN, label: 'Withdrawn', color: 'gray' }
-  ];
+  // Custom hooks
+  const { 
+    loading: operationLoading, 
+    error: operationError, 
+    updateApplicationStatus, 
+    deleteApplication, 
+    clearError: clearOperationError 
+  } = useApplications();
+
+  const {
+    applicationToDelete,
+    confirmDeleteApplication,
+    cancelDeletion,
+    getDeleteDialogProps
+  } = useApplicationDeletion();
 
   useEffect(() => {
     loadApplications();
     loadStats();
   }, [currentPage, statusFilter]);
+
+  // Clear operation errors when they change
+  useEffect(() => {
+    if (operationError) {
+      setError(operationError);
+      const timer = setTimeout(clearOperationError, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [operationError, clearOperationError]);
 
   const loadApplications = async () => {
     setLoading(true);
@@ -86,7 +99,7 @@ const ApplicationList = () => {
       const statusCounts = {};
       
       // Load counts for each status
-      for (const status of statusOptions.slice(1)) { // Skip 'All Statuses'
+      for (const status of STATUS_CONFIG) {
         try {
           const data = await apiService.getApplications({ 
             status: status.value, 
@@ -135,93 +148,37 @@ const ApplicationList = () => {
   };
 
   const handleStatusChange = async (applicationId, newStatus) => {
-    try {
-      await apiService.updateApplication(applicationId, { status: newStatus });
-      
-      // Update local state
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === applicationId 
-            ? { ...app, status: newStatus }
-            : app
-        )
-      );
-      
-      // Refresh stats
-      loadStats();
-      
-      devLog(`Application ${applicationId} status updated to ${newStatus}`);
-    } catch (error) {
-      console.error('Failed to update status:', error);
-      setError('Failed to update status');
-    }
-  };
-
-  const confirmDeleteApplication = (application) => {
-    setApplicationToDelete(application);
-    setShowDeleteDialog(true);
+    const success = await updateApplicationStatus(
+      applicationId, 
+      newStatus, 
+      (id, status) => {
+        // Update local state
+        setApplications(prev => 
+          prev.map(app => 
+            app.id === id 
+              ? { ...app, status }
+              : app
+          )
+        );
+        // Refresh stats
+        loadStats();
+      }
+    );
   };
 
   const handleDeleteApplication = async () => {
     if (!applicationToDelete) return;
 
-    setDeleting(applicationToDelete.id);
-    setShowDeleteDialog(false);
-    
-    try {
-      await apiService.deleteApplication(applicationToDelete.id);
-      
-      // Remove from local state
-      setApplications(prev => prev.filter(app => app.id !== applicationToDelete.id));
-      setTotalCount(prev => prev - 1);
-      
-      // Refresh stats
-      loadStats();
-      
-      devLog(`Application ${applicationToDelete.id} deleted`);
-    } catch (error) {
-      console.error('Failed to delete application:', error);
-      setError('Failed to delete application');
-    } finally {
-      setDeleting(null);
-      setApplicationToDelete(null);
-    }
-  };
-
-  const getStatusBadgeClass = (status) => {
-    const statusOption = statusOptions.find(opt => opt.value === status);
-    if (!statusOption) return styles.statusBadgeGray;
-
-    const colorClasses = {
-      blue: styles.statusBadgeBlue,
-      yellow: styles.statusBadgeYellow,
-      green: styles.statusBadgeGreen,
-      red: styles.statusBadgeRed,
-      gray: styles.statusBadgeGray
-    };
-
-    return colorClasses[statusOption.color];
-  };
-
-  const getStatusIndicatorClass = (color) => {
-    const colorClasses = {
-      blue: styles.statusIndicatorBlue,
-      yellow: styles.statusIndicatorYellow,
-      green: styles.statusIndicatorGreen,
-      red: styles.statusIndicatorRed,
-      gray: styles.statusIndicatorGray
-    };
-    return colorClasses[color];
-  };
-
-  const getStatusBadge = (status) => {
-    const statusOption = statusOptions.find(opt => opt.value === status);
-    if (!statusOption) return null;
-
-    return (
-      <span className={clsx(styles.statusBadge, getStatusBadgeClass(status))}>
-        {statusOption.label}
-      </span>
+    const success = await deleteApplication(
+      applicationToDelete.id,
+      (deletedId) => {
+        // Remove from local state
+        setApplications(prev => prev.filter(app => app.id !== deletedId));
+        setTotalCount(prev => prev - 1);
+        // Refresh stats
+        loadStats();
+        cancelDeletion();
+      }
     );
   };
 
@@ -277,15 +234,12 @@ const ApplicationList = () => {
           </div>
         </div>
 
-        {statusOptions.slice(1).map((status) => (
+        {STATUS_CONFIG.map((status) => (
           <div key={status.value} className={styles.statsCard}>
             <div className={styles.statsCardContent}>
               <div className={styles.statsCardInner}>
                 <div className={styles.statsCardIcon}>
-                  <div className={clsx(
-                    styles.statusIndicator,
-                    getStatusIndicatorClass(status.color)
-                  )} />
+                  <StatusIndicator status={status.value} />
                 </div>
                 <div className={styles.statsCardData}>
                   <dl>
@@ -323,20 +277,15 @@ const ApplicationList = () => {
             {/* Status Filter */}
             <div className={styles.filterControls}>
               <FunnelIcon className={styles.filterIcon} />
-              <select
+              <StatusSelect
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={setStatusFilter}
+                includeAllOption={true}
                 className={clsx(
                   styles.statusSelect,
                   "focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 )}
-              >
-                {statusOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
         </div>
@@ -390,7 +339,7 @@ const ApplicationList = () => {
                             <h3 className={styles.applicationTitle}>
                               {application.position}
                             </h3>
-                            {getStatusBadge(application.status)}
+                            <StatusBadge status={application.status} />
                           </div>
                           
                           <div className={styles.applicationMeta}>
@@ -413,20 +362,15 @@ const ApplicationList = () => {
 
                         <div className={styles.applicationActions}>
                           {/* Status Dropdown */}
-                          <select
+                          <StatusSelect
                             value={application.status}
-                            onChange={(e) => handleStatusChange(application.id, e.target.value)}
+                            onChange={(newStatus) => handleStatusChange(application.id, newStatus)}
+                            disabled={operationLoading}
                             className={clsx(
                               styles.statusSelect,
                               "focus:ring-blue-500 focus:border-blue-500"
                             )}
-                          >
-                            {statusOptions.slice(1).map(option => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                          />
 
                           {/* Actions */}
                           <div className={styles.actionButtons}>
@@ -454,7 +398,7 @@ const ApplicationList = () => {
                             </button>
                             <button
                               onClick={() => confirmDeleteApplication(application)}
-                              disabled={deleting === application.id}
+                              disabled={operationLoading}
                               className={clsx(
                                 styles.actionButton,
                                 styles.actionButtonDelete,
@@ -462,7 +406,7 @@ const ApplicationList = () => {
                               )}
                               title="Delete application"
                             >
-                              {deleting === application.id ? (
+                              {operationLoading ? (
                                 <LoadingSpinner size="sm" />
                               ) : (
                                 <TrashIcon className="h-4 w-4" />
@@ -573,13 +517,8 @@ const ApplicationList = () => {
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
+        {...getDeleteDialogProps()}
         onConfirm={handleDeleteApplication}
-        title="Delete Application"
-        message={`Are you sure you want to delete your application to ${applicationToDelete?.company} for the ${applicationToDelete?.position} position? This action cannot be undone.`}
-        confirmText="Delete"
-        variant="danger"
       />
     </div>
   );
