@@ -64,26 +64,48 @@ class SecurityMiddleware:
         return request.client.host if request.client else "unknown"
     
     def _check_rate_limits(self, request: Request, client_ip: str) -> bool:
-        """Check various rate limits."""
+        """Check tiered rate limits based on operation type."""
         path = request.url.path
+        method = request.method
         
-        # Global rate limit
-        global_key = f"global:{client_ip}"
-        if not self.rate_limiter.is_allowed(global_key, settings.requests_per_minute, 60):
-            logger.warning(f"Global rate limit exceeded for IP: {client_ip}")
+        # Skip rate limiting in development for easier testing
+        if settings.is_development:
+            return True
+        
+        # Different limits for read vs write operations
+        if method in ["GET", "HEAD", "OPTIONS"]:
+            limit = settings.read_requests_per_minute
+            window = 60
+            key_prefix = "read"
+        else:
+            limit = settings.write_requests_per_minute
+            window = 60
+            key_prefix = "write"
+        
+        # Apply operation-specific rate limit
+        operation_key = f"{key_prefix}:{client_ip}"
+        if not self.rate_limiter.is_allowed(operation_key, limit, window):
+            logger.warning(f"Rate limit exceeded for IP: {client_ip}, operation: {key_prefix}, path: {path}")
             return False
         
-        # Auth endpoint specific limits
-        if "/auth/" in path:
+        # Special limits for sensitive endpoints only
+        if "/auth/login" in path or "/auth/register" in path:
             auth_key = f"auth:{client_ip}"
-            if not self.rate_limiter.is_allowed(auth_key, settings.auth_attempts_per_hour):
+            if not self.rate_limiter.is_allowed(auth_key, settings.auth_attempts_per_hour, 3600):
                 logger.warning(f"Auth rate limit exceeded for IP: {client_ip}")
                 return False
         
+        # AI endpoints get separate, more restrictive limits
+        if "/customize" in path or "/cover-letter" in path:
+            ai_key = f"ai:{client_ip}"
+            if not self.rate_limiter.is_allowed(ai_key, settings.ai_calls_per_hour, 3600):
+                logger.warning(f"AI rate limit exceeded for IP: {client_ip}")
+                return False
+        
         # File upload limits
-        if "/upload" in path or request.method == "POST" and any(x in path for x in ["/resumes/", "/applications/"]):
+        if "/upload" in path:
             upload_key = f"upload:{client_ip}"
-            if not self.rate_limiter.is_allowed(upload_key, settings.file_uploads_per_hour):
+            if not self.rate_limiter.is_allowed(upload_key, settings.file_uploads_per_hour, 3600):
                 logger.warning(f"Upload rate limit exceeded for IP: {client_ip}")
                 return False
         

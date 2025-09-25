@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
-import { useAuth } from '../../hooks/useAuth';
-import { getInitials, generateAvatarColor } from '../../utils/helpers';
+import { useAuth } from '@/hooks/useAuth';
+import { getInitials, generateAvatarColor } from '@/utils/helpers';
 import styles from './Header.module.css';
 
 export default function Header() {

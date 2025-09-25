@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import TemplateSelector from './components/TemplateSelector';
 import PDFPreview from './components/PDFPreview';
-import apiService from '../../services/secureApi';
+import apiService from '../../services/api';
 import { formatDate, devLog } from '@/utils/helpers';
 import { STORAGE_KEYS } from '@/utils/constants';
 import styles from './ResumeViewPage.module.css';

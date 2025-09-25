@@ -30,7 +30,8 @@ def create_application() -> FastAPI:
         version="1.0.0",
         docs_url="/docs" if settings.debug else None,  # Disable docs in production
         redoc_url="/redoc" if settings.debug else None,
-        openapi_url="/openapi.json" if settings.debug else None
+        openapi_url="/openapi.json" if settings.debug else None,
+        redirect_slashes=False  # Prevent 307 redirects for trailing slashes
     )
     
     # Add security middleware first

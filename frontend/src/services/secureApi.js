@@ -76,12 +76,12 @@ class SecureApiService {
       (response) => {
         const { requestId, startTime } = response.config.metadata || {};
         const duration = Date.now() - startTime;
-        
+
         devLog(`[${requestId}] API Response:`, response.status, response.config.url, `(${duration}ms)`);
-        
+
         // Validate response headers for security
         this.validateResponseSecurity(response);
-        
+
         return response;
       },
       async (error) => {
@@ -146,7 +146,7 @@ class SecureApiService {
   checkSessionTimeout() {
     const lastActivity = parseInt(secureStorage.getItem(STORAGE_KEYS.LAST_ACTIVITY) || '0', 10);
     const now = Date.now();
-    
+
     if (lastActivity && (now - lastActivity) > SECURITY_CONFIG.SESSION_TIMEOUT_MS) {
       this.handleSessionTimeout();
       return false;
@@ -163,15 +163,15 @@ class SecureApiService {
     if (Array.isArray(data)) {
       return data.map(item => this.sanitizeRequestData(item));
     }
-    
+
     if (data && typeof data === 'object') {
       return sanitizeFormData(data);
     }
-    
+
     if (typeof data === 'string') {
       return sanitizeInput(data);
     }
-    
+
     return data;
   }
 
@@ -233,7 +233,7 @@ class SecureApiService {
     if (!this.isValidTokenFormat(accessToken)) {
       throw new Error('Invalid access token format');
     }
-    
+
     secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
     if (refreshToken && this.isValidTokenFormat(refreshToken)) {
       secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
@@ -254,7 +254,7 @@ class SecureApiService {
     try {
       // Validate and sanitize input data
       const sanitizedData = sanitizeFormData(userData);
-      
+
       // Additional validation
       if (!sanitizedData.email || !sanitizedData.password || !sanitizedData.username) {
         throw new Error(ERROR_MESSAGES.VALIDATION_ERROR);
@@ -338,7 +338,7 @@ class SecureApiService {
     }
   }
 
-  
+
   // Resume endpoints
   // Enhanced file upload with additional security checks
   async uploadResume(file, metadata = {}) {
@@ -497,10 +497,10 @@ class SecureApiService {
   async customizeResume(id, jobDescription, options = {}) {
     try {
       // Sanitize and validate inputs
-      const sanitizedJobDescription = sanitizeInput(jobDescription, { 
-        maxLength: SECURITY_CONFIG.MAX_INPUT_LENGTH 
+      const sanitizedJobDescription = sanitizeInput(jobDescription, {
+        maxLength: SECURITY_CONFIG.MAX_INPUT_LENGTH
       });
-      
+
       const sanitizedOptions = sanitizeFormData(options);
 
       if (!sanitizedJobDescription.trim()) {
@@ -607,7 +607,7 @@ class SecureApiService {
     if (!this.checkSessionTimeout()) {
       return null;
     }
-    
+
     const userData = secureStorage.getItem(STORAGE_KEYS.USER_DATA);
     if (!userData) {
       return null;

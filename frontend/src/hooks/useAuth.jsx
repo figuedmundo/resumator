@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useReducer } from 'react';
-import secureApiService from '../services/secureApi';
-import { devLog } from '../utils/helpers';
+import apiService from '../services/api';
+import { devLog } from '@/utils/helpers';
 
 // Auth context
 const AuthContext = createContext(null);
@@ -84,38 +84,36 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state on app load
   useEffect(() => {
-    console.log("useAuth init effect running...");
-
-    const initializeAuth = async () => {
-      const token = secureApiService.getToken();
-      const user = secureApiService.getCurrentUser();
-
-      if (token && user) {
-        try {
-          // Verify token is still valid
-          await secureApiService.verifyToken();
-          dispatch({ 
-            type: AuthActions.SET_USER, 
-            payload: { user } 
-          });
-          devLog('Auth initialized with existing token');
-        } catch (error) {
-          devLog('Token verification failed:', error.message);
-          secureApiService.logout();
-          dispatch({ type: AuthActions.LOGOUT });
+    const initializeAuth = () => {
+      try {
+        // Check if we have valid session data in localStorage
+        if (apiService.isAuthenticated()) {
+          const user = apiService.getCurrentUser();
+          if (user) {
+            dispatch({ 
+              type: AuthActions.SET_USER, 
+              payload: { user } 
+            });
+            devLog('Auth initialized with existing session');
+          }
         }
+      } catch (error) {
+        devLog('Auth initialization failed:', error.message);
+        // Don't call logout API, just clear local state
+        apiService.clearTokens();
+        dispatch({ type: AuthActions.LOGOUT });
       }
     };
 
     initializeAuth();
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   // Login function
   const login = async (credentials) => {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
-      const { user } = await secureApiService.login(credentials);
+      const { user } = await apiService.login(credentials);
       dispatch({ 
         type: AuthActions.LOGIN_SUCCESS, 
         payload: { user } 
@@ -138,7 +136,7 @@ export function AuthProvider({ children }) {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
-      const { user } = await secureApiService.register(userData);
+      const { user } = await apiService.register(userData);
       dispatch({ 
         type: AuthActions.LOGIN_SUCCESS, 
         payload: { user } 
@@ -156,18 +154,28 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout function
-  const logout = () => {
-    secureApiService.logout();
-    dispatch({ type: AuthActions.LOGOUT });
-    devLog('Logout successful');
+  // Logout function - don't call API on page refresh/navigation
+  const logout = async (callAPI = true) => {
+    try {
+      if (callAPI && apiService.isAuthenticated()) {
+        await apiService.logout();
+      } else {
+        // Just clear local tokens without API call
+        apiService.clearTokens();
+      }
+    } catch (error) {
+      devLog('Logout API call failed:', error);
+      // Clear local tokens anyway
+      apiService.clearTokens();
+    } finally {
+      dispatch({ type: AuthActions.LOGOUT });
+      devLog('Logout completed');
+    }
   };
 
-  // Clear error function
+  // Clear error function - don't auto-clear, let user dismiss
   const clearError = () => {
-    // if (state.error) {
-      dispatch({ type: AuthActions.CLEAR_ERROR });
-    // }
+    dispatch({ type: AuthActions.CLEAR_ERROR });
   };
 
   // Update user function

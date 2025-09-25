@@ -6,48 +6,66 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy source
+# Copy source code
 COPY . .
 
-# Set production API URL (will be overridden by environment)
-ENV REACT_APP_API_URL=https://REPLACE_WITH_DOMAIN/api
-
-# Build for production
+# Build for production with placeholder API URL
+ENV VITE_API_URL=https://REPLACE_WITH_DOMAIN/api
 RUN npm run build
 
-# Production stage - copy to volume
-FROM nginx:alpine as production
+# Production stage - minimal Alpine image for setup only
+FROM alpine:latest
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install required tools
+RUN apk add --no-cache curl bash findutils
 
-# Copy built React app
-COPY --from=build /app/dist /usr/share/nginx/html/
-COPY --from=build /app/dist /tmp/dist/
+# Create app directory
+WORKDIR /app
 
-# Create startup script to handle domain replacement
-RUN cat > /startup.sh << 'EOF'
-#!/bin/sh
-echo "Setting up Resumator frontend..."
+# Copy built assets
+COPY --from=build /app/dist ./dist
+
+# Create domain replacement script
+RUN cat > /entrypoint.sh << 'EOF'
+#!/bin/bash
+echo "🏠 Setting up Resumator frontend for homelab..."
 
 # Replace API URL placeholder with actual domain
 if [ ! -z "$RESUMATOR_DOMAIN" ]; then
-    echo "Configuring API URL for domain: $RESUMATOR_DOMAIN"
-    find /usr/share/nginx/html -name "*.js" -type f -exec sed -i "s|https://REPLACE_WITH_DOMAIN|https://$RESUMATOR_DOMAIN|g" {} \;
+    echo "📡 Configuring API URL for domain: $RESUMATOR_DOMAIN"
+    
+    # Replace in JavaScript files
+    find ./dist -name "*.js" -type f -exec sed -i "s|https://REPLACE_WITH_DOMAIN|https://$RESUMATOR_DOMAIN|g" {} \;
+    
+    # Replace in index.html if needed
+    find ./dist -name "index.html" -type f -exec sed -i "s|https://REPLACE_WITH_DOMAIN|https://$RESUMATOR_DOMAIN|g" {} \;
+    
+    echo "✅ Domain configuration complete"
+else
+    echo "⚠️  Warning: RESUMATOR_DOMAIN not set"
 fi
 
-# Copy to shared volume for Caddy
-cp -r /tmp/dist/* /usr/share/nginx/html/
-chmod -R 755 /usr/share/nginx/html
+# Copy to shared volume for Caddy to serve
+if [ -d "/shared" ]; then
+    echo "📁 Copying files to shared volume..."
+    cp -r ./dist/* /shared/
+    chmod -R 755 /shared
+    echo "✅ Files copied to shared volume"
+else
+    echo "⚠️  Warning: /shared volume not mounted"
+fi
 
-echo "Frontend setup complete"
+echo "🎉 Resumator frontend setup complete!"
+
+# Keep container running briefly to complete setup
+sleep 10
 EOF
 
-RUN chmod +x /startup.sh
+RUN chmod +x /entrypoint.sh
 
-# Health check
+# Health check - verify files exist
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD test -f /usr/share/nginx/html/index.html || exit 1
+    CMD test -f ./dist/index.html || exit 1
 
-# Run startup script and keep container alive briefly
-CMD ["/startup.sh"]
+# Run setup script
+ENTRYPOINT ["/entrypoint.sh"]

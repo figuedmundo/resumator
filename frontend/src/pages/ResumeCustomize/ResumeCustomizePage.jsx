@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import ResumeCustomizer from './components/ResumeCustomizer';
 import VersionComparison from '../../components/VersionComparison/VersionComparison';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
-import apiService from '../../services/secureApi';
+import apiService from '../../services/api';
 import { formatDate } from '@/utils/helpers';
 import styles from './ResumeCustomizePage.module.css';
 

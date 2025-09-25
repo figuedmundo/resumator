@@ -56,9 +56,8 @@ factory-boy
 structlog
 
 # Security & Rate Limiting
-slowapi  # Rate limiting middleware
-
-# HTML Sanitization
-bleach
-markdown-it-py
+slowapi>=0.1.9
+bleach>=6.0.0
+cryptography>=41.0.0
+validators>=0.22.0
 

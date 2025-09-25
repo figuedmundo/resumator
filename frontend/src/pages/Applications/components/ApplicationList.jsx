@@ -16,7 +16,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
 import ConfirmDialog from './ConfirmDialog';
 import { StatusBadge, StatusSelect, StatusIndicator, STATUS_CONFIG } from '../../../components/Applications';
 import { useApplications, useApplicationDeletion } from '@/hooks/applications';
-import apiService from '../../../services/secureApi';
+import apiService from '../../../services/api';
 import { devLog, formatDate } from '@/utils/helpers';
 import styles from './ApplicationList.module.css';
 
