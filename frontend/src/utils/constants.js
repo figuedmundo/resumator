@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
   REGISTER: '/api/v1/auth/register',
   LOGIN: '/api/v1/auth/login',
   LOGOUT: '/api/v1/auth/logout',
-  VERIFY_TOKEN: '/api/v1/auth/verify-token',
+  //VERIFY_TOKEN: '/api/v1/auth/verify-token',
   REFRESH_TOKEN: '/api/v1/auth/refresh-token',
   
   // Resumes
@@ -102,10 +102,10 @@ export const SUCCESS_MESSAGES = {
 // Regular expressions
 export const REGEX = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  USERNAME: /^[a-zA-Z0-9_]{3,20}$/,
-  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
-  URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
-  SAFE_HTML: /^[a-zA-Z0-9\s\-_.,!?()\[\]{}:;"'<>/=+*&%$#@]*$/,
+  USERNAME: /^[a-zA-Z0-9._-]{3,20}$/,
+  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
+  URL: /^https?:\/\/[^\s/$.?#].[^\s]*$/i,
+  SAFE_HTML: /^[^<>]*$/,
   XSS_DETECTION: /<[^>]*script[^>]*>|javascript:|vbscript:|on\w+\s*=|eval\s*\(|expression\s*\(/gi
 };
 

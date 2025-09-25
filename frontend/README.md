@@ -154,8 +154,7 @@ The frontend integrates with these backend endpoints:
 ### Authentication
 - `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
-- `GET /api/v1/auth/verify-token`
-
+- 
 ### Resumes
 - `GET /api/v1/resumes` - List resumes
 - `POST /api/v1/resumes/upload` - Upload resume
