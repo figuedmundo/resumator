@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
-import apiService from '../../../services/api';
-import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../../utils/constants';
-import { devLog } from '../../../utils/helpers';
+import apiService from '../../../services/secureApi';
+import { APPLICATION_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/utils/constants';
+import { devLog } from '@/utils/helpers';
 import styles from './ApplicationForm.module.css';
 
 const ApplicationForm = ({ applicationId = null, onSuccess }) => {

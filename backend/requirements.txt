@@ -14,6 +14,7 @@ passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
 python-multipart
 PyJWT
+argon2-cffi  # For Argon2 password hashing
 
 # Pydantic
 pydantic
@@ -34,7 +35,7 @@ weasyprint
 boto3
 minio
 
-# Background Tasks (optional)
+# Background Tasks
 celery
 redis
 rq
@@ -54,6 +55,10 @@ factory-boy
 # Logging & Monitoring
 structlog
 
-# CORS
-flask-cors
+# Security & Rate Limiting
+slowapi  # Rate limiting middleware
+
+# HTML Sanitization
+bleach
+markdown-it-py
 

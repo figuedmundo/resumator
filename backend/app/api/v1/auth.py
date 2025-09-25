@@ -1,13 +1,15 @@
-"""Authentication API endpoints."""
+"""Enhanced authentication API endpoints with refresh tokens and audit logging."""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.security import AuthService
-from app.schemas.user import UserCreate, UserLogin, Token, UserResponse
+from app.core.security import AuthService, audit_logger, FileValidator, rate_limiter
+from app.core.middleware import get_client_ip, rate_limit_dependency
+from app.schemas.user import UserCreate, UserLogin, Token, UserResponse, RefreshTokenRequest
 from app.services.user_service import UserService
 from app.core.exceptions import ValidationError
+from app.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
@@ -17,10 +19,22 @@ router = APIRouter()
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register(
     user_create: UserCreate,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
+    _: None = Depends(rate_limit_dependency)
 ):
-    """Register a new user."""
+    """Register a new user with enhanced security."""
+    client_ip = get_client_ip(request)
+    
     try:
+        # Additional rate limiting for registration
+        reg_key = f"register:{client_ip}"
+        if not rate_limiter.is_allowed(reg_key, 3, 3600):  # 3 registrations per hour
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Registration rate limit exceeded"
+            )
+        
         user_service = UserService(db)
         
         # Create user
@@ -30,24 +44,35 @@ async def register(
             password=user_create.password
         )
         
-        # Generate token
-        access_token = AuthService.create_access_token(
-            data={"sub": str(user.id), "username": user.username}
+        # Generate token pair
+        token_data = {"sub": str(user.id), "username": user.username}
+        tokens = AuthService.create_token_pair(token_data)
+        
+        # Log successful registration
+        audit_logger.log_auth_attempt(user_create.username, True, client_ip)
+        audit_logger.log_sensitive_operation(
+            user.id, 
+            "user_registration", 
+            f"New user registered: {user_create.username}"
         )
         
         return Token(
-            access_token=access_token,
+            access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
             token_type="bearer",
+            expires_in=tokens["expires_in"],
             user=UserResponse.from_orm(user)
         )
         
     except ValidationError as e:
+        audit_logger.log_auth_attempt(user_create.username, False, client_ip)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
         logger.error(f"Registration failed: {e}")
+        audit_logger.log_auth_attempt(user_create.username, False, client_ip)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed"
@@ -57,9 +82,13 @@ async def register(
 @router.post("/login", response_model=Token)
 async def login(
     user_login: UserLogin,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
+    _: None = Depends(rate_limit_dependency)
 ):
-    """Login user and return JWT token."""
+    """Login user and return JWT token pair with audit logging."""
+    client_ip = get_client_ip(request)
+    
     try:
         user_service = UserService(db)
         
@@ -70,20 +99,25 @@ async def login(
         )
         
         if not user:
+            audit_logger.log_auth_attempt(user_login.email, False, client_ip)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        # Generate token
-        access_token = AuthService.create_access_token(
-            data={"sub": str(user.id), "username": user.username}
-        )
+        # Generate token pair
+        token_data = {"sub": str(user.id), "username": user.username}
+        tokens = AuthService.create_token_pair(token_data)
+        
+        # Log successful login
+        audit_logger.log_auth_attempt(user.username, True, client_ip)
         
         return Token(
-            access_token=access_token,
+            access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
             token_type="bearer",
+            expires_in=tokens["expires_in"],
             user=UserResponse.from_orm(user)
         )
         
@@ -91,34 +125,86 @@ async def login(
         raise
     except Exception as e:
         logger.error(f"Login failed for user {user_login.email}: {e}")
+        audit_logger.log_auth_attempt(user_login.email, False, client_ip)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed"
         )
 
 
-@router.post("/verify-token")
-async def verify_token(
-    current_user: UserResponse = Depends(lambda: None)  # Will be implemented with proper dependency
-):
-    """Verify if the current token is valid."""
-    # This endpoint will be protected by authentication dependency
-    # If we reach here, token is valid
-    return {"valid": True, "user": current_user}
-
-
-@router.post("/refresh-token", response_model=Token)
+@router.post("/refresh", response_model=Token)
 async def refresh_token(
-    current_user = Depends(lambda: None)  # Will be implemented with proper dependency
+    refresh_request: RefreshTokenRequest,
+    request: Request,
+    _: None = Depends(rate_limit_dependency)
 ):
-    """Refresh JWT token."""
-    # Generate new token
-    access_token = AuthService.create_access_token(
-        data={"sub": str(current_user.id), "username": current_user.username}
-    )
+    """Refresh access token using refresh token."""
+    client_ip = get_client_ip(request)
     
-    return Token(
-        access_token=access_token,
-        token_type="bearer",
-        user=UserResponse.from_orm(current_user)
-    )
+    try:
+        # Refresh the access token
+        new_tokens = AuthService.refresh_access_token(refresh_request.refresh_token)
+        
+        if not new_tokens:
+            audit_logger.log_sensitive_operation(
+                0, "token_refresh_failed", f"Invalid refresh token from {client_ip}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+        
+        # Log successful token refresh
+        audit_logger.log_sensitive_operation(
+            0, "token_refreshed", f"Token refreshed from {client_ip}"
+        )
+        
+        return Token(
+            access_token=new_tokens["access_token"],
+            refresh_token=refresh_request.refresh_token,  # Keep same refresh token
+            token_type="bearer",
+            expires_in=new_tokens["expires_in"]
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Token refresh failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token refresh failed"
+        )
+
+
+@router.post("/logout")
+async def logout(
+    request: Request,
+    current_user = Depends(lambda: None)  # Will implement proper dependency
+):
+    """Logout user and revoke tokens."""
+    client_ip = get_client_ip(request)
+    
+    try:
+        # Extract token from authorization header
+        authorization = request.headers.get("authorization")
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.split(" ")[1]
+            
+            # Revoke the token
+            AuthService.revoke_token(token)
+            
+            # Log logout
+            audit_logger.log_sensitive_operation(
+                getattr(current_user, 'id', 0), 
+                "user_logout", 
+                f"User logged out from {client_ip}"
+            )
+        
+        return {"message": "Successfully logged out"}
+        
+    except Exception as e:
+        logger.error(f"Logout failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Logout failed"
+        )

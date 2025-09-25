@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer } from 'react';
-import apiService from '../services/api';
+import secureApiService from '../services/secureApi';
 import { devLog } from '../utils/helpers';
 
 // Auth context
@@ -87,13 +87,13 @@ export function AuthProvider({ children }) {
     console.log("useAuth init effect running...");
 
     const initializeAuth = async () => {
-      const token = apiService.getToken();
-      const user = apiService.getCurrentUser();
+      const token = secureApiService.getToken();
+      const user = secureApiService.getCurrentUser();
 
       if (token && user) {
         try {
           // Verify token is still valid
-          await apiService.verifyToken();
+          await secureApiService.verifyToken();
           dispatch({ 
             type: AuthActions.SET_USER, 
             payload: { user } 
@@ -101,7 +101,7 @@ export function AuthProvider({ children }) {
           devLog('Auth initialized with existing token');
         } catch (error) {
           devLog('Token verification failed:', error.message);
-          apiService.logout();
+          secureApiService.logout();
           dispatch({ type: AuthActions.LOGOUT });
         }
       }
@@ -115,7 +115,7 @@ export function AuthProvider({ children }) {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
-      const { user } = await apiService.login(credentials);
+      const { user } = await secureApiService.login(credentials);
       dispatch({ 
         type: AuthActions.LOGIN_SUCCESS, 
         payload: { user } 
@@ -138,7 +138,7 @@ export function AuthProvider({ children }) {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
-      const { user } = await apiService.register(userData);
+      const { user } = await secureApiService.register(userData);
       dispatch({ 
         type: AuthActions.LOGIN_SUCCESS, 
         payload: { user } 
@@ -158,7 +158,7 @@ export function AuthProvider({ children }) {
 
   // Logout function
   const logout = () => {
-    apiService.logout();
+    secureApiService.logout();
     dispatch({ type: AuthActions.LOGOUT });
     devLog('Logout successful');
   };

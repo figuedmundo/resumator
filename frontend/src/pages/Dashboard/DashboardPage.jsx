@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
-import apiService from '../../services/api';
+import apiService from '../../services/secureApi';
 import styles from './DashboardPage.module.css';
 
 export default function DashboardPage() {

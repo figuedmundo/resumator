@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # Resumator Backend with enhanced security
+  resumator-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resumator-backend
+    restart: unless-stopped
+    environment:
+      # Database (use existing postgres)
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${RESUMATOR_DB_PASSWORD}@postgres:5432/${RESUMATOR_DB_NAME}
+      
+      # Redis (use existing redis, database 1 to avoid conflicts)
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      
+      # Security
+      - JWT_SECRET=${RESUMATOR_JWT_SECRET}
+      - JWT_ACCESS_EXPIRE_MINUTES=15
+      - JWT_REFRESH_EXPIRE_DAYS=30
+      
+      # AI Service
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL_NAME=${GROQ_MODEL_NAME:-llama3-8b-8192}
+      
+      # Storage
+      - STORAGE_TYPE=local
+      - STORAGE_PATH=/app/storage
+      
+      # App Configuration  
+      - DEBUG=false
+      - ALLOWED_ORIGINS=https://${RESUMATOR_DOMAIN}
+      
+      # Rate Limiting (conservative for home lab)
+      - AI_CALLS_PER_HOUR=20
+      - REQUESTS_PER_MINUTE=100
+      - AUTH_ATTEMPTS_PER_HOUR=5
+      - FILE_UPLOADS_PER_HOUR=10
+      
+      # Logging
+      - LOG_LEVEL=INFO
+      
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+    networks:
+      - homelab_net
+    depends_on:
+      - resumator-db-init
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.3'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    security_opt:
+      - no-new-privileges:true
+
+  # Background Worker
+  resumator-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resumator-worker
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${RESUMATOR_DB_PASSWORD}@postgres:5432/${RESUMATOR_DB_NAME}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL_NAME=${GROQ_MODEL_NAME:-llama3-8b-8192}
+      - STORAGE_PATH=/app/storage
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+    networks:
+      - homelab_net
+    depends_on:
+      - resumator-backend
+    command: ["python", "-m", "celery", "-A", "app.worker.celery_app", "worker", "--loglevel=info", "--concurrency=1"]
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+    security_opt:
+      - no-new-privileges:true
+
+  # Frontend builder - builds React app and serves via Caddy volume mount
+  resumator-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.homelab
+    container_name: resumator-frontend-builder
+    volumes:
+      - resumator-frontend-dist:/usr/share/nginx/html
+    networks:
+      - homelab_net
+    # This container builds and exits
+    restart: "no"
+
+  # Database initialization
+  resumator-db-init:
+    image: postgres:15-alpine
+    container_name: resumator-db-init
+    environment:
+      - PGHOST=postgres
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - RESUMATOR_DB_NAME=${RESUMATOR_DB_NAME}
+      - RESUMATOR_DB_PASSWORD=${RESUMATOR_DB_PASSWORD}
+    networks:
+      - homelab_net
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL...'
+        while ! pg_isready -h postgres -U ${POSTGRES_USER}; do sleep 1; done
+        echo 'Creating Resumator database and user...'
+        psql -h postgres -U ${POSTGRES_USER} -c \"CREATE DATABASE \\\"${RESUMATOR_DB_NAME}\\\";\" || echo 'Database already exists'
+        psql -h postgres -U ${POSTGRES_USER} -c \"CREATE USER resumator WITH ENCRYPTED PASSWORD '${RESUMATOR_DB_PASSWORD}';\" || echo 'User already exists'
+        psql -h postgres -U ${POSTGRES_USER} -c \"GRANT ALL PRIVILEGES ON DATABASE \\\"${RESUMATOR_DB_NAME}\\\" TO resumator;\" || echo 'Privileges already granted'
+        psql -h postgres -U ${POSTGRES_USER} -d ${RESUMATOR_DB_NAME} -c \"GRANT ALL ON SCHEMA public TO resumator;\" || echo 'Schema privileges already granted'
+        echo 'Database setup complete'
+      "
+    restart: "no"
+
+volumes:
+  resumator-frontend-dist:
+
+networks:
+  homelab_net:
+    external: true

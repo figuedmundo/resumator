@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import clsx from 'clsx';
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
-import apiService from "../../../services/api";
-import { devLog } from "../../../utils/helpers";
+import apiService from "../../../services/secureApi";
+import { devLog } from "@/utils/helpers";
 import TemplateCard from "./TemplateCard";
-import { defaultTemplates } from "../../../config/templateConfig";
+import { defaultTemplates } from "@/config/templateConfig";
 import styles from './TemplateSelector.module.css';
 
 const TemplateSelector = ({

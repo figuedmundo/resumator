@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   // Auth
   REGISTER: '/api/v1/auth/register',
   LOGIN: '/api/v1/auth/login',
+  LOGOUT: '/api/v1/auth/logout',
   VERIFY_TOKEN: '/api/v1/auth/verify-token',
   REFRESH_TOKEN: '/api/v1/auth/refresh-token',
   
@@ -44,11 +45,13 @@ export const PDF_TEMPLATES = {
 
 // Local storage keys
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'resumator_token',
-  REFRESH_TOKEN: 'resumator_refresh_token',
-  USER_DATA: 'resumator_user',
-  THEME: 'resumator_theme',
-  RECENT_RESUMES: 'resumator_recent_resumes'
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+  USER_DATA: 'user_data',
+  THEME: 'theme',
+  RECENT_RESUMES: 'recent_resumes',
+  SECURITY_NONCE: 'security_nonce',
+  LAST_ACTIVITY: 'last_activity'
 };
 
 // Theme options
@@ -75,7 +78,12 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Please check your input and try again.',
   FILE_TOO_LARGE: 'File size is too large.',
   INVALID_FORMAT: 'Invalid file format.',
-  GENERIC_ERROR: 'Something went wrong. Please try again.'
+  GENERIC_ERROR: 'Something went wrong. Please try again.',
+  XSS_DETECTED: 'Input contains potentially harmful content.',
+  RATE_LIMITED: 'Too many requests. Please try again later.',
+  SESSION_EXPIRED: 'Your session has expired. Please log in again.',
+  UNSAFE_URL: 'The provided URL is not safe.',
+  CONTENT_FILTERED: 'Content has been filtered for security reasons.'
 };
 
 // Success messages
@@ -86,14 +94,19 @@ export const SUCCESS_MESSAGES = {
   APPLICATION_CREATED: 'Application created successfully!',
   APPLICATION_UPDATED: 'Application updated successfully!',
   PDF_GENERATED: 'PDF generated successfully!',
-  COVER_LETTER_GENERATED: 'Cover letter generated successfully!'
+  COVER_LETTER_GENERATED: 'Cover letter generated successfully!',
+  CONTENT_SANITIZED: 'Content has been cleaned for security.',
+  TOKEN_REFRESHED: 'Session refreshed successfully.'
 };
 
 // Regular expressions
 export const REGEX = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   USERNAME: /^[a-zA-Z0-9_]{3,20}$/,
-  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/
+  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
+  URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
+  SAFE_HTML: /^[a-zA-Z0-9\s\-_.,!?()\[\]{}:;"'<>/=+*&%$#@]*$/,
+  XSS_DETECTION: /<[^>]*script[^>]*>|javascript:|vbscript:|on\w+\s*=|eval\s*\(|expression\s*\(/gi
 };
 
 // Validation messages
@@ -102,7 +115,35 @@ export const VALIDATION_MESSAGES = {
   INVALID_EMAIL: 'Please enter a valid email address',
   INVALID_USERNAME: 'Username must be 3-20 characters with letters, numbers, and underscores only',
   WEAK_PASSWORD: 'Password must be at least 8 characters with uppercase, lowercase, and number',
-  PASSWORDS_DONT_MATCH: 'Passwords do not match'
+  PASSWORDS_DONT_MATCH: 'Passwords do not match',
+  INPUT_TOO_LONG: 'Input exceeds maximum allowed length',
+  UNSAFE_CONTENT: 'Content contains potentially unsafe elements',
+  INVALID_FILE_TYPE: 'File type is not allowed',
+  INVALID_URL: 'Please enter a valid URL'
+};
+
+// XSS Protection patterns
+export const XSS_PATTERNS = {
+  SCRIPT_TAG: /<script[^>]*>.*?<\/script>/gi,
+  JAVASCRIPT_URL: /javascript:/gi,
+  VBSCRIPT_URL: /vbscript:/gi,
+  EVENT_HANDLERS: /on\w+\s*=/gi,
+  IFRAME_TAG: /<iframe[^>]*>/gi,
+  OBJECT_TAG: /<object[^>]*>/gi,
+  EMBED_TAG: /<embed[^>]*>/gi,
+  EVAL_FUNCTION: /eval\s*\(/gi,
+  EXPRESSION: /expression\s*\(/gi
+};
+
+// Security settings
+export const SECURITY_CONFIG = {
+  MAX_INPUT_LENGTH: 10000,
+  MAX_FILE_SIZE_MB: 5,
+  ALLOWED_FILE_TYPES: ['text/plain', 'text/markdown', 'application/pdf'],
+  RATE_LIMIT_REQUESTS: 100,
+  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000, // 5 minutes before expiry
+  SESSION_TIMEOUT_MS: 30 * 60 * 1000 // 30 minutes
 };
 
 // Date format options

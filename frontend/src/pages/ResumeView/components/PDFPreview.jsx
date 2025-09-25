@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
-import apiService from '../../../services/api';
-import { devLog, downloadBlob } from '../../../utils/helpers';
+import apiService from '../../../services/secureApi';
+import { devLog, downloadBlob } from '@/utils/helpers';
 import styles from './PDFPreview.module.css';
 
 const PDFPreview = ({ 

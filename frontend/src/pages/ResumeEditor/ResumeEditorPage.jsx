@@ -12,7 +12,7 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import MarkdownToolbar from './components/MarkdownToolbar';
 import VersionComparison from '../../components/VersionComparison/VersionComparison';
 import FileUploadZone from './components/FileUploadZone';
-import apiService from '../../services/api';
+import apiService from '../../services/secureApi';
 import { AUTO_SAVE_DELAY, MAX_FILE_SIZE } from '../../utils/constants';
 import styles from './ResumeEditorPage.module.css';
 
