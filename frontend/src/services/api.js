@@ -239,6 +239,11 @@ class ApiService {
     return response.data;
   }
 
+  async getResumeHTML(id, options = {}) {
+    const response = await this.api.get(API_ENDPOINTS.RESUME_HTML(id), { params: options });
+    return response.data;
+  }
+
   async getPDFTemplates() {
     const response = await this.api.get(API_ENDPOINTS.PDF_TEMPLATES);
     return response.data;

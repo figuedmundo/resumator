@@ -373,6 +373,10 @@ class PDFService:
     def generate_resume_pdf(self, markdown_content: str, template_id: str = "modern") -> bytes:
         """Generate PDF from markdown resume."""
         return self.renderer.render(markdown_content, template_id)
+
+    def generate_resume_html(self, markdown_content: str, template_id: str = "modern") -> str:
+        """Generate HTML from markdown resume."""
+        return self.renderer._markdown_to_html(markdown_content, template_id)
     
     def save_resume_pdf(self, markdown_content: str, user_id: int, resume_id: int, 
                        version_id: int, template_id: str = "modern") -> str:

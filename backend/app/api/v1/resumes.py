@@ -518,13 +518,56 @@ async def delete_resume(
         )
 
 
+@router.get("/{resume_id}/html")
+async def get_resume_html(
+    resume_id: int,
+    template: str = "modern",
+    version_id: Optional[int] = None,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Get resume as HTML for preview."""
+    try:
+        # Get resume version
+        if version_id:
+            version = resume_service.get_resume_version(
+                current_user.id, resume_id, version_id
+            )
+        else:
+            # Get latest version
+            versions = resume_service.list_resume_versions(current_user.id, resume_id)
+            version = versions[0] if versions else None
+
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume version not found"
+            )
+
+        # Generate HTML using PDF service
+        html_content = pdf_service.generate_resume_html(
+            version.markdown_content, template
+        )
+
+        return {"html": html_content}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate HTML for resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate HTML"
+        )
+
+
 @router.get("/templates/list")
 async def list_pdf_templates():
     """Get available PDF templates."""
     try:
         templates = pdf_service.get_available_templates()
         return {"templates": templates}
-        
+
     except Exception as e:
         logger.error(f"Failed to list PDF templates: {e}")
         raise HTTPException(

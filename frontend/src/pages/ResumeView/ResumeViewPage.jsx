@@ -5,9 +5,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import TemplateSelector from './components/TemplateSelector';
-import PDFPreview from './components/PDFPreview';
 import apiService from '../../services/api';
-import { formatDate, devLog } from '@/utils/helpers';
+import { formatDate, devLog, downloadBlob } from '@/utils/helpers';
 import { STORAGE_KEYS } from '@/utils/constants';
 import styles from './ResumeViewPage.module.css';
 
@@ -22,8 +21,10 @@ export default function ResumeViewPage() {
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('preview'); // 'preview', 'markdown', 'pdf'
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('preview'); // 'preview', 'markdown'
+  const [htmlContent, setHtmlContent] = useState('');
+  const [htmlLoading, setHtmlLoading] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -38,6 +39,13 @@ export default function ResumeViewPage() {
       localStorage.setItem(`${STORAGE_KEYS.THEME}_template`, selectedTemplate);
     }
   }, [selectedTemplate]);
+
+  // Load HTML when resume data is available and in preview mode
+  useEffect(() => {
+    if (resume && viewMode === 'preview') {
+      loadHtmlWithTemplate();
+    }
+  }, [resume, selectedVersion, viewMode]); // Removed selectedTemplate from dependencies to prevent double loading
 
   const loadSavedTemplate = () => {
     const savedTemplate = localStorage.getItem(`${STORAGE_KEYS.THEME}_template`);
@@ -83,9 +91,51 @@ export default function ResumeViewPage() {
     }
   };
 
-  const handleTemplateChange = (templateId) => {
+  const handleTemplateChange = async (templateId) => {
+    if (templateId === selectedTemplate) return;
+    
+    devLog('Template changing from', selectedTemplate, 'to:', templateId);
     setSelectedTemplate(templateId);
-    devLog('Template changed to:', templateId);
+    
+    // Clear current HTML content to show loading state
+    setHtmlContent('');
+    
+    // Force reload HTML with new template if in preview mode
+    if (viewMode === 'preview' && resume) {
+      await loadHtmlWithTemplate(templateId);
+    }
+  };
+
+  const loadHtmlWithTemplate = async (templateId = selectedTemplate) => {
+    try {
+      setHtmlLoading(true);
+      setError(null);
+      
+      const params = {
+        template: templateId || 'modern'
+      };
+      
+      if (selectedVersion?.id) {
+        params.version_id = selectedVersion.id;
+      }
+      
+      devLog('Fetching HTML with params:', params);
+      const response = await apiService.getResumeHTML(id, params);
+      
+      if (response?.html) {
+        setHtmlContent(response.html);
+        devLog('HTML content loaded for template:', templateId);
+      } else {
+        console.warn('No HTML content in response:', response);
+        setHtmlContent('');
+      }
+    } catch (error) {
+      console.error('Failed to load HTML for template', templateId, ':', error);
+      setError(`Failed to load preview for ${templateId} template`);
+      setHtmlContent('');
+    } finally {
+      setHtmlLoading(false);
+    }
   };
 
   const handleVersionChange = (versionId) => {
@@ -94,11 +144,74 @@ export default function ResumeViewPage() {
     devLog('Version changed to:', version);
   };
 
-  const handlePDFLoadStart = () => setPdfLoading(true);
-  const handlePDFLoadComplete = () => setPdfLoading(false);
-  const handlePDFError = (error) => {
-    setPdfLoading(false);
-    devLog('PDF error:', error);
+const handleDownloadPDF = async () => {
+    try {
+      setIsDownloadingPDF(true);
+      
+      const params = {
+        template: selectedTemplate || 'modern'
+      };
+      
+      if (selectedVersion?.id) {
+        params.version_id = selectedVersion.id;
+      }
+
+      const pdfBlob = await apiService.downloadResumePDF(id, params);
+      
+      // Generate filename
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `resume_${selectedTemplate}_${timestamp}.pdf`;
+      
+      // Download file
+      downloadBlob(pdfBlob, filename);
+      
+      devLog('PDF downloaded:', filename);
+      
+    } catch (err) {
+      console.error('Failed to download PDF:', err);
+      setError('Failed to download PDF');
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (htmlContent) {
+      try {
+        // Create a new window with the HTML content for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Resume - ${resume?.title || 'Untitled'}</title>
+              <style>
+                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                @media print {
+                  body { margin: 0; padding: 0; }
+                }
+              </style>
+            </head>
+            <body>
+              ${htmlContent}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        
+        // Wait for content to load then print
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 1000);
+        
+        devLog('Print initiated');
+      } catch (err) {
+        console.error('Print failed:', err);
+        setError('Failed to print resume');
+      }
+    }
   };
 
   // Loading state
@@ -186,7 +299,7 @@ export default function ResumeViewPage() {
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* View Mode Toggle */}
+              {/* View Mode Toggle - Removed PDF */}
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('preview')}
@@ -195,14 +308,6 @@ export default function ResumeViewPage() {
                   }`}
                 >
                   Preview
-                </button>
-                <button
-                  onClick={() => setViewMode('pdf')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'pdf' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  PDF
                 </button>
                 <button
                   onClick={() => setViewMode('markdown')}
@@ -256,62 +361,78 @@ export default function ResumeViewPage() {
             <div className={styles.previewColumn}>
               <div className={styles.previewCard}>
                 <div className={styles.previewHeader}>
-                  <h3 className={styles.previewTitle}>Resume Preview</h3>
-                  <p className={styles.previewSubtitle}>
-                    Formatted preview using {selectedTemplate} template
-                  </p>
-                </div>
-                <div className={styles.previewContent}>
-                  <div className={styles.previewDocument}>
-                    <div className={styles.previewProse}>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {currentContent}
-                      </ReactMarkdown>
+                  <div className={styles.previewHeaderContent}>
+                    <div className={styles.previewHeaderLeft}>
+                      <h3 className={styles.previewTitle}>Resume Preview</h3>
+                      <p className={styles.previewSubtitle}>
+                        Formatted preview using {selectedTemplate} template
+                      </p>
+                    </div>
+                    <div className={styles.previewHeaderActions}>
+                      {/* Print Button */}
+                      <button
+                        onClick={handlePrint}
+                        disabled={htmlLoading || !htmlContent}
+                        className={styles.previewActionButton}
+                        title="Print resume"
+                      >
+                        <svg className={styles.previewActionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                      </button>
+                      
+                      {/* Download PDF Button */}
+                      <button
+                        onClick={handleDownloadPDF}
+                        disabled={htmlLoading || isDownloadingPDF}
+                        className={styles.previewDownloadButton}
+                      >
+                        {isDownloadingPDF ? (
+                          <>
+                            <LoadingSpinner size="sm" className="mr-2" />
+                            <span>Downloading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className={styles.previewDownloadIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Download PDF</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
+                </div>
+                <div className={styles.previewContent}>
+                  {htmlLoading ? (
+                    <div className={styles.previewLoading}>
+                      <LoadingSpinner size="md" />
+                      <span className="ml-2 text-gray-600">Loading preview...</span>
+                    </div>
+                  ) : htmlContent ? (
+                    <div className={styles.previewDocument}>
+                      <div 
+                        className={styles.previewHtmlContent}
+                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.previewDocument}>
+                      <div className={styles.previewProse}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {currentContent}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {viewMode === 'pdf' && (
-          <div className={styles.pdfGrid}>
-            {/* Template Selector */}
-            <div className={styles.pdfTemplateColumn}>
-              <TemplateSelector
-                selectedTemplate={selectedTemplate}
-                onTemplateChange={handleTemplateChange}
-                className={styles.templateFit}
-              />
-
-              {/* PDF Loading Status */}
-              {pdfLoading && (
-                <div className={styles.pdfLoadingStatus}>
-                  <div className={styles.pdfLoadingContent}>
-                    <LoadingSpinner size="sm" className={styles.pdfLoadingSpinner} />
-                    <span className={styles.pdfLoadingText}>Generating PDF...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* PDF Preview */}
-            <div className={styles.pdfPreviewColumn}>
-              <PDFPreview
-                resumeId={parseInt(id)}
-                versionId={selectedVersion?.id}
-                template={selectedTemplate}
-                onLoadStart={handlePDFLoadStart}
-                onLoadComplete={handlePDFLoadComplete}
-                onError={handlePDFError}
-                className={styles.templateFit}
-              />
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'markdown' && (
+{viewMode === 'markdown' && (
           <div className={styles.markdownContainer}>
             <div className={styles.markdownCard}>
               <div className={styles.markdownHeader}>

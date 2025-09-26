@@ -1,6 +1,6 @@
 /**
  * TemplateSelector Component Styles
- * Template selection interface with grid layout
+ * Template selection interface with card layout
  * Following rules: No @apply for hover:*, focus:*, or interactive states
  */
 
@@ -41,66 +41,65 @@
   @apply text-sm text-red-600 bg-red-50 px-3 py-1 rounded-md;
 }
 
-/* Template Selection */
+/* Template Cards */
 .content {
   @apply p-6;
 }
 
-.templateRadios {
+.templateCards {
   @apply space-y-3;
 }
 
-.radioOption {
-  /* Container for radio button and label */
+.templateCard {
+  @apply w-full text-left p-4 border border-gray-200 rounded-lg transition-all duration-200;
 }
 
-.radioInput {
-  @apply mr-3;
+.templateCard:hover {
+  @apply border-gray-300 shadow-sm;
 }
 
-.radioLabel {
-  @apply flex items-center cursor-pointer;
+.templateCard:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
 }
 
-.radioLabelContent {
-  /* Container for name and description */
+.templateCardDefault {
+  @apply bg-white;
+}
+
+.templateCardSelected {
+  @apply bg-blue-50 border-blue-500 ring-1 ring-blue-500;
+}
+
+.templateCardContent {
+  @apply w-full;
+}
+
+.templateCardHeader {
+  @apply flex items-center justify-between mb-2;
 }
 
 .templateName {
   @apply font-medium text-gray-900;
 }
 
-.templateDescription {
-  @apply text-sm text-gray-600 ml-2;
-}
-
-/* Selected Template Info */
-.selectedInfo {
-  @apply mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg;
-}
-
-.selectedInfoContent {
-  @apply flex items-center;
+.selectedBadge {
+  @apply w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center;
 }
 
 .selectedIcon {
-  @apply w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center mr-3;
+  @apply w-4 h-4;
 }
 
-.selectedIconSvg {
-  @apply w-5 h-5;
+.templateDescription {
+  @apply text-sm text-gray-600 mb-3 line-clamp-2;
 }
 
-.selectedText {
-  /* Container for selected template text */
+.templateFeatures {
+  @apply flex flex-wrap gap-2;
 }
 
-.selectedTitle {
-  @apply font-medium text-blue-900;
-}
-
-.selectedDescription {
-  @apply text-sm text-blue-700;
+.featureTag {
+  @apply inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded;
 }
 
 /* Dark mode support */
@@ -125,18 +124,30 @@
   @apply text-red-400 bg-red-900 bg-opacity-20;
 }
 
-.dark .selectedInfo {
+.dark .templateCard {
+  @apply border-gray-700;
+}
+
+.dark .templateCard:hover {
+  @apply border-gray-600;
+}
+
+.dark .templateCardDefault {
+  @apply bg-gray-800;
+}
+
+.dark .templateCardSelected {
   @apply bg-blue-900 bg-opacity-20 border-blue-400;
 }
 
-.dark .selectedIcon {
-  @apply bg-blue-600;
+.dark .templateName {
+  @apply text-gray-100;
 }
 
-.dark .selectedTitle {
-  @apply text-blue-300;
+.dark .templateDescription {
+  @apply text-gray-400;
 }
 
-.dark .selectedDescription {
-  @apply text-blue-400;
+.dark .featureTag {
+  @apply bg-gray-700 text-gray-300;
 }

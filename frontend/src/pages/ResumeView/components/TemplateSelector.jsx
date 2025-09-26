@@ -66,8 +66,6 @@ const TemplateSelector = ({
     );
   }
 
-  const selectedTemplateData = templates.find((t) => t.id === selectedTemplate);
-
   return (
     <div className={clsx(styles.container, className)}>
       {/* Header */}
@@ -89,60 +87,53 @@ const TemplateSelector = ({
         </div>
       </div>
 
-      {/* Template Radio Buttons */}
+      {/* Template Cards */}
       <div className={styles.content}>
-        <div className={styles.templateRadios}>
+        <div className={styles.templateCards}>
           {templates.map((template) => (
-            <div key={template.id} className={styles.radioOption}>
-              <input
-                type="radio"
-                id={`template-${template.id}`}
-                name="template"
-                value={template.id}
-                checked={selectedTemplate === template.id}
-                onChange={() => handleTemplateSelect(template.id)}
-                className={styles.radioInput}
-              />
-              <label htmlFor={`template-${template.id}`} className={styles.radioLabel}>
-                <div className={styles.radioLabelContent}>
+            <button
+              key={template.id}
+              onClick={() => handleTemplateSelect(template.id)}
+              className={clsx(
+                styles.templateCard,
+                selectedTemplate === template.id ? styles.templateCardSelected : styles.templateCardDefault
+              )}
+            >
+              <div className={styles.templateCardContent}>
+                <div className={styles.templateCardHeader}>
                   <span className={styles.templateName}>{template.name}</span>
-                  <span className={styles.templateDescription}>{template.description}</span>
+                  {selectedTemplate === template.id && (
+                    <div className={styles.selectedBadge}>
+                      <svg
+                        className={styles.selectedIcon}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-              </label>
-            </div>
+                <p className={styles.templateDescription}>{template.description}</p>
+                {template.features && (
+                  <div className={styles.templateFeatures}>
+                    {template.features.slice(0, 2).map((feature, index) => (
+                      <span key={index} className={styles.featureTag}>
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </button>
           ))}
         </div>
-
-        {/* Selected Template Info */}
-        {selectedTemplate && selectedTemplateData && (
-          <div className={styles.selectedInfo}>
-            <div className={styles.selectedInfoContent}>
-              <div className={styles.selectedIcon}>
-                <svg
-                  className={styles.selectedIconSvg}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className={styles.selectedText}>
-                <div className={styles.selectedTitle}>
-                  {selectedTemplateData.name} Template Selected
-                </div>
-                <div className={styles.selectedDescription}>
-                  Your resume will be generated using this template style
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
