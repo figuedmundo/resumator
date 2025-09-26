@@ -118,9 +118,17 @@ export default function ResumeEditorPage() {
       setError(null);
       const response = await apiService.getResume(id);
       setResume(response);
-      setContent(response.content || '');
+
+      // Get content from the latest version
+      let content = '';
+      if (response.versions && response.versions.length > 0) {
+        const latestVersion = response.versions[0]; // versions are sorted by creation date desc
+        content = latestVersion.markdown_content || '';
+      }
+
+      setContent(content);
       setTitle(response.title || 'Untitled Resume');
-      setLastSavedContent(response.content || '');
+      setLastSavedContent(content);
       setLastSavedTitle(response.title || 'Untitled Resume');
       setSaveStatus('saved');
     } catch (err) {

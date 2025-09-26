@@ -5,7 +5,7 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/v1/auth/login',
   LOGOUT: '/api/v1/auth/logout',
   //VERIFY_TOKEN: '/api/v1/auth/verify-token',
-  REFRESH_TOKEN: '/api/v1/auth/refresh-token',
+  REFRESH_TOKEN: '/api/v1/auth/refresh',
   
   // Resumes
   RESUMES: '/api/v1/resumes',

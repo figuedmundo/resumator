@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.resume import (
-    ResumeCreate, ResumeResponse, ResumeVersionResponse, 
+    ResumeCreate, ResumeUpdate, ResumeResponse, ResumeVersionResponse, 
     ResumeCustomizeRequest, ResumeCustomizeResponse,
     ResumePDFRequest, CoverLetterRequest, CoverLetterResponse
 )
@@ -21,6 +21,35 @@ import io
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+@router.post("", response_model=ResumeResponse, status_code=status.HTTP_201_CREATED)
+async def create_resume(
+    resume_create: ResumeCreate,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Create a new resume."""
+    try:
+        resume = resume_service.upload_resume(
+            user_id=current_user.id,
+            title=resume_create.title,
+            markdown=resume_create.markdown
+        )
+
+        return ResumeResponse.from_orm(resume)
+
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to create resume for user {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create resume"
+        )
 
 
 @router.post("/upload", response_model=dict, status_code=status.HTTP_201_CREATED)
@@ -36,13 +65,13 @@ async def upload_resume(
             title=resume_create.title,
             markdown=resume_create.markdown
         )
-        
+
         return {
             "resume_id": resume.id,
             "version": "v1",
             "message": "Resume uploaded successfully"
         }
-        
+
     except ValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -55,8 +84,7 @@ async def upload_resume(
             detail="Failed to upload resume"
         )
 
-
-@router.get("/", response_model=List[ResumeResponse])
+@router.get("", response_model=List[ResumeResponse])
 async def list_resumes(
     current_user: User = Depends(get_current_active_user),
     resume_service: ResumeService = Depends(get_resume_service)
@@ -84,7 +112,7 @@ async def get_resume(
     try:
         resume = resume_service.get_resume(current_user.id, resume_id)
         return ResumeResponse.from_orm(resume)
-        
+
     except ResumeNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -95,6 +123,53 @@ async def get_resume(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get resume"
+        )
+
+
+@router.put("/{resume_id}", response_model=ResumeResponse)
+async def update_resume(
+    resume_id: int,
+    resume_update: ResumeUpdate,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Update a resume."""
+    try:
+        # Update resume metadata
+        resume = resume_service.update_resume(current_user.id, resume_id, resume_update.title, resume_update.is_default)
+
+        # Update content if provided
+        if resume_update.content is not None:
+            # Get the latest version
+            versions = resume_service.list_resume_versions(current_user.id, resume_id)
+            if versions:
+                latest_version = versions[0]  # Already sorted by creation date desc
+                resume_service.update_resume_version(
+                    user_id=current_user.id,
+                    resume_id=resume_id,
+                    version_id=latest_version.id,
+                    markdown=resume_update.content
+                )
+
+        # Return updated resume
+        resume = resume_service.get_resume(current_user.id, resume_id)
+        return ResumeResponse.from_orm(resume)
+
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to update resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update resume"
         )
 
 

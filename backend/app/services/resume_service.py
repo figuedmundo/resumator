@@ -67,7 +67,7 @@ class ResumeService:
             db.rollback()
             logger.error(f"Failed to create resume for user {user_id}: {e}")
             raise ValidationError(f"Failed to create resume: {str(e)}")
-    
+        
     def get_resume(self, user_id: int, resume_id: int) -> Resume:
         """Return resume metadata."""
         db = self._get_db()
@@ -87,6 +87,37 @@ class ResumeService:
             if isinstance(e, ResumeNotFoundError):
                 raise
             raise ValidationError(f"Failed to retrieve resume: {str(e)}")
+    
+    def update_resume(self, user_id: int, resume_id: int, title: Optional[str] = None,
+                     is_default: Optional[bool] = None) -> Resume:
+        """Update resume metadata."""
+        db = self._get_db()
+
+        try:
+            resume = db.query(Resume).filter(
+                and_(Resume.id == resume_id, Resume.user_id == user_id)
+            ).first()
+
+            if not resume:
+                raise ResumeNotFoundError(resume_id)
+
+            if title is not None:
+                resume.title = title
+            if is_default is not None:
+                resume.is_default = is_default
+
+            db.commit()
+            db.refresh(resume)
+
+            logger.info(f"Updated resume {resume_id} for user {user_id}")
+            return resume
+
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to update resume {resume_id} for user {user_id}: {e}")
+            if isinstance(e, ResumeNotFoundError):
+                raise
+            raise ValidationError(f"Failed to update resume: {str(e)}")
     
     def list_user_resumes(self, user_id: int) -> List[Resume]:
         """List all resumes for a user."""

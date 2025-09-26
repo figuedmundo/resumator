@@ -41,19 +41,37 @@
   @apply text-sm text-red-600 bg-red-50 px-3 py-1 rounded-md;
 }
 
-/* Template Grid */
+/* Template Selection */
 .content {
   @apply p-6;
 }
 
-.templateGrid {
-  @apply grid grid-cols-1 gap-6;
+.templateRadios {
+  @apply space-y-3;
 }
 
-@media (min-width: 768px) {
-  .templateGrid {
-    @apply grid-cols-3;
-  }
+.radioOption {
+  /* Container for radio button and label */
+}
+
+.radioInput {
+  @apply mr-3;
+}
+
+.radioLabel {
+  @apply flex items-center cursor-pointer;
+}
+
+.radioLabelContent {
+  /* Container for name and description */
+}
+
+.templateName {
+  @apply font-medium text-gray-900;
+}
+
+.templateDescription {
+  @apply text-sm text-gray-600 ml-2;
 }
 
 /* Selected Template Info */

@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 import apiService from "../../../services/secureApi";
 import { devLog } from "@/utils/helpers";
-import TemplateCard from "./TemplateCard";
 import { defaultTemplates } from "@/config/templateConfig";
 import styles from './TemplateSelector.module.css';
 
@@ -90,16 +89,27 @@ const TemplateSelector = ({
         </div>
       </div>
 
-      {/* Template Grid */}
+      {/* Template Radio Buttons */}
       <div className={styles.content}>
-        <div className={styles.templateGrid}>
+        <div className={styles.templateRadios}>
           {templates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              selected={selectedTemplate === template.id}
-              onSelect={handleTemplateSelect}
-            />
+            <div key={template.id} className={styles.radioOption}>
+              <input
+                type="radio"
+                id={`template-${template.id}`}
+                name="template"
+                value={template.id}
+                checked={selectedTemplate === template.id}
+                onChange={() => handleTemplateSelect(template.id)}
+                className={styles.radioInput}
+              />
+              <label htmlFor={`template-${template.id}`} className={styles.radioLabel}>
+                <div className={styles.radioLabelContent}>
+                  <span className={styles.templateName}>{template.name}</span>
+                  <span className={styles.templateDescription}>{template.description}</span>
+                </div>
+              </label>
+            </div>
           ))}
         </div>
 

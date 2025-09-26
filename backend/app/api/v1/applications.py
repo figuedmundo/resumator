@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
 async def create_application(
     application_create: ApplicationCreate,
     current_user: User = Depends(get_current_active_user),
@@ -56,7 +56,7 @@ async def create_application(
         )
 
 
-@router.get("/", response_model=ApplicationListResponse)
+@router.get("", response_model=ApplicationListResponse)
 async def list_applications(
     status_filter: Optional[str] = Query(None, alias="status", description="Filter by status"),
     page: int = Query(1, ge=1, description="Page number"),

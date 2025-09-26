@@ -53,10 +53,17 @@ export default function ResumeViewPage() {
 
       const response = await apiService.getResume(id);
       setResume(response);
+
+      // Set content from the latest version
+      if (response.versions && response.versions.length > 0) {
+        const latestVersion = response.versions[0]; // versions are sorted by creation date desc
+        setResume(prev => ({ ...prev, content: latestVersion.markdown_content }));
+      }
+
       devLog('Resume loaded:', response);
     } catch (err) {
-      console.error('Failed to load VersionComparison:', err);
-      setError(err.message || 'Failed to load VersionComparison');
+      console.error('Failed to load resume:', err);
+      setError(err.message || 'Failed to load resume');
     } finally {
       setIsLoading(false);
     }

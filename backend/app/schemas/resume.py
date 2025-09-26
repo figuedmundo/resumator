@@ -43,6 +43,7 @@ class ResumeUpdate(BaseModel):
     """Schema for updating a resume."""
     title: Optional[str] = None
     is_default: Optional[bool] = None
+    content: Optional[str] = None  # Markdown content for the latest version
 
 
 class ResumeResponse(ResumeBase):
