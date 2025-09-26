@@ -109,4 +109,25 @@ issues found
 /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/pages/ResumeView/ResumeViewPage.jsx
 When select the Preview option, the Resume Preview, is shown in markdown, but it was suppose to show the html preview
 
-- In the ResumeViewPage, the PDF preview is not showing PDF , 
+- In the ResumeViewPage, the PDF preview is not showing PDF , error noted {"detail":[{"type":"missing","loc":["query","request"],"msg":"Field required","input":null}]} , /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/pages/ResumeView/components/PDFPreview.jsx
+
+- The ResumeEditorPage > Split view is broken , please fix
+
+- Create a new Resume is failing , POST http://localhost:8000/api/v1/resumes 
+422 Unprocessable Entity
+{
+    "detail": [
+        {
+            "type": "missing",
+            "loc": [
+                "body",
+                "markdown"
+            ],
+            "msg": "Field required",
+            "input": {
+                "title": "Test",
+                "content": "# Your Name\n\n## Contact Inf....\n"
+            }
+        }
+    ]
+}

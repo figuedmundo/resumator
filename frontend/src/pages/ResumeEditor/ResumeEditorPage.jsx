@@ -164,7 +164,7 @@ export default function ResumeEditorPage() {
         // Create new VersionComparison
         const response = await apiService.createResume({
           title,
-          content,
+          markdown: content,
         });
         setResume(response);
         // Navigate to the new VersionComparison's edit URL
@@ -196,7 +196,7 @@ export default function ResumeEditorPage() {
       } else {
         const response = await apiService.createResume({
           title,
-          content,
+          markdown: content,
         });
         setResume(response);
         navigate(`/resumes/${response.id}/edit`, { replace: true });
