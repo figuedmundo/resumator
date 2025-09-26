@@ -18,19 +18,14 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - only run when auth state is determined
   useEffect(() => {
     console.log("LoginPage redirect effect, isAuthenticated:", isAuthenticated);
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location]);
-
-  // Clear auth error when component unmounts or when user starts typing
-  useEffect(() => {
-    return () => clearError();
-  }, [clearError]);
+  }, [isAuthenticated, navigate, location.state?.from?.pathname]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +34,7 @@ export default function LoginPage() {
       [name]: value,
     }));
 
+    // Clear field error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -46,6 +42,7 @@ export default function LoginPage() {
       }));
     }
 
+    // Clear auth error when user starts typing
     if (error) {
       clearError();
     }
@@ -75,6 +72,7 @@ export default function LoginPage() {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
+    // If login fails, the error will be automatically displayed via the error state
   };
 
   return (
@@ -185,7 +183,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Auth Error */}
+          {/* Auth Error - Show server-side errors */}
           {error && (
             <div className={styles.authError}>
               <div className={styles.authErrorContent}>

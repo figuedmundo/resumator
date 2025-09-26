@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer } from 'react';
+import { createContext, useContext, useEffect, useReducer, useCallback } from 'react';
 import apiService from '../services/api';
 import { devLog } from '@/utils/helpers';
 
@@ -13,19 +13,26 @@ const AuthActions = {
   LOGOUT: 'LOGOUT',
   SET_USER: 'SET_USER',
   CLEAR_ERROR: 'CLEAR_ERROR',
+  SET_LOADING: 'SET_LOADING',
 };
 
 // Initial auth state
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // Start with loading true for initial auth check
   error: null,
 };
 
 // Auth reducer
 function authReducer(state, action) {
   switch (action.type) {
+    case AuthActions.SET_LOADING:
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+
     case AuthActions.LOGIN_START:
       return {
         ...state,
@@ -65,6 +72,7 @@ function authReducer(state, action) {
         ...state,
         user: action.payload.user,
         isAuthenticated: true,
+        isLoading: false,
       };
 
     case AuthActions.CLEAR_ERROR:
@@ -82,34 +90,61 @@ function authReducer(state, action) {
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Initialize auth state on app load
+  // Use useCallback to memoize functions and prevent re-renders
+  const clearError = useCallback(() => {
+    dispatch({ type: AuthActions.CLEAR_ERROR });
+  }, []);
+
+  const updateUser = useCallback((userData) => {
+    dispatch({
+      type: AuthActions.SET_USER,
+      payload: { user: userData }
+    });
+  }, []);
+
+  // Initialize auth state on app load - run only once
   useEffect(() => {
-    console.log("useAuth use effect");
-    const initializeAuth = () => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
       try {
+        devLog('Initializing auth...');
+        
         // Check if we have valid session data in localStorage
         if (apiService.isAuthenticated()) {
           const user = apiService.getCurrentUser();
-          if (user) {
+          if (user && mounted) {
             dispatch({
               type: AuthActions.SET_USER,
               payload: { user }
             });
             devLog('Auth initialized with existing session');
+          } else if (mounted) {
+            dispatch({ type: AuthActions.LOGOUT });
           }
-        } else {
+        } else if (mounted) {
           dispatch({ type: AuthActions.LOGOUT });
         }
       } catch (error) {
         devLog('Auth initialization failed:', error.message);
-        // Don't call logout API, just clear local state
-        apiService.clearTokens();
-        dispatch({ type: AuthActions.LOGOUT });
+        if (mounted) {
+          // Don't call logout API, just clear local state
+          apiService.clearTokens();
+          dispatch({ type: AuthActions.LOGOUT });
+        }
+      } finally {
+        if (mounted) {
+          dispatch({ type: AuthActions.SET_LOADING, payload: false });
+        }
       }
     };
 
     initializeAuth();
-  }, []); // Empty dependency array to run only once
+
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency array - run only once
 
   // Listen for storage changes to update auth state
   useEffect(() => {
@@ -136,7 +171,7 @@ export function AuthProvider({ children }) {
   }, [state.isAuthenticated, state.user?.id]);
 
   // Login function
-  const login = async (credentials) => {
+  const login = useCallback(async (credentials) => {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
@@ -150,6 +185,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       // Extract detailed backend error if it exists
       let errorMessage = 'Login failed';
+      
       if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail; // FastAPI standard
       } else if (error.response?.data?.message) {
@@ -157,6 +193,7 @@ export function AuthProvider({ children }) {
       } else if (error.message) {
         errorMessage = error.message;
       }
+      
       dispatch({
         type: AuthActions.LOGIN_FAILURE,
         payload: { error: errorMessage }
@@ -164,10 +201,10 @@ export function AuthProvider({ children }) {
       devLog('Login failed:', errorMessage);
       return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
   // Register function
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     dispatch({ type: AuthActions.LOGIN_START });
 
     try {
@@ -179,7 +216,16 @@ export function AuthProvider({ children }) {
       devLog('Registration successful');
       return { success: true };
     } catch (error) {
-      const errorMessage = error.message;
+      let errorMessage = 'Registration failed';
+      
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       dispatch({
         type: AuthActions.LOGIN_FAILURE,
         payload: { error: errorMessage }
@@ -187,10 +233,10 @@ export function AuthProvider({ children }) {
       devLog('Registration failed:', errorMessage);
       return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
   // Logout function - don't call API on page refresh/navigation
-  const logout = async (callAPI = true) => {
+  const logout = useCallback(async (callAPI = true) => {
     try {
       if (callAPI && apiService.isAuthenticated()) {
         await apiService.logout();
@@ -206,20 +252,7 @@ export function AuthProvider({ children }) {
       dispatch({ type: AuthActions.LOGOUT });
       devLog('Logout completed');
     }
-  };
-
-  // Clear error function - don't auto-clear, let user dismiss
-  const clearError = () => {
-    dispatch({ type: AuthActions.CLEAR_ERROR });
-  };
-
-  // Update user function
-  const updateUser = (userData) => {
-    dispatch({
-      type: AuthActions.SET_USER,
-      payload: { user: userData }
-    });
-  };
+  }, []);
 
   const value = {
     ...state,

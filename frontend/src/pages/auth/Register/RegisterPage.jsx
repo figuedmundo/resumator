@@ -27,11 +27,6 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Clear auth error when component unmounts or when user starts typing
-  useEffect(() => {
-    return () => clearError();
-  }, [clearError]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
