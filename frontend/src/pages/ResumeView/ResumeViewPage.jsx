@@ -348,37 +348,37 @@ const handleDownloadPDF = async () => {
   const currentContent = selectedVersion?.markdown_content || resume?.content || '';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={styles.pageContainer}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
+      <div className={styles.header}>
+        <div className={styles.headerContainer}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerLeft}>
               <Link
                 to="/resumes"
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className={styles.backLink}
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={styles.backIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Resumes
               </Link>
 
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+              <div className={styles.headerInfo}>
+                <h1 className={styles.title}>
                   {resume?.title || 'Resume'}
                 </h1>
-                <div className="flex items-center space-x-4 mt-1">
-                  <p className="text-sm text-gray-500">
+                <div className={styles.metadata}>
+                  <p className={styles.updatedText}>
                     Updated {formatDate(resume?.updated_at, 'relative')}
                   </p>
                   {versions.length > 1 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">Version:</span>
+                    <div className={styles.versionSelector}>
+                      <span className={styles.versionLabel}>Version:</span>
                       <select
                         value={selectedVersion?.id || ''}
                         onChange={(e) => handleVersionChange(e.target.value)}
-                        className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className={styles.versionSelect}
                       >
                         {versions.map((version) => (
                           <option key={version.id} value={version.id}>
@@ -393,22 +393,24 @@ const handleDownloadPDF = async () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className={styles.headerRight}>
               {/* View Mode Toggle - Removed PDF */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <div className={styles.viewModeToggle}>
                 <button
                   onClick={() => setViewMode('preview')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'preview' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={clsx(
+                    styles.viewModeButton,
+                    viewMode === 'preview' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                  )}
                 >
                   Preview
                 </button>
                 <button
                   onClick={() => setViewMode('markdown')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    viewMode === 'markdown' ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={clsx(
+                    styles.viewModeButton,
+                    viewMode === 'markdown' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
+                  )}
                 >
                   Source
                 </button>
@@ -503,7 +505,7 @@ const handleDownloadPDF = async () => {
                   {htmlLoading ? (
                     <div className={styles.previewLoading}>
                       <LoadingSpinner size="md" />
-                      <span className="ml-2 text-gray-600">Loading preview...</span>
+                      <span>Loading preview...</span>
                     </div>
                   ) : iframeSrc ? (
                     <div className={styles.previewDocument} key={selectedTemplate}>
