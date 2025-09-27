@@ -10,10 +10,12 @@ export default function ResumeCustomizer({
   onCustomizationComplete, 
   onError,
   isLoading,
+  initialJobDescription = '',
+  initialCustomInstructions = '',
   className = '' 
 }) {
-  const [jobDescription, setJobDescription] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('');
+  const [jobDescription, setJobDescription] = useState(initialJobDescription);
+  const [customInstructions, setCustomInstructions] = useState(initialCustomInstructions);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -21,6 +23,19 @@ export default function ResumeCustomizer({
   const [aiStage, setAiStage] = useState('analyzing');
   const [aiProgress, setAiProgress] = useState(0);
   const [aiMessage, setAiMessage] = useState('');
+
+  // Update form fields when initial values change (preserve on errors)
+  useEffect(() => {
+    if (initialJobDescription !== jobDescription) {
+      setJobDescription(initialJobDescription);
+    }
+  }, [initialJobDescription]);
+
+  useEffect(() => {
+    if (initialCustomInstructions !== customInstructions) {
+      setCustomInstructions(initialCustomInstructions);
+    }
+  }, [initialCustomInstructions]);
 
   // Clear errors when inputs change
   useEffect(() => {
@@ -116,14 +131,11 @@ export default function ResumeCustomizer({
       setAiStage('finalizing');
       setAiMessage('Customization complete!');
       
-      // Clear form after successful customization
-      setTimeout(() => {
-        setJobDescription('');
-        setCustomInstructions('');
-      }, 1000);
+      // Note: Don't clear form after successful customization
+      // The parent component will handle navigation and state
       
     } catch (error) {
-      onError?.(error.message || 'Failed to customize VersionComparison');
+      onError?.(error.message || 'Failed to customize resume');
     } finally {
       setIsCustomizing(false);
     }
@@ -139,6 +151,12 @@ export default function ResumeCustomizer({
       // Clipboard access might be denied, silently ignore
       console.warn('Could not access clipboard:', error);
     }
+  };
+
+  const handleClearForm = () => {
+    setJobDescription('');
+    setCustomInstructions('');
+    setErrors({});
   };
 
   const characterCount = jobDescription.length;
@@ -194,16 +212,27 @@ export default function ResumeCustomizer({
             <label htmlFor="job-description" className={styles.inputLabel}>
               Job Description *
             </label>
-            <button
-              onClick={handlePasteJobDescription}
-              className={styles.pasteButton}
-              title="Paste from clipboard"
-            >
-              <svg className={styles.pasteIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <span>Paste</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handlePasteJobDescription}
+                className={styles.pasteButton}
+                title="Paste from clipboard"
+              >
+                <svg className={styles.pasteIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span>Paste</span>
+              </button>
+              {(jobDescription || customInstructions) && (
+                <button
+                  onClick={handleClearForm}
+                  className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-300 hover:border-gray-400"
+                  title="Clear form"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
           
           <textarea

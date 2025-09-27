@@ -110,8 +110,12 @@ Generate a professional cover letter:"""
                     }
                 ],
                 model=self.model,
-                temperature=0.3,
-                max_tokens=2000
+                temperature=1,
+                max_completion_tokens=8192,
+                top_p=1,
+                reasoning_effort="high",
+                stream=False,  # Changed from True to False to fix the streaming issue
+                stop=None
             )
             
             result = chat_completion.choices[0].message.content
@@ -159,7 +163,7 @@ Generate a professional cover letter:"""
                 max_completion_tokens=8192,
                 top_p=1,
                 reasoning_effort="high",
-                stream=True,
+                stream=False,  # Changed from True to False to fix the streaming issue
                 stop=None
             )
             

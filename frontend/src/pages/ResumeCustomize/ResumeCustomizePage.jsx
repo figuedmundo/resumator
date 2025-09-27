@@ -20,6 +20,7 @@ export default function ResumeCustomizePage() {
   const [customizedContent, setCustomizedContent] = useState('');
   const [versions, setVersions] = useState([]);
   const [currentJobDescription, setCurrentJobDescription] = useState('');
+  const [customInstructions, setCustomInstructions] = useState('');
   
   const [isLoading, setIsLoading] = useState(true);
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -29,6 +30,9 @@ export default function ResumeCustomizePage() {
   // UI state
   const [showVersions, setShowVersions] = useState(false);
   const [viewMode, setViewMode] = useState('customize'); // 'customize', 'compare', 'preview'
+
+  // Keep track of last customization result for navigation
+  const [lastCustomizationResult, setLastCustomizationResult] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -44,6 +48,24 @@ export default function ResumeCustomizePage() {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  // Navigate to compare view after successful customization
+  useEffect(() => {
+    if (lastCustomizationResult) {
+      setCustomizedContent(lastCustomizationResult.customized_markdown);
+      setViewMode('compare');
+      setSuccessMessage('Resume customized successfully! Reviewing customized version.');
+      
+      // Update resume state with new version info
+      setResume(prev => ({
+        ...prev,
+        updated_at: new Date().toISOString()
+      }));
+      
+      // Clear the result to prevent repeated navigation
+      setLastCustomizationResult(null);
+    }
+  }, [lastCustomizationResult]);
 
   const loadResume = async () => {
     try {
@@ -78,27 +100,22 @@ export default function ResumeCustomizePage() {
     try {
       setIsCustomizing(true);
       setError(null);
+      
+      // Store form data in case of error
       setCurrentJobDescription(jobDescription);
+      setCustomInstructions(options.custom_instructions || '');
 
       const response = await apiService.customizeResume(id, jobDescription, options);
       
-      if (response.customized_resume) {
-        setCustomizedContent(response.customized_resume.content);
-        setSuccessMessage('Resume customized successfully! A new version has been created.');
-        setViewMode('compare');
-        
-        // Reload versions to show the new one
-        await loadVersions();
-        
-        // Update VersionComparison state with new content
-        setResume(prev => ({
-          ...prev,
-          content: response.customized_resume.content,
-          updated_at: response.customized_resume.updated_at
-        }));
-      }
+      // Store result for processing in useEffect
+      setLastCustomizationResult(response);
+      
+      // Reload versions to show the new one
+      await loadVersions();
+      
     } catch (err) {
-      setError(err.message || 'Failed to customize VersionComparison. Please try again.');
+      // Don't clear form data on error - keep jobDescription and options
+      setError(err.message || 'Failed to customize resume. Please check your inputs and try again.');
     } finally {
       setIsCustomizing(false);
     }
@@ -142,11 +159,11 @@ export default function ResumeCustomizePage() {
       
       setResume(response);
       setOriginalContent(customizedContent);
-      setSuccessMessage('Customized VersionComparison saved successfully!');
+      setSuccessMessage('Customized resume saved successfully!');
       
       await loadVersions();
     } catch (err) {
-      setError(err.message || 'Failed to save customized VersionComparison.');
+      setError(err.message || 'Failed to save customized resume.');
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +173,7 @@ export default function ResumeCustomizePage() {
     setCustomizedContent(originalContent);
     setViewMode('customize');
     setCurrentJobDescription('');
+    setCustomInstructions('');
     setSuccessMessage('');
     setError(null);
   };
@@ -376,7 +394,7 @@ export default function ResumeCustomizePage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex h-full space-x-6 py-6">
             {/* Version History Sidebar */}
             {showVersions && (
@@ -398,6 +416,9 @@ export default function ResumeCustomizePage() {
                   onCustomizationComplete={handleCustomization}
                   onError={setError}
                   isLoading={isCustomizing}
+                  // Pass stored form data to preserve on errors
+                  initialJobDescription={currentJobDescription}
+                  initialCustomInstructions={customInstructions}
                   className="h-full overflow-auto"
                 />
               )}

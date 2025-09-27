@@ -205,47 +205,20 @@
   @apply flex items-center justify-center py-8;
 }
 
-.previewHtmlContent {
-  /* Create isolated container for HTML content */
-  @apply bg-white;
+.previewIframe {
+  /* Create isolated container for iframe content */
   width: 8.5in; /* US Letter width */
   min-height: 11in; /* US Letter height */
   max-width: 100%;
   margin: 0 auto;
+  border: none;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   /* Contain all content within boundaries */
   overflow: hidden;
   position: relative;
-  /* Reset all potentially inherited styles */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #000;
+  background: white;
   /* Prevent content from breaking out */
   contain: layout style;
-}
-
-/* Reset and isolate styles within HTML content */
-.previewHtmlContent * {
-  /* Prevent margin collapse and overflow */
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.previewHtmlContent img {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-.previewHtmlContent table {
-  width: 100% !important;
-  table-layout: fixed !important;
-}
-
-.previewHtmlContent pre,
-.previewHtmlContent code {
-  white-space: pre-wrap !important;
-  word-break: break-word !important;
 }
 
 .previewTitle {

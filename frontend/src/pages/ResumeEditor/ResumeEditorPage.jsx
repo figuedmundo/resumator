@@ -24,6 +24,7 @@ export default function ResumeEditorPage() {
   const editorRef = useRef(null);
   const previewRef = useRef(null);
   const fileInputRef = useRef(null);
+  const codeMirrorRef = useRef(null);
   
   // State management
   const [resume, setResume] = useState(null);
@@ -266,14 +267,48 @@ export default function ResumeEditorPage() {
   }, []);
 
   const insertMarkdown = useCallback((markdownText) => {
-    setContent(prevContent => prevContent + markdownText);
-    
-    // Focus editor after inserting text
-    setTimeout(() => {
-      if (editorRef.current) {
-        editorRef.current.focus();
+    if (codeMirrorRef.current && codeMirrorRef.current.view) {
+      const view = codeMirrorRef.current.view;
+      const state = view.state;
+      const selection = state.selection.main;
+
+      // Check if there's selected text
+      if (selection.from !== selection.to) {
+        // Wrap selected text
+        const selectedText = state.sliceDoc(selection.from, selection.to);
+        const wrappedText = markdownText.replace('bold text', selectedText).replace('italic text', selectedText).replace('code', selectedText);
+        const transaction = state.update({
+          changes: {
+            from: selection.from,
+            to: selection.to,
+            insert: wrappedText
+          },
+          selection: {
+            anchor: selection.from + wrappedText.length,
+            head: selection.from + wrappedText.length
+          }
+        });
+        view.dispatch(transaction);
+      } else {
+        // Insert at cursor
+        const transaction = state.update({
+          changes: {
+            from: selection.head,
+            to: selection.head,
+            insert: markdownText
+          },
+          selection: {
+            anchor: selection.head + markdownText.length,
+            head: selection.head + markdownText.length
+          }
+        });
+        view.dispatch(transaction);
       }
-    }, 100);
+      view.focus();
+    } else {
+      // Fallback: append to content
+      setContent(prevContent => prevContent + markdownText);
+    }
   }, []);
 
   // Scroll synchronization
@@ -636,6 +671,7 @@ Write a brief summary of your professional background, key skills, and career ob
             )}>
               <div ref={editorRef} className={styles.editorWrapper}>
                 <CodeMirror
+                  ref={codeMirrorRef}
                   value={content}
                   onChange={(value) => setContent(value)}
                   extensions={[

@@ -490,6 +490,45 @@ async def generate_cover_letter(
         )
 
 
+@router.delete("/{resume_id}/versions/{version_id}")
+async def delete_resume_version(
+    resume_id: int,
+    version_id: int,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Delete a specific resume version."""
+    try:
+        success = resume_service.delete_resume_version(
+            current_user.id, resume_id, version_id
+        )
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume version not found"
+            )
+        
+        return {"message": "Resume version deleted successfully"}
+        
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to delete resume version {version_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete resume version"
+        )
+
+
 @router.delete("/{resume_id}")
 async def delete_resume(
     resume_id: int,

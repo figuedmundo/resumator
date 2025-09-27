@@ -40,7 +40,7 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
     if (applicationId) {
       loadApplication();
     } else {
-      // Check for pre-filled data from VersionComparison customization
+      // Check for pre-filled data from resume customization
       const savedData = sessionStorage.getItem('applicationFormData');
       if (savedData) {
         try {
@@ -68,7 +68,7 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
   const loadResumes = async () => {
     try {
       const data = await apiService.getResumes();
-      setResumes(data.resumes || []);
+      setResumes(data.resumes || data || []);
     } catch (error) {
       console.error('Failed to load resumes:', error);
       setErrors({ general: 'Failed to load resumes' });
@@ -79,21 +79,21 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
 
   const loadResumeVersions = async (resumeId) => {
     if (!resumeId) return;
-    
+
     setLoadingVersions(true);
     try {
       const data = await apiService.getResumeVersions(resumeId);
-      setResumeVersions(data.versions || []);
-      
+      setResumeVersions(data.versions || data || []);
+
       // If editing and no version selected, select the first version
-      if (data.versions?.length > 0 && !formData.resume_version_id) {
+      if ((data.versions || data)?.length > 0 && !formData.resume_version_id) {
         setFormData(prev => ({
           ...prev,
-          resume_version_id: data.versions[0].id
+          resume_version_id: (data.versions || data)[0].id
         }));
       }
     } catch (error) {
-      console.error('Failed to load VersionComparison versions:', error);
+      console.error('Failed to load resume versions:', error);
       setResumeVersions([]);
     } finally {
       setLoadingVersions(false);
@@ -134,11 +134,11 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
     }
 
     if (!formData.resume_id) {
-      newErrors.resume_id = 'Please select a VersionComparison';
+      newErrors.resume_id = 'Please select a resume';
     }
 
     if (!formData.resume_version_id) {
-      newErrors.resume_version_id = 'Please select a VersionComparison version';
+      newErrors.resume_version_id = 'Please select a resume version';
     }
 
     if (!formData.applied_date) {
@@ -316,7 +316,7 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
               required
             >
               <option value="">
-                {loadingResumes ? 'Loading resumes...' : 'Select a VersionComparison'}
+                {loadingResumes ? 'Loading resumes...' : 'Select a resume'}
               </option>
               {resumes.map(resume => (
                 <option key={resume.id} value={resume.id}>

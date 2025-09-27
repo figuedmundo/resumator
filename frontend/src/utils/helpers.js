@@ -270,6 +270,113 @@ export function getErrorMessage(error) {
 }
 
 /**
+ * Enhanced error handling utility for better error message display
+ */
+export function getDetailedErrorMessage(error) {
+  if (typeof error === 'string') return error;
+  
+  // Check for detailed error in response data
+  if (error?.response?.data?.detail) {
+    const detail = error.response.data.detail;
+    
+    // If the detail contains nested error information, extract the most meaningful part
+    if (typeof detail === 'string') {
+      // Look for patterns like "422: Failed to customize resume: 503: Resume customization failed: 'Stream' object has no attribute 'choices'"
+      const match = detail.match(/Resume customization failed: (.+)$/);
+      if (match) {
+        return `Resume customization failed: ${match[1]}`;
+      }
+      
+      // Look for other specific error patterns
+      const aiErrorMatch = detail.match(/AI service error: (.+)$/i);
+      if (aiErrorMatch) {
+        return `AI service is currently unavailable: ${aiErrorMatch[1]}`;
+      }
+      
+      const validationErrorMatch = detail.match(/Validation error: (.+)$/i);
+      if (validationErrorMatch) {
+        return `Input validation failed: ${validationErrorMatch[1]}`;
+      }
+      
+      // Return the original detail if no specific pattern is found
+      return detail;
+    }
+    
+    return detail;
+  }
+  
+  // Fallback to other error properties
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  
+  // HTTP status-specific messages
+  if (error?.response?.status) {
+    switch (error.response.status) {
+      case 400:
+        return 'Invalid request. Please check your input and try again.';
+      case 401:
+        return 'Authentication required. Please log in and try again.';
+      case 403:
+        return 'You do not have permission to perform this action.';
+      case 404:
+        return 'The requested resource was not found.';
+      case 422:
+        return 'The data provided could not be processed. Please check your input.';
+      case 429:
+        return 'Too many requests. Please wait a moment and try again.';
+      case 500:
+        return 'Server error. Please try again later.';
+      case 503:
+        return 'Service temporarily unavailable. Please try again later.';
+      default:
+        return `Request failed with status code ${error.response.status}`;
+    }
+  }
+  
+  return 'An unexpected error occurred. Please try again.';
+}
+
+/**
+ * Specific error handler for AI service errors
+ */
+export function handleAIServiceError(error) {
+  const message = getDetailedErrorMessage(error);
+  
+  // Check if it's an AI service related error
+  if (message.toLowerCase().includes('stream') && message.toLowerCase().includes('choices')) {
+    return 'AI service is currently experiencing issues. This might be due to API changes or temporary unavailability. Please try again in a few moments.';
+  }
+  
+  if (message.toLowerCase().includes('api key') || message.toLowerCase().includes('authentication')) {
+    return 'AI service authentication failed. Please contact support.';
+  }
+  
+  if (message.toLowerCase().includes('rate limit') || message.toLowerCase().includes('quota')) {
+    return 'AI service rate limit exceeded. Please wait a few minutes and try again.';
+  }
+  
+  return message;
+}
+
+/**
+ * Specific error handler for validation errors
+ */
+export function handleValidationError(error) {
+  const message = getDetailedErrorMessage(error);
+  
+  // Common validation patterns
+  if (message.toLowerCase().includes('job description')) {
+    return 'Please provide a valid job description.';
+  }
+  
+  if (message.toLowerCase().includes('resume content') || message.toLowerCase().includes('markdown')) {
+    return 'Resume content appears to be invalid or empty.';
+  }
+  
+  return message;
+}
+
+/**
  * Check if current environment is development
  */
 export function isDevelopment() {

@@ -163,7 +163,7 @@
 
 /* Main Content Area */
 .mainContent {
-  @apply flex-1 flex overflow-hidden;
+  @apply flex-1 flex overflow-hidden max-w-full h-full;
 }
 
 /* Version Sidebar */
@@ -173,11 +173,11 @@
 
 /* Editor Area */
 .editorArea {
-  @apply flex-1 flex;
+  @apply flex-1 flex max-w-7xl mx-auto w-full h-full;
 }
 
 .editorPanel {
-  @apply border-r border-gray-200;
+  @apply border-r border-gray-200 overflow-auto h-full;
 }
 
 .editorPanelSplit {
@@ -194,7 +194,7 @@
 
 /* Preview Panel */
 .previewPanel {
-  @apply overflow-auto bg-white;
+  @apply overflow-auto bg-white h-full;
 }
 
 .previewPanelSplit {

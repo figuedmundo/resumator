@@ -331,4 +331,51 @@ class ResumeService:
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to delete resume {resume_id}: {e}")
+            if isinstance(e, ResumeNotFoundError):
+                raise
+            return False
+    
+    def delete_resume_version(self, user_id: int, resume_id: int, version_id: int) -> bool:
+        """Delete a specific resume version."""
+        db = self._get_db()
+        
+        try:
+            # Verify ownership
+            self.get_resume(user_id, resume_id)
+            
+            # Cannot delete the original version if it's the only one
+            version_count = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
+            ).count()
+            
+            if version_count <= 1:
+                raise ValidationError("Cannot delete the only version of a resume")
+            
+            # Get the version to delete
+            version = db.query(ResumeVersion).filter(
+                and_(
+                    ResumeVersion.id == version_id,
+                    ResumeVersion.resume_id == resume_id
+                )
+            ).first()
+            
+            if not version:
+                return False
+            
+            # Cannot delete original version if other versions exist
+            if version.is_original and version_count > 1:
+                raise ValidationError("Cannot delete the original version while other versions exist")
+            
+            # Delete from database
+            db.delete(version)
+            db.commit()
+            
+            logger.info(f"Deleted resume version {version_id}")
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to delete resume version {version_id}: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
             return False

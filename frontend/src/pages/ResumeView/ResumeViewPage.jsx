@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
@@ -25,6 +25,8 @@ export default function ResumeViewPage() {
   const [htmlContent, setHtmlContent] = useState('');
   const [htmlLoading, setHtmlLoading] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [iframeSrc, setIframeSrc] = useState('');
+  const currentBlobRef = useRef(null);
 
   useEffect(() => {
     if (id) {
@@ -46,6 +48,30 @@ export default function ResumeViewPage() {
       loadHtmlWithTemplate();
     }
   }, [resume, selectedVersion, viewMode]); // Removed selectedTemplate from dependencies to prevent double loading
+
+  // Create iframe blob URL when htmlContent changes
+  useEffect(() => {
+    if (htmlContent) {
+      // Clean up previous blob URL
+      if (currentBlobRef.current) {
+        URL.revokeObjectURL(currentBlobRef.current);
+      }
+
+      // Create new blob URL
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      setIframeSrc(url);
+      currentBlobRef.current = url;
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (currentBlobRef.current) {
+        URL.revokeObjectURL(currentBlobRef.current);
+        currentBlobRef.current = null;
+      }
+    };
+  }, [htmlContent]);
 
   const loadSavedTemplate = () => {
     const savedTemplate = localStorage.getItem(`${STORAGE_KEYS.THEME}_template`);
@@ -93,13 +119,14 @@ export default function ResumeViewPage() {
 
   const handleTemplateChange = async (templateId) => {
     if (templateId === selectedTemplate) return;
-    
+
     devLog('Template changing from', selectedTemplate, 'to:', templateId);
     setSelectedTemplate(templateId);
-    
-    // Clear current HTML content to show loading state
+
+    // Clear current HTML content and iframe src to show loading state
     setHtmlContent('');
-    
+    setIframeSrc('');
+
     // Force reload HTML with new template if in preview mode
     if (viewMode === 'preview' && resume) {
       await loadHtmlWithTemplate(templateId);
@@ -212,6 +239,74 @@ const handleDownloadPDF = async () => {
         setError('Failed to print resume');
       }
     }
+  };
+
+  const handleDeleteResume = async () => {
+    try {
+      setIsLoading(true);
+      await apiService.deleteResume(id);
+      setSuccessMessage('Resume deleted successfully!');
+      setTimeout(() => navigate('/resumes'), 1500);
+    } catch (err) {
+      setError(getDetailedErrorMessage(err));
+      setIsLoading(false);
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId) => {
+    try {
+      await apiService.delete(`/resumes/${id}/versions/${versionId}`);
+      setSuccessMessage('Version deleted successfully!');
+      await loadVersions();
+      
+      // If the deleted version was being viewed, reset to original
+      const remainingVersions = versions.filter(v => v.id !== versionId);
+      if (remainingVersions.length > 0) {
+        const originalVersion = remainingVersions.find(v => v.is_original) || remainingVersions[remainingVersions.length - 1];
+        const originalVersionData = await apiService.getResumeVersion(id, originalVersion.id);
+        setCustomizedContent(originalVersionData.markdown_content || '');
+      }
+    } catch (err) {
+      setError(getDetailedErrorMessage(err));
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  // Delete Confirmation Modal
+  const DeleteConfirmModal = ({ show, type, onConfirm, onCancel }) => {
+    if (!show) return null;
+
+    const isResume = type === 'resume';
+    const title = isResume ? 'Delete Resume' : 'Delete Version';
+    const message = isResume 
+      ? 'Are you sure you want to delete this entire resume? This action cannot be undone and will remove all versions.'
+      : 'Are you sure you want to delete this version? This action cannot be undone.';
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
+          <p className="text-sm text-gray-600 mb-6">{message}</p>
+          <div className="flex space-x-3 justify-end">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Loading state
@@ -410,11 +505,13 @@ const handleDownloadPDF = async () => {
                       <LoadingSpinner size="md" />
                       <span className="ml-2 text-gray-600">Loading preview...</span>
                     </div>
-                  ) : htmlContent ? (
-                    <div className={styles.previewDocument}>
-                      <div 
-                        className={styles.previewHtmlContent}
-                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                  ) : iframeSrc ? (
+                    <div className={styles.previewDocument} key={selectedTemplate}>
+                      <iframe
+                        src={iframeSrc}
+                        className={styles.previewIframe}
+                        title="Resume Preview"
+                        sandbox="allow-same-origin"
                       />
                     </div>
                   ) : (
@@ -464,6 +561,21 @@ const handleDownloadPDF = async () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {/* <DeleteConfirmModal
+        show={!!showDeleteConfirm}
+        type={showDeleteConfirm === 'resume' ? 'resume' : 'version'}
+        onConfirm={() => {
+          if (showDeleteConfirm === 'resume') {
+            handleDeleteResume();
+          } else {
+            handleDeleteVersion(showDeleteConfirm);
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(null)}
+      /> */}
+
     </div>
   );
 }
