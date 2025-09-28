@@ -5,7 +5,7 @@
 }
 
 .loadingContainer {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
 }
 
 .loadingContent {
@@ -13,7 +13,7 @@
 }
 
 .errorContainer {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
 }
 
 .errorAlert {
@@ -50,7 +50,7 @@
 }
 
 .headerContainer {
-  @apply max-w-7xl mx-auto;
+  @apply max-w-6xl mx-auto;
 }
 
 .headerContent {
@@ -104,7 +104,7 @@
 }
 
 .messagesContent {
-  @apply max-w-7xl mx-auto;
+  @apply max-w-6xl mx-auto;
 }
 
 .errorMessage {

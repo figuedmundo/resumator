@@ -21,8 +21,6 @@ export default function ResumeEditorPage() {
   const navigate = useNavigate();
   
   // Refs
-  const editorRef = useRef(null);
-  const previewRef = useRef(null);
   const fileInputRef = useRef(null);
   const codeMirrorRef = useRef(null);
   
@@ -35,13 +33,12 @@ export default function ResumeEditorPage() {
   const [saveStatus, setSaveStatus] = useState('saved'); // 'saved', 'saving', 'unsaved', 'error'
   const [error, setError] = useState(null);
   
-  // View options
-  const [viewMode, setViewMode] = useState('split'); // 'edit', 'preview', 'split'
+  // View options - default to 'edit', only 'edit' and 'preview' available
+  const [viewMode, setViewMode] = useState('edit');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(false);
   const [versions, setVersions] = useState([]);
-  const [isScrollSyncing, setIsScrollSyncing] = useState(true);
   
   // Auto-save
   const [saveTimeout, setSaveTimeout] = useState(null);
@@ -107,6 +104,12 @@ export default function ResumeEditorPage() {
         e.preventDefault();
         insertMarkdown('*italic text*');
       }
+      
+      // Ctrl+P or Cmd+P for preview toggle
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        setViewMode(prev => prev === 'edit' ? 'preview' : 'edit');
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -156,19 +159,19 @@ export default function ResumeEditorPage() {
       setIsSaving(true);
       
       if (id && id !== 'new') {
-        // Update existing VersionComparison
+        // Update existing resume
         await apiService.updateResume(id, {
           title,
           content,
         });
       } else {
-        // Create new VersionComparison
+        // Create new resume
         const response = await apiService.createResume({
           title,
           markdown: content,
         });
         setResume(response);
-        // Navigate to the new VersionComparison's edit URL
+        // Navigate to the new resume's edit URL
         navigate(`/resumes/${response.id}/edit`, { replace: true });
       }
       
@@ -311,31 +314,6 @@ export default function ResumeEditorPage() {
     }
   }, []);
 
-  // Scroll synchronization
-  const syncScroll = useCallback((sourceElement, targetElement) => {
-    if (!isScrollSyncing || !sourceElement || !targetElement) return;
-    
-    const sourceScrollPercent = sourceElement.scrollTop / (sourceElement.scrollHeight - sourceElement.clientHeight);
-    const targetScrollTop = sourceScrollPercent * (targetElement.scrollHeight - targetElement.clientHeight);
-    
-    targetElement.scrollTop = targetScrollTop;
-  }, [isScrollSyncing]);
-
-  const handleEditorScroll = useCallback((event) => {
-    if (viewMode === 'split' && previewRef.current) {
-      syncScroll(event.target, previewRef.current);
-    }
-  }, [viewMode, syncScroll]);
-
-  const handlePreviewScroll = useCallback((event) => {
-    if (viewMode === 'split' && editorRef.current) {
-      const editorElement = editorRef.current.querySelector('.cm-scroller');
-      if (editorElement) {
-        syncScroll(event.target, editorElement);
-      }
-    }
-  }, [viewMode, syncScroll]);
-
   const getSaveStatusColor = () => {
     switch (saveStatus) {
       case 'saved': return styles.saveStatusSaved;
@@ -462,7 +440,7 @@ Write a brief summary of your professional background, key skills, and career ob
           </div>
 
           <div className={styles.headerRight}>
-            {/* View Mode Toggle */}
+            {/* View Mode Toggle - Only Edit and Preview */}
             <div className={styles.viewModeToggle}>
               <button
                 onClick={() => setViewMode('edit')}
@@ -474,15 +452,6 @@ Write a brief summary of your professional background, key skills, and career ob
                 Edit
               </button>
               <button
-                onClick={() => setViewMode('split')}
-                className={clsx(
-                  styles.viewModeButton,
-                  viewMode === 'split' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
-                )}
-              >
-                Split
-              </button>
-              <button
                 onClick={() => setViewMode('preview')}
                 className={clsx(
                   styles.viewModeButton,
@@ -492,22 +461,6 @@ Write a brief summary of your professional background, key skills, and career ob
                 Preview
               </button>
             </div>
-
-            {/* Scroll Sync Toggle */}
-            {viewMode === 'split' && (
-              <button
-                onClick={() => setIsScrollSyncing(!isScrollSyncing)}
-                className={clsx(
-                  styles.actionButton,
-                  isScrollSyncing ? styles.actionButtonActive : ''
-                )}
-                title="Toggle scroll synchronization"
-              >
-                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-              </button>
-            )}
 
             {/* Versions Button */}
             {versions.length > 0 && (
@@ -639,8 +592,8 @@ Write a brief summary of your professional background, key skills, and career ob
         </div>
       )}
 
-      {/* Markdown Toolbar */}
-      {(viewMode === 'edit' || viewMode === 'split') && (
+      {/* Markdown Toolbar - Only show in edit mode */}
+      {viewMode === 'edit' && (
         <MarkdownToolbar onInsert={insertMarkdown} />
       )}
 
@@ -662,14 +615,11 @@ Write a brief summary of your professional background, key skills, and career ob
           </div>
         )}
 
-        {/* Main Editor Area */}
+        {/* Main Editor/Preview Area */}
         <div className={styles.editorArea}>
-          {(viewMode === 'edit' || viewMode === 'split') && (
-            <div className={clsx(
-              styles.editorPanel,
-              viewMode === 'split' ? styles.editorPanelSplit : styles.editorPanelFull
-            )}>
-              <div ref={editorRef} className={styles.editorWrapper}>
+          {viewMode === 'edit' && (
+            <div className={styles.editorPanelFull}>
+              <div className={styles.editorWrapper}>
                 <CodeMirror
                   ref={codeMirrorRef}
                   value={content}
@@ -694,9 +644,6 @@ Write a brief summary of your professional background, key skills, and career ob
                         fontFamily: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
                       },
                     }),
-                    EditorView.domEventHandlers({
-                      scroll: handleEditorScroll,
-                    }),
                   ]}
                   theme={isDarkMode ? oneDark : 'light'}
                   height="100%"
@@ -712,15 +659,8 @@ Write a brief summary of your professional background, key skills, and career ob
             </div>
           )}
 
-          {(viewMode === 'preview' || viewMode === 'split') && (
-            <div 
-              className={clsx(
-                styles.previewPanel,
-                viewMode === 'split' ? styles.previewPanelSplit : styles.previewPanelFull
-              )}
-              ref={previewRef}
-              onScroll={handlePreviewScroll}
-            >
+          {viewMode === 'preview' && (
+            <div className={styles.previewPanelFull}>
               <div className={styles.previewContent}>
                 <div className={styles.previewProse}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>

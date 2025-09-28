@@ -137,9 +137,23 @@
   --transition-normal: 0.2s ease-out;
   --transition-slow: 0.3s ease-out;
 
-  /* Layout */
-  --container-max-width: 80rem;  /* 1280px */
-  --header-height: 4rem;         /* 64px */
+  /* Layout Constraints */
+  --container-max-width: 75rem;        /* 1200px - main content max width */
+  --container-reading-width: 65rem;    /* 1040px - for reading-focused content */
+  --container-narrow-width: 48rem;     /* 768px - for forms and focused content */
+  --header-height: 4rem;               /* 64px */
+
+  /* Container Padding */
+  --container-padding-mobile: 1rem;    /* 16px */
+  --container-padding-tablet: 1.5rem;  /* 24px */
+  --container-padding-desktop: 2rem;   /* 32px */
+
+  /* Responsive Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 /* Dark mode overrides */

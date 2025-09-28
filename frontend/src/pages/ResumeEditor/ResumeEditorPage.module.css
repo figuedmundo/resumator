@@ -1,11 +1,11 @@
-/* ResumeEditorPage Component */
+/* ResumeEditorPage Component - Refactored without split view */
 
 .pageContainer {
-  @apply flex flex-col h-screen;
+  @apply flex flex-col h-screen bg-gray-50;
 }
 
 .loadingContainer {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
 }
 
 .loadingContent {
@@ -14,15 +14,15 @@
 
 /* Header Section */
 .header {
-  @apply bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0;
+  @apply bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0 shadow-sm;
 }
 
 .headerContent {
-  @apply max-w-7xl mx-auto flex items-center justify-between;
+  @apply max-w-6xl mx-auto flex items-center justify-between;
 }
 
 .headerLeft {
-  @apply flex items-center space-x-4;
+  @apply flex items-center space-x-4 min-w-0;
 }
 
 .backButton {
@@ -30,19 +30,20 @@
 }
 
 .backIcon {
-  @apply w-5 h-5 mr-2;
+  @apply w-5 h-5 mr-2 flex-shrink-0;
 }
 
 .titleSection {
-  @apply flex items-center;
+  @apply flex items-center min-w-0;
 }
 
 .titleInput {
-  @apply text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-2 py-1;
+  @apply text-lg sm:text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-2 py-1 min-w-0 truncate;
+  max-width: 300px;
 }
 
 .saveStatus {
-  @apply ml-3 text-sm;
+  @apply ml-3 text-sm flex-shrink-0 hidden sm:inline;
 }
 
 .saveStatusSaved {
@@ -62,16 +63,16 @@
 }
 
 .headerRight {
-  @apply flex items-center space-x-2;
+  @apply flex items-center space-x-1 sm:space-x-2 flex-shrink-0;
 }
 
-/* View Mode Toggle */
+/* View Mode Toggle - Improved for mobile */
 .viewModeToggle {
   @apply flex items-center bg-gray-100 rounded-lg p-1;
 }
 
 .viewModeButton {
-  @apply px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200;
+  @apply px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200;
 }
 
 .viewModeButtonActive {
@@ -82,9 +83,9 @@
   @apply text-gray-600 hover:text-gray-900;
 }
 
-/* Action Buttons */
+/* Action Buttons - Improved for mobile */
 .actionButton {
-  @apply p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200;
+  @apply p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 rounded-lg hover:bg-gray-100;
 }
 
 .actionButtonActive {
@@ -100,7 +101,7 @@
 }
 
 .saveButton {
-  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200;
+  @apply inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200;
 }
 
 .saveButtonIcon {
@@ -109,11 +110,11 @@
 
 /* Upload Modal */
 .uploadModal {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }
 
 .uploadModalContent {
-  @apply bg-white rounded-lg p-6 m-4 max-w-md w-full;
+  @apply bg-white rounded-lg p-4 sm:p-6 w-full max-w-md;
 }
 
 .uploadModalHeader {
@@ -125,7 +126,7 @@
 }
 
 .uploadModalClose {
-  @apply text-gray-400 hover:text-gray-600 transition-colors duration-200;
+  @apply text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100;
 }
 
 .uploadModalCloseIcon {
@@ -138,89 +139,122 @@
 }
 
 .errorContent {
-  @apply max-w-7xl mx-auto;
+  @apply max-w-6xl mx-auto;
 }
 
 .errorAlert {
-  @apply bg-red-50 border border-red-200 rounded-md p-3 flex items-center;
+  @apply bg-red-50 border border-red-200 rounded-md p-3 flex items-start sm:items-center;
 }
 
 .errorIcon {
-  @apply h-5 w-5 text-red-400 mr-3;
+  @apply h-5 w-5 text-red-400 mr-3 flex-shrink-0 mt-0.5 sm:mt-0;
 }
 
 .errorText {
-  @apply text-sm text-red-800;
+  @apply text-sm text-red-800 flex-1;
 }
 
 .errorClose {
-  @apply ml-auto text-red-600 hover:text-red-800;
+  @apply ml-auto text-red-600 hover:text-red-800 p-1 rounded-lg hover:bg-red-100 flex-shrink-0;
 }
 
 .errorCloseIcon {
   @apply w-4 h-4;
 }
 
-/* Main Content Area */
+/* Main Content Area - Simplified for single view */
 .mainContent {
   @apply flex-1 flex overflow-hidden max-w-full h-full;
 }
 
 /* Version Sidebar */
 .versionSidebar {
-  @apply w-80 border-r border-gray-200 flex-shrink-0;
+  @apply w-80 border-r border-gray-200 flex-shrink-0 bg-white;
 }
 
-/* Editor Area */
+/* Editor Area - Simplified without split view */
 .editorArea {
-  @apply flex-1 flex max-w-7xl mx-auto w-full h-full;
+  @apply flex-1 flex max-w-6xl mx-auto w-full h-full bg-white;
 }
 
-.editorPanel {
-  @apply border-r border-gray-200 overflow-auto h-full;
-}
-
-.editorPanelSplit {
-  @apply w-1/2;
-}
-
+/* Editor Panel - Only full width now */
 .editorPanelFull {
-  @apply w-full;
+  @apply w-full h-full overflow-hidden;
 }
 
 .editorWrapper {
   @apply h-full;
 }
 
-/* Preview Panel */
-.previewPanel {
-  @apply overflow-auto bg-white h-full;
-}
-
-.previewPanelSplit {
-  @apply w-1/2;
-}
-
+/* Preview Panel - Only full width now */
 .previewPanelFull {
-  @apply w-full;
+  @apply w-full h-full overflow-auto bg-white;
 }
 
 .previewContent {
-  @apply max-w-4xl mx-auto p-8;
+  @apply max-w-4xl mx-auto p-4 sm:p-6 lg:p-8;
 }
 
 .previewProse {
-  @apply prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700;
+  @apply prose prose-sm sm:prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700 prose-a:text-blue-600 prose-code:text-pink-600 prose-pre:bg-gray-100;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  .pageContainer {
+    @apply bg-white;
+  }
+  
+  .header {
+    @apply px-2 py-2;
+  }
+  
+  .headerContent {
+    @apply flex-col space-y-2;
+  }
+  
+  .headerLeft {
+    @apply w-full justify-between;
+  }
+  
+  .headerRight {
+    @apply w-full justify-center;
+  }
+  
+  .titleInput {
+    @apply text-base;
+    max-width: 200px;
+  }
+  
+  .viewModeToggle {
+    @apply w-full justify-center;
+  }
+  
+  .viewModeButton {
+    @apply flex-1 text-center;
+  }
+  
+  .previewContent {
+    @apply p-3;
+  }
+  
+  .previewProse {
+    @apply prose-sm;
+  }
+  
+  .versionSidebar {
+    @apply fixed inset-y-0 left-0 z-40 w-full sm:w-80;
+  }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .header {
-    @apply bg-gray-800 border-gray-700;
+  .pageContainer {
+    @apply bg-gray-900;
   }
 
-  .headerContent {
-    /* Inherits from parent */
+  .header {
+    @apply bg-gray-800 border-gray-700;
   }
 
   .backButton {
@@ -244,7 +278,7 @@
   }
 
   .actionButton {
-    @apply text-gray-300 hover:text-white;
+    @apply text-gray-300 hover:text-white hover:bg-gray-700;
   }
 
   .actionButtonActive {
@@ -260,14 +294,14 @@
   }
 
   .uploadModalClose {
-    @apply text-gray-400 hover:text-gray-200;
+    @apply text-gray-400 hover:text-gray-200 hover:bg-gray-700;
   }
 
-  .editorPanel {
-    @apply border-gray-700;
+  .editorArea {
+    @apply bg-gray-800;
   }
 
-  .previewPanel {
+  .previewPanelFull {
     @apply bg-gray-800;
   }
 
@@ -276,6 +310,53 @@
   }
 
   .versionSidebar {
-    @apply border-gray-700;
+    @apply border-gray-700 bg-gray-800;
+  }
+}
+
+/* Focus states for accessibility */
+.viewModeButton:focus,
+.actionButton:focus,
+.backButton:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Smooth transitions */
+.viewModeButton,
+.actionButton,
+.backButton {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Improved CodeMirror integration */
+.editorWrapper :global(.cm-editor) {
+  @apply h-full;
+}
+
+.editorWrapper :global(.cm-scroller) {
+  @apply font-mono text-sm leading-relaxed;
+}
+
+.editorWrapper :global(.cm-content) {
+  @apply p-4 sm:p-6;
+}
+
+/* Print styles for preview mode */
+@media print {
+  .header,
+  .errorContainer {
+    @apply hidden;
+  }
+  
+  .mainContent {
+    @apply h-auto;
+  }
+  
+  .previewContent {
+    @apply p-0 max-w-none;
+  }
+  
+  .previewProse {
+    @apply text-black;
   }
 }
