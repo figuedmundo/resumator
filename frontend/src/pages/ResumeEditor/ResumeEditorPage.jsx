@@ -12,6 +12,7 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import MarkdownToolbar from './components/MarkdownToolbar';
 import VersionComparison from '../../components/VersionComparison/VersionComparison';
 import FileUploadZone from './components/FileUploadZone';
+import VersionPicker from '../../components/Resumes/VersionPicker';
 import apiService from '../../services/api';
 import { AUTO_SAVE_DELAY, MAX_FILE_SIZE } from '../../utils/constants';
 import styles from './ResumeEditorPage.module.css';
@@ -39,6 +40,7 @@ export default function ResumeEditorPage() {
   const [showVersions, setShowVersions] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(false);
   const [versions, setVersions] = useState([]);
+  const [selectedVersionId, setSelectedVersionId] = useState(null);
   
   // Auto-save
   const [saveTimeout, setSaveTimeout] = useState(null);
@@ -58,6 +60,17 @@ export default function ResumeEditorPage() {
       setLastSavedTitle('');
     }
   }, [id]);
+
+  // Load selected version content
+  useEffect(() => {
+    if (selectedVersionId && versions.length > 0) {
+      const version = versions.find(v => v.id === selectedVersionId);
+      if (version) {
+        setContent(version.markdown_content || '');
+        setLastSavedContent(version.markdown_content || '');
+      }
+    }
+  }, [selectedVersionId]);
 
   // Auto-save when content changes
   useEffect(() => {
@@ -145,7 +158,13 @@ export default function ResumeEditorPage() {
   const loadVersions = async () => {
     try {
       const response = await apiService.getResumeVersions(id);
-      setVersions(response.versions || []);
+      const versionsList = response.versions || [];
+      setVersions(versionsList);
+      
+      // Set the latest version as selected by default
+      if (versionsList.length > 0 && !selectedVersionId) {
+        setSelectedVersionId(versionsList[0].id);
+      }
     } catch (err) {
       console.error('Failed to load versions:', err);
     }
@@ -159,11 +178,18 @@ export default function ResumeEditorPage() {
       setIsSaving(true);
       
       if (id && id !== 'new') {
-        // Update existing resume
-        await apiService.updateResume(id, {
-          title,
-          content,
-        });
+        // Update existing resume version
+        if (selectedVersionId) {
+          await apiService.put(`/resumes/${id}/versions/${selectedVersionId}`, {
+            markdown: content,
+          });
+        } else {
+          // Update resume metadata and content
+          await apiService.updateResume(id, {
+            title,
+            content,
+          });
+        }
       } else {
         // Create new resume
         const response = await apiService.createResume({
@@ -193,10 +219,17 @@ export default function ResumeEditorPage() {
       setError(null);
       
       if (id && id !== 'new') {
-        await apiService.updateResume(id, {
-          title,
-          content,
-        });
+        // Update the selected version
+        if (selectedVersionId) {
+          await apiService.put(`/resumes/${id}/versions/${selectedVersionId}`, {
+            markdown: content,
+          });
+        } else {
+          await apiService.updateResume(id, {
+            title,
+            content,
+          });
+        }
       } else {
         const response = await apiService.createResume({
           title,
@@ -461,6 +494,16 @@ Write a brief summary of your professional background, key skills, and career ob
                 Preview
               </button>
             </div>
+
+            {/* Version Picker */}
+            {versions.length > 0 && (
+              <VersionPicker
+                versions={versions}
+                selectedVersionId={selectedVersionId}
+                onVersionSelect={(version) => setSelectedVersionId(version.id)}
+                showCount={false}
+              />
+            )}
 
             {/* Versions Button */}
             {versions.length > 0 && (

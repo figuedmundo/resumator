@@ -21,7 +21,8 @@ class Resume(Base):
     # Relationships
     user = relationship("User", back_populates="resumes")
     versions = relationship("ResumeVersion", back_populates="resume", cascade="all, delete-orphan")
-    applications = relationship("Application", back_populates="resume")
+    # Applications should NOT cascade delete - they keep references to deleted resumes
+    applications = relationship("Application", back_populates="resume", passive_deletes=False)
     
     def __repr__(self):
         return f"<Resume(id={self.id}, title='{self.title}', user_id={self.user_id})>"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ConfirmDialog from '../Applications/components/ConfirmDialog';
 import apiService from '../../services/api';
 import styles from './ResumesPage.module.css';
 
@@ -9,6 +10,9 @@ export default function ResumesPage() {
   const [resumes, setResumes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     loadResumes();
@@ -24,6 +28,33 @@ export default function ResumesPage() {
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (resume) => {
+    setDeleteConfirm(resume);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+
+    try {
+      setIsDeleting(true);
+      await apiService.deleteResume(deleteConfirm.id);
+      
+      // Remove from local state
+      setResumes(resumes.filter(r => r.id !== deleteConfirm.id));
+      
+      // Show success message
+      setSuccessMessage(`Resume "${deleteConfirm.title}" deleted successfully`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+      
+      setDeleteConfirm(null);
+    } catch (err) {
+      setError(err.message || 'Failed to delete resume');
+      setDeleteConfirm(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -73,6 +104,21 @@ export default function ResumesPage() {
         </div>
       </div>
 
+      {/* Success Message */}
+      {successMessage && (
+        <div className={styles.successAlert}>
+          <div className={styles.successContent}>
+            <svg className={styles.successIcon} viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <div className={styles.successText}>
+              <p className={styles.successMessage}>{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message */}
       {error && (
         <div className={styles.errorAlert}>
           <div className={styles.errorContent}>
@@ -179,12 +225,35 @@ export default function ResumesPage() {
                   >
                     Customize
                   </Link>
+                  <button
+                    onClick={() => handleDeleteClick(resume)}
+                    className={clsx(
+                      styles.actionLink,
+                      styles.actionLinkDelete,
+                      "hover:text-red-500 transition-colors duration-200"
+                    )}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Resume"
+        message={`Are you sure you want to delete "${deleteConfirm?.title}"? This will delete the resume and all its versions. Applications using this resume will not be affected, but will reference the deleted resume versions.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

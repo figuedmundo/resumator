@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import TemplateSelector from './components/TemplateSelector';
+import VersionPicker from '../../components/Resumes/VersionPicker';
 import apiService from '../../services/api';
 import { formatDate, devLog, downloadBlob } from '@/utils/helpers';
 import { STORAGE_KEYS } from '@/utils/constants';
@@ -372,28 +373,21 @@ const handleDownloadPDF = async () => {
                   <p className={styles.updatedText}>
                     Updated {formatDate(resume?.updated_at, 'relative')}
                   </p>
-                  {versions.length > 1 && (
-                    <div className={styles.versionSelector}>
-                      <span className={styles.versionLabel}>Version:</span>
-                      <select
-                        value={selectedVersion?.id || ''}
-                        onChange={(e) => handleVersionChange(e.target.value)}
-                        className={styles.versionSelect}
-                      >
-                        {versions.map((version) => (
-                          <option key={version.id} value={version.id}>
-                            {version.version} {version.is_original && '(Original)'}
-                            {version.job_description && ' - Customized'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
             <div className={styles.headerRight}>
+              {/* Version Picker */}
+              {versions.length > 0 && (
+                <VersionPicker
+                  versions={versions}
+                  selectedVersionId={selectedVersion?.id}
+                  onVersionSelect={(version) => handleVersionChange(version.id)}
+                  showCount={true}
+                />
+              )}
+
               {/* View Mode Toggle - Removed PDF */}
               <div className={styles.viewModeToggle}>
                 <button

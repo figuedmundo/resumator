@@ -3,7 +3,7 @@
 import logging
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from app.core.database import get_db
 from app.models.resume import Resume, ResumeVersion
 from app.models.application import CoverLetter
@@ -315,11 +315,23 @@ class ResumeService:
     
     def delete_resume(self, user_id: int, resume_id: int) -> bool:
         """Delete a resume and all its versions."""
+        from app.models.application import Application
         db = self._get_db()
         
         try:
             # Verify ownership
             resume = self.get_resume(user_id, resume_id)
+            
+            # Check if any applications reference this resume
+            application_count = db.query(Application).filter(
+                Application.resume_id == resume_id
+            ).count()
+            
+            if application_count > 0:
+                raise ValidationError(
+                    f"Cannot delete resume. It is referenced by {application_count} application(s). "
+                    "Please delete or update those applications first."
+                )
             
             # Delete from database (cascade will handle versions)
             db.delete(resume)
@@ -331,12 +343,13 @@ class ResumeService:
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to delete resume {resume_id}: {e}")
-            if isinstance(e, ResumeNotFoundError):
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
                 raise
             return False
     
     def delete_resume_version(self, user_id: int, resume_id: int, version_id: int) -> bool:
         """Delete a specific resume version."""
+        from app.models.application import Application
         db = self._get_db()
         
         try:
@@ -365,6 +378,20 @@ class ResumeService:
             # Cannot delete original version if other versions exist
             if version.is_original and version_count > 1:
                 raise ValidationError("Cannot delete the original version while other versions exist")
+            
+            # Check if any applications reference this version
+            application_count = db.query(Application).filter(
+                or_(
+                    Application.resume_version_id == version_id,
+                    Application.customized_resume_version_id == version_id
+                )
+            ).count()
+            
+            if application_count > 0:
+                raise ValidationError(
+                    f"Cannot delete version. It is referenced by {application_count} application(s). "
+                    "Please delete or update those applications first."
+                )
             
             # Delete from database
             db.delete(version)

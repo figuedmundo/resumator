@@ -72,6 +72,27 @@
   @apply h-4 w-4 mr-2;
 }
 
+/* Success Alert */
+.successAlert {
+  @apply mt-6 bg-green-50 border border-green-200 rounded-md p-4;
+}
+
+.successContent {
+  @apply flex;
+}
+
+.successIcon {
+  @apply h-5 w-5 text-green-400;
+}
+
+.successText {
+  @apply ml-3;
+}
+
+.successMessage {
+  @apply text-sm text-green-800;
+}
+
 /* Error Alert */
 .errorAlert {
   @apply mt-6 bg-red-50 border border-red-200 rounded-md p-4;
@@ -213,6 +234,10 @@
   @apply text-green-600;
 }
 
+.actionLinkDelete {
+  @apply text-gray-600;
+}
+
 /* Dark mode support */
 .dark .title {
   @apply text-gray-100;
@@ -296,4 +321,20 @@
 
 .dark .actionLinkCustomize {
   @apply text-green-400;
+}
+
+.dark .actionLinkDelete {
+  @apply text-gray-400;
+}
+
+.dark .successAlert {
+  @apply bg-green-900 bg-opacity-20 border-green-400;
+}
+
+.dark .successIcon {
+  @apply text-green-400;
+}
+
+.dark .successMessage {
+  @apply text-green-300;
 }

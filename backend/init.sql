@@ -1,16 +1,12 @@
 -- PostgreSQL initialization script for Resumator
 -- This script creates the database structure that matches your SQLAlchemy models
 
--- Create database if it doesn't exist (this line is optional since docker-compose creates the DB)
--- CREATE DATABASE IF NOT EXISTS resumator;
-
--- Use the resumator database
--- \connect resumator;
-
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create users table
+-- ======================================
+-- Users table
+-- ======================================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -21,7 +17,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create resumes table
+-- ======================================
+-- Resumes table
+-- ======================================
 CREATE TABLE IF NOT EXISTS resumes (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -31,7 +29,9 @@ CREATE TABLE IF NOT EXISTS resumes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create resume_versions table
+-- ======================================
+-- Resume versions table
+-- ======================================
 CREATE TABLE IF NOT EXISTS resume_versions (
     id SERIAL PRIMARY KEY,
     resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS resume_versions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create cover_letters table
+-- ======================================
+-- Cover letters table
+-- ======================================
 CREATE TABLE IF NOT EXISTS cover_letters (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -52,12 +54,14 @@ CREATE TABLE IF NOT EXISTS cover_letters (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create applications table
+-- ======================================
+-- Applications table
+-- ======================================
 CREATE TABLE IF NOT EXISTS applications (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
-    resume_version_id INTEGER NOT NULL REFERENCES resume_versions(id) ON DELETE CASCADE,
+    resume_id INTEGER NOT NULL,
+    resume_version_id INTEGER NOT NULL,
     cover_letter_id INTEGER REFERENCES cover_letters(id) ON DELETE SET NULL,
     company VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
@@ -66,10 +70,52 @@ CREATE TABLE IF NOT EXISTS applications (
     applied_date DATE,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    -- migration additions
+    customized_resume_version_id INTEGER,
+    additional_instructions TEXT
 );
 
--- Create indexes for better performance
+-- ======================================
+-- Constraints & relationships (final state after migrations)
+-- ======================================
+-- Resume references
+ALTER TABLE applications
+  ADD CONSTRAINT applications_resume_id_fkey
+  FOREIGN KEY (resume_id)
+  REFERENCES resumes(id)
+  ON DELETE RESTRICT;
+
+-- Resume version references
+ALTER TABLE applications
+  ADD CONSTRAINT applications_resume_version_id_fkey
+  FOREIGN KEY (resume_version_id)
+  REFERENCES resume_versions(id)
+  ON DELETE RESTRICT;
+
+-- Customized resume version references
+ALTER TABLE applications
+  ADD CONSTRAINT applications_customized_resume_version_id_fkey
+  FOREIGN KEY (customized_resume_version_id)
+  REFERENCES resume_versions(id)
+  ON DELETE SET NULL;
+
+-- Comments for documentation
+COMMENT ON COLUMN applications.customized_resume_version_id IS 'Links to a company-specific customized resume version';
+COMMENT ON COLUMN applications.additional_instructions IS 'Additional instructions for resume customization';
+
+COMMENT ON CONSTRAINT applications_resume_id_fkey ON applications IS 
+'RESTRICT prevents resume deletion if applications reference it';
+
+COMMENT ON CONSTRAINT applications_resume_version_id_fkey ON applications IS 
+'RESTRICT prevents version deletion if applications reference it';
+
+COMMENT ON CONSTRAINT applications_customized_resume_version_id_fkey ON applications IS 
+'SET NULL allows customized version deletion without affecting application';
+
+-- ======================================
+-- Indexes
+-- ======================================
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_resumes_user_id ON resumes(user_id);
@@ -77,8 +123,12 @@ CREATE INDEX IF NOT EXISTS idx_resume_versions_resume_id ON resume_versions(resu
 CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_cover_letters_user_id ON cover_letters(user_id);
+CREATE INDEX IF NOT EXISTS idx_applications_customized_resume_version_id 
+ON applications(customized_resume_version_id);
 
--- Create a trigger to update the updated_at column
+-- ======================================
+-- Triggers
+-- ======================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -87,12 +137,24 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Apply the trigger to tables that have updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
-CREATE TRIGGER update_resumes_updated_at BEFORE UPDATE ON resumes FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
-CREATE TRIGGER update_applications_updated_at BEFORE UPDATE ON applications FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+CREATE TRIGGER update_users_updated_at 
+BEFORE UPDATE ON users 
+FOR EACH ROW 
+EXECUTE PROCEDURE update_updated_at_column();
 
--- Create a simple procedure to check database health
+CREATE TRIGGER update_resumes_updated_at 
+BEFORE UPDATE ON resumes 
+FOR EACH ROW 
+EXECUTE PROCEDURE update_updated_at_column();
+
+CREATE TRIGGER update_applications_updated_at 
+BEFORE UPDATE ON applications 
+FOR EACH ROW 
+EXECUTE PROCEDURE update_updated_at_column();
+
+-- ======================================
+-- Utility functions
+-- ======================================
 CREATE OR REPLACE FUNCTION check_db_health()
 RETURNS TEXT AS $$
 BEGIN
@@ -100,30 +162,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Optional: Create some application-specific enums
-CREATE TYPE application_status AS ENUM ('Applied', 'Interviewing', 'Rejected', 'Offer', 'Accepted', 'Declined');
-
--- You can modify the applications table to use the enum (optional)
--- ALTER TABLE applications ALTER COLUMN status TYPE application_status USING status::application_status;
-
--- Grant necessary permissions (adjust as needed)
--- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO resumator;
--- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO resumator;
-
-
--- Migration: Add customization fields to applications table
--- Date: 2024-01-XX
--- Description: Add fields to support application-centric workflow
-
--- Add new columns to applications table
-ALTER TABLE applications 
-ADD COLUMN customized_resume_version_id INTEGER REFERENCES resume_versions(id),
-ADD COLUMN additional_instructions TEXT;
-
--- Create index for the new foreign key
-CREATE INDEX IF NOT EXISTS idx_applications_customized_resume_version_id 
-ON applications(customized_resume_version_id);
-
--- Add comments for documentation
-COMMENT ON COLUMN applications.customized_resume_version_id IS 'Links to a company-specific customized resume version';
-COMMENT ON COLUMN applications.additional_instructions IS 'Additional instructions for resume customization';
+-- ======================================
+-- Enums
+-- ======================================
+CREATE TYPE application_status AS ENUM (
+    'Applied',
+    'Interviewing',
+    'Rejected',
+    'Offer',
+    'Accepted',
+    'Declined'
+);

@@ -1,0 +1,213 @@
+/**
+ * VersionPicker Component Styles
+ * Dropdown for selecting resume versions
+ */
+
+.container {
+  @apply relative inline-flex items-center space-x-2;
+}
+
+.label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.dropdown {
+  @apply relative;
+}
+
+.trigger {
+  @apply inline-flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 min-w-48;
+  transition: all 0.2s;
+}
+
+.trigger:hover {
+  @apply border-gray-400 bg-gray-50;
+}
+
+.trigger:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+.selectedText {
+  @apply flex items-center space-x-2 flex-1;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800;
+}
+
+.badgeCustom {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800;
+}
+
+.chevron {
+  @apply w-4 h-4 ml-2 text-gray-400;
+  transition: transform 0.2s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.backdrop {
+  @apply fixed inset-0 z-10;
+}
+
+.menu {
+  @apply absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20;
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuHeader {
+  @apply px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50;
+}
+
+.menuTitle {
+  @apply text-sm font-semibold text-gray-900;
+}
+
+.menuCount {
+  @apply text-xs text-gray-500;
+}
+
+.menuItems {
+  @apply overflow-y-auto;
+  max-height: 320px;
+}
+
+.menuItem {
+  @apply w-full px-4 py-3 text-left border-b border-gray-100 flex items-start justify-between;
+  transition: background-color 0.15s;
+}
+
+.menuItem:hover {
+  @apply bg-gray-50;
+}
+
+.menuItem:focus {
+  @apply outline-none bg-gray-50;
+}
+
+.menuItem:last-child {
+  @apply border-b-0;
+}
+
+.menuItemSelected {
+  @apply bg-blue-50;
+}
+
+.menuItemSelected:hover {
+  @apply bg-blue-100;
+}
+
+.menuItemContent {
+  @apply flex-1;
+}
+
+.menuItemHeader {
+  @apply flex items-center space-x-2 mb-1;
+}
+
+.menuItemVersion {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.menuItemBadge {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800;
+}
+
+.menuItemBadgeCustom {
+  @apply inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800;
+}
+
+.menuItemDesc {
+  @apply text-xs text-gray-500 mb-1 line-clamp-2;
+}
+
+.menuItemDate {
+  @apply text-xs text-gray-400;
+}
+
+.checkIcon {
+  @apply w-5 h-5 text-blue-600 flex-shrink-0 ml-2;
+}
+
+/* Dark mode */
+.dark .label {
+  @apply text-gray-300;
+}
+
+.dark .trigger {
+  @apply border-gray-600 bg-gray-800 text-gray-200;
+}
+
+.dark .trigger:hover {
+  @apply border-gray-500 bg-gray-700;
+}
+
+.dark .badge {
+  @apply bg-blue-900 text-blue-200;
+}
+
+.dark .badgeCustom {
+  @apply bg-green-900 text-green-200;
+}
+
+.dark .menu {
+  @apply bg-gray-800 ring-gray-700;
+}
+
+.dark .menuHeader {
+  @apply border-gray-700 bg-gray-800;
+}
+
+.dark .menuTitle {
+  @apply text-gray-100;
+}
+
+.dark .menuCount {
+  @apply text-gray-400;
+}
+
+.dark .menuItem {
+  @apply border-gray-700;
+}
+
+.dark .menuItem:hover {
+  @apply bg-gray-700;
+}
+
+.dark .menuItemSelected {
+  @apply bg-blue-900;
+}
+
+.dark .menuItemSelected:hover {
+  @apply bg-blue-800;
+}
+
+.dark .menuItemVersion {
+  @apply text-gray-100;
+}
+
+.dark .menuItemBadge {
+  @apply bg-blue-900 text-blue-200;
+}
+
+.dark .menuItemBadgeCustom {
+  @apply bg-green-900 text-green-200;
+}
+
+.dark .menuItemDesc {
+  @apply text-gray-400;
+}
+
+.dark .menuItemDate {
+  @apply text-gray-500;
+}
+
+.dark .checkIcon {
+  @apply text-blue-400;
+}
