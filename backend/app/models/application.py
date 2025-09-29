@@ -17,6 +17,10 @@ class Application(Base):
     resume_version_id = Column(Integer, ForeignKey("resume_versions.id"), nullable=False)
     cover_letter_id = Column(Integer, ForeignKey("cover_letters.id"), nullable=True)
     
+    # Enhanced application fields
+    customized_resume_version_id = Column(Integer, ForeignKey("resume_versions.id"), nullable=True)
+    additional_instructions = Column(Text)
+    
     # Job details
     company = Column(String, nullable=False)
     position = Column(String, nullable=False)
@@ -34,7 +38,15 @@ class Application(Base):
     # Relationships
     user = relationship("User", back_populates="applications")
     resume = relationship("Resume", back_populates="applications")
-    resume_version = relationship("ResumeVersion", back_populates="applications")
+    resume_version = relationship(
+        "ResumeVersion",
+        foreign_keys=[resume_version_id],
+        back_populates="applications"
+    )
+    customized_resume_version = relationship(
+        "ResumeVersion",
+        foreign_keys=[customized_resume_version_id]
+    )
     cover_letter = relationship("CoverLetter", back_populates="applications")
     
     def __repr__(self):

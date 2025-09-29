@@ -379,3 +379,133 @@ class ResumeService:
             if isinstance(e, (ResumeNotFoundError, ValidationError)):
                 raise
             return False
+    
+    def customize_resume_for_application(self, user_id: int, resume_id: int, 
+                                       original_version_id: int, job_description: str, 
+                                       company: str, additional_instructions: Optional[str] = None) -> ResumeVersion:
+        """Create a company-named customized resume version for an application."""
+        db = self._get_db()
+        
+        try:
+            # Get the resume and verify ownership
+            resume = self.get_resume(user_id, resume_id)
+            
+            # Get the original version
+            original_version = db.query(ResumeVersion).filter(
+                and_(
+                    ResumeVersion.id == original_version_id,
+                    ResumeVersion.resume_id == resume_id
+                )
+            ).first()
+            
+            if not original_version:
+                raise ValidationError("Original resume version not found")
+            
+            # Check if a customized version for this company already exists
+            company_suffix = f" - {company}"
+            existing_version = db.query(ResumeVersion).filter(
+                and_(
+                    ResumeVersion.resume_id == resume_id,
+                    ResumeVersion.version.like(f"%{company_suffix}")
+                )
+            ).first()
+            
+            if existing_version:
+                logger.info(f"Reusing existing version for company {company}: {existing_version.version}")
+                return existing_version
+            
+            # Prepare customization instructions
+            instructions = {}
+            if additional_instructions:
+                instructions['custom_instructions'] = additional_instructions
+            
+            # Generate customized resume using AI
+            customized_markdown = self.ai_client.rewrite_resume(
+                original_version.markdown_content, 
+                job_description, 
+                instructions
+            )
+            
+            # Generate new version name with company
+            version_count = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
+            ).count()
+            
+            base_version = f"v{version_count + 1}"
+            new_version_name = f"{base_version} - {company}"
+            
+            # Create new version record
+            new_version_record = ResumeVersion(
+                resume_id=resume_id,
+                version=new_version_name,
+                markdown_content=customized_markdown,
+                job_description=job_description,
+                is_original=False
+            )
+            
+            db.add(new_version_record)
+            db.commit()
+            db.refresh(new_version_record)
+            
+            # Save to storage
+            self._save_resume_to_storage(user_id, resume_id, new_version_name, customized_markdown)
+            
+            logger.info(f"Created company-specific resume version {new_version_name} for resume {resume_id}")
+            return new_version_record
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to customize resume for application: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to customize resume: {str(e)}")
+    
+    def get_resume_for_download(self, user_id: int, resume_id: int, version_id: int) -> Optional[ResumeVersion]:
+        """Get resume version for download in applications."""
+        try:
+            # Verify ownership
+            self.get_resume(user_id, resume_id)
+            
+            db = self._get_db()
+            version = db.query(ResumeVersion).filter(
+                and_(
+                    ResumeVersion.id == version_id,
+                    ResumeVersion.resume_id == resume_id
+                )
+            ).first()
+            
+            return version
+            
+        except Exception as e:
+            logger.error(f"Failed to get resume for download: {e}")
+            return None
+    
+    def delete_application_resume_version(self, user_id: int, version_id: int) -> bool:
+        """Delete a customized resume version when application is deleted."""
+        db = self._get_db()
+        
+        try:
+            # Get the version and check if it's a customized version
+            version = db.query(ResumeVersion).join(Resume).filter(
+                and_(
+                    ResumeVersion.id == version_id,
+                    Resume.user_id == user_id,
+                    ResumeVersion.is_original == False  # Only delete non-original versions
+                )
+            ).first()
+            
+            if not version:
+                logger.warning(f"Version {version_id} not found or is original - not deleting")
+                return False
+            
+            # Delete the version
+            db.delete(version)
+            db.commit()
+            
+            logger.info(f"Deleted application resume version {version_id}")
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to delete application resume version {version_id}: {e}")
+            return False

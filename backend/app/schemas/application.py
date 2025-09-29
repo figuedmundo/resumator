@@ -20,6 +20,8 @@ class ApplicationCreate(ApplicationBase):
     resume_id: int
     resume_version_id: int
     cover_letter_id: Optional[int] = None
+    additional_instructions: Optional[str] = None
+    customize_resume: bool = False
 
 
 class ApplicationUpdate(BaseModel):
@@ -30,6 +32,7 @@ class ApplicationUpdate(BaseModel):
     status: Optional[str] = None
     applied_date: Optional[date] = None
     notes: Optional[str] = None
+    additional_instructions: Optional[str] = None
 
 
 class ApplicationResponse(ApplicationBase):
@@ -39,6 +42,8 @@ class ApplicationResponse(ApplicationBase):
     resume_id: int
     resume_version_id: int
     cover_letter_id: Optional[int]
+    customized_resume_version_id: Optional[int]
+    additional_instructions: Optional[str]
     created_at: datetime
     updated_at: datetime
     
@@ -61,3 +66,11 @@ class ApplicationStats(BaseModel):
     interviewing: int
     rejected: int
     offers: int
+
+
+class EnhancedApplicationResponse(ApplicationResponse):
+    """Enhanced schema for application response with resume details."""
+    resume_title: Optional[str] = None
+    resume_version_name: Optional[str] = None
+    customized_version_name: Optional[str] = None
+    can_download_resume: bool = True

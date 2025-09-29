@@ -42,7 +42,11 @@ class ResumeVersion(Base):
     
     # Relationships
     resume = relationship("Resume", back_populates="versions")
-    applications = relationship("Application", back_populates="resume_version")
+    applications = relationship(
+        "Application",
+        foreign_keys="Application.resume_version_id",
+        back_populates="resume_version"
+    )
     
     def __repr__(self):
         return f"<ResumeVersion(id={self.id}, version='{self.version}', resume_id={self.resume_id})>"

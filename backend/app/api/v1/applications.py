@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.application import (
     ApplicationCreate, ApplicationUpdate, ApplicationResponse, 
-    ApplicationListResponse, ApplicationStats
+    ApplicationListResponse, ApplicationStats, EnhancedApplicationResponse
 )
 from app.services.application_service import ApplicationService
 from app.api.deps import get_current_active_user, get_application_service
@@ -25,21 +25,40 @@ async def create_application(
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Create a new job application."""
+    """Create a new job application with optional resume customization."""
     try:
-        application = application_service.create_application(
-            user_id=current_user.id,
-            company=application_create.company,
-            position=application_create.position,
-            jd=application_create.job_description or "",
-            resume_version_id=application_create.resume_version_id,
-            cover_letter_id=application_create.cover_letter_id,
-            meta={
-                'notes': application_create.notes,
-                'applied_date': application_create.applied_date,
-                'status': application_create.status
-            }
-        )
+        if hasattr(application_create, 'customize_resume') and application_create.customize_resume:
+            application = application_service.create_application_with_customization(
+                user_id=current_user.id,
+                company=application_create.company,
+                position=application_create.position,
+                job_description=application_create.job_description or "",
+                resume_id=application_create.resume_id,
+                original_version_id=application_create.resume_version_id,
+                customize_resume=True,
+                additional_instructions=application_create.additional_instructions,
+                cover_letter_id=application_create.cover_letter_id,
+                meta={
+                    'notes': application_create.notes,
+                    'applied_date': application_create.applied_date,
+                    'status': application_create.status
+                }
+            )
+        else:
+            # Legacy creation without customization
+            application = application_service.create_application(
+                user_id=current_user.id,
+                company=application_create.company,
+                position=application_create.position,
+                jd=application_create.job_description or "",
+                resume_version_id=application_create.resume_version_id,
+                cover_letter_id=application_create.cover_letter_id,
+                meta={
+                    'notes': application_create.notes,
+                    'applied_date': application_create.applied_date,
+                    'status': application_create.status
+                }
+            )
         
         return ApplicationResponse.from_orm(application)
         
@@ -212,6 +231,34 @@ async def get_application(
         )
 
 
+@router.get("/{application_id}/enhanced", response_model=EnhancedApplicationResponse)
+async def get_enhanced_application(
+    application_id: int,
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Get a specific application with enhanced resume details."""
+    try:
+        enhanced_data = application_service.get_enhanced_application(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        return EnhancedApplicationResponse(**enhanced_data)
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to get enhanced application {application_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get enhanced application"
+        )
+
+
 @router.put("/{application_id}", response_model=ApplicationResponse)
 async def update_application(
     application_id: int,
@@ -300,7 +347,7 @@ async def delete_application(
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Delete an application."""
+    """Delete an application and cleanup associated customized resume versions."""
     try:
         success = application_service.delete_application(
             user_id=current_user.id,
@@ -320,6 +367,74 @@ async def delete_application(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete application"
+        )
+
+
+@router.get("/{application_id}/resume/download")
+async def download_application_resume(
+    application_id: int,
+    template: str = Query("modern", description="PDF template to use"),
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Download the resume used for a specific application as PDF."""
+    from app.services.resume_service import ResumeService
+    from app.services.pdf_service import pdf_service
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    try:
+        # Get the application
+        application = application_service.get_application(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        resume_service = ResumeService()
+        
+        # Determine which version to download (customized if available, otherwise original)
+        version_id = application.customized_resume_version_id or application.resume_version_id
+        
+        version = resume_service.get_resume_for_download(
+            user_id=current_user.id,
+            resume_id=application.resume_id,
+            version_id=version_id
+        )
+        
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume version not found"
+            )
+        
+        # Generate PDF
+        pdf_bytes = pdf_service.generate_resume_pdf(
+            version.markdown_content, template
+        )
+        
+        # Create filename
+        version_name = version.version.replace(" ", "_")
+        filename = f"resume_{application.company}_{version_name}_{template}.pdf"
+        
+        # Create streaming response
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to download resume for application {application_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to download resume"
         )
 
 

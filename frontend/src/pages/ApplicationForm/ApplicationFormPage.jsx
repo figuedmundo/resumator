@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import ApplicationForm from './components/ApplicationForm';
+import ApplicationWizard from './components/ApplicationWizard';
 import styles from './ApplicationFormPage.module.css';
 
 export default function ApplicationFormPage() {
@@ -15,14 +15,12 @@ export default function ApplicationFormPage() {
         <p className={styles.subtitle}>
           {isEdit 
             ? 'Update your job application details'
-            : 'Create a new job application to track your job search'
+            : 'Create a new job application with AI-powered resume customization'
           }
         </p>
       </div>
 
-      <div className={styles.formCard}>
-        <ApplicationForm applicationId={id} />
-      </div>
+      <ApplicationWizard applicationId={id} />
     </div>
   );
 }

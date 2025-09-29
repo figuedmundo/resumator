@@ -28,30 +28,36 @@ class ApplicationService:
             return self.db
         return next(get_db())
     
-    def create_application(
-        self, 
-        user_id: int, 
-        company: str, 
-        position: str, 
-        jd: str, 
-        resume_version_id: int, 
-        cover_letter_id: Optional[int] = None, 
+    def create_application_with_customization(
+        self,
+        user_id: int,
+        company: str,
+        position: str,
+        job_description: str,
+        resume_id: int,
+        original_version_id: int,
+        customize_resume: bool = False,
+        additional_instructions: Optional[str] = None,
+        cover_letter_id: Optional[int] = None,
         meta: Optional[Dict[str, Any]] = None
     ) -> Application:
-        """Create an application record."""
+        """Create an application record with optional AI customization."""
+        from app.services.resume_service import ResumeService
+        
         db = self._get_db()
+        resume_service = ResumeService(db)
         
         try:
-            # Validate resume version belongs to user
-            resume_version = db.query(ResumeVersion).join(Resume).filter(
+            # Validate original resume version belongs to user
+            original_version = db.query(ResumeVersion).join(Resume).filter(
                 and_(
-                    ResumeVersion.id == resume_version_id,
+                    ResumeVersion.id == original_version_id,
                     Resume.user_id == user_id
                 )
             ).first()
             
-            if not resume_version:
-                raise ValidationError("Invalid resume version")
+            if not original_version:
+                raise ValidationError("Invalid original resume version")
             
             # Validate cover letter belongs to user (if provided)
             if cover_letter_id:
@@ -65,16 +71,35 @@ class ApplicationService:
                 if not cover_letter:
                     raise ValidationError("Invalid cover letter")
             
+            # Determine which version to use
+            version_to_use = original_version
+            customized_version_id = None
+            
+            if customize_resume:
+                # Create customized version
+                customized_version = resume_service.customize_resume_for_application(
+                    user_id=user_id,
+                    resume_id=resume_id,
+                    original_version_id=original_version_id,
+                    job_description=job_description,
+                    company=company,
+                    additional_instructions=additional_instructions
+                )
+                version_to_use = customized_version
+                customized_version_id = customized_version.id
+            
             # Create application
             application = Application(
                 user_id=user_id,
-                resume_id=resume_version.resume_id,
-                resume_version_id=resume_version_id,
+                resume_id=resume_id,
+                resume_version_id=original_version_id,  # Always reference original
+                customized_resume_version_id=customized_version_id,  # Reference customized if created
                 cover_letter_id=cover_letter_id,
                 company=company,
                 position=position,
-                job_description=jd,
-                applied_date=meta.get('applied_date') if meta else None or date.today(),
+                job_description=job_description,
+                additional_instructions=additional_instructions,
+                applied_date=meta.get('applied_date') if meta else date.today(),
                 status=meta.get('status') if meta else "Applied",
                 notes=meta.get('notes', '') if meta else ''
             )
@@ -218,19 +243,51 @@ class ApplicationService:
                 raise
             raise ValidationError(f"Failed to update application: {str(e)}")
     
+    def create_application(
+        self, 
+        user_id: int, 
+        company: str, 
+        position: str, 
+        jd: str, 
+        resume_version_id: int, 
+        cover_letter_id: Optional[int] = None, 
+        meta: Optional[Dict[str, Any]] = None
+    ) -> Application:
+        """Create an application record (legacy method for backward compatibility)."""
+        return self.create_application_with_customization(
+            user_id=user_id,
+            company=company,
+            position=position,
+            job_description=jd,
+            resume_id=0,  # Will be derived from version
+            original_version_id=resume_version_id,
+            customize_resume=False,
+            cover_letter_id=cover_letter_id,
+            meta=meta
+        )
+    
     def delete_application(self, user_id: int, application_id: int) -> bool:
-        """Delete an application."""
+        """Delete an application and cleanup associated customized resume versions."""
+        from app.services.resume_service import ResumeService
+        
         db = self._get_db()
+        resume_service = ResumeService(db)
         
         try:
             # Get and verify ownership
             application = self.get_application(user_id, application_id)
             
+            # Cleanup customized resume version if it exists
+            if application.customized_resume_version_id:
+                resume_service.delete_application_resume_version(
+                    user_id, application.customized_resume_version_id
+                )
+            
             # Delete application
             db.delete(application)
             db.commit()
             
-            logger.info(f"Deleted application {application_id}")
+            logger.info(f"Deleted application {application_id} and cleaned up resources")
             return True
             
         except Exception as e:
@@ -325,6 +382,42 @@ class ApplicationService:
         except Exception as e:
             logger.error(f"Failed to get recent applications: {e}")
             return []
+    
+    def get_enhanced_application(self, user_id: int, application_id: int) -> Dict[str, Any]:
+        """Get application with enhanced details including resume information."""
+        db = self._get_db()
+        
+        try:
+            application = self.get_application(user_id, application_id)
+            
+            # Get resume details
+            resume = db.query(Resume).filter(Resume.id == application.resume_id).first()
+            original_version = db.query(ResumeVersion).filter(
+                ResumeVersion.id == application.resume_version_id
+            ).first()
+            
+            customized_version = None
+            if application.customized_resume_version_id:
+                customized_version = db.query(ResumeVersion).filter(
+                    ResumeVersion.id == application.customized_resume_version_id
+                ).first()
+            
+            # Build enhanced response
+            result = {
+                **application.__dict__,
+                'resume_title': resume.title if resume else None,
+                'resume_version_name': original_version.version if original_version else None,
+                'customized_version_name': customized_version.version if customized_version else None,
+                'can_download_resume': True
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get enhanced application {application_id}: {e}")
+            if isinstance(e, ApplicationNotFoundError):
+                raise
+            raise ValidationError(f"Failed to retrieve enhanced application: {str(e)}")
     
     def get_applications_by_company(self, user_id: int, company: str) -> List[Application]:
         """Get all applications for a specific company."""
