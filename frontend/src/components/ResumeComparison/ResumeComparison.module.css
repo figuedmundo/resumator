@@ -1,0 +1,402 @@
+/* ResumeComparison.module.css */
+
+/* Container */
+.container {
+  @apply h-full flex flex-col bg-gray-50;
+}
+
+/* Control Bar */
+.controlBar {
+  @apply bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0;
+}
+
+.controlBarContent {
+  @apply max-w-7xl mx-auto;
+}
+
+.controls {
+  @apply flex items-center justify-between flex-wrap gap-3;
+}
+
+/* View Mode Selector */
+.viewModeSelector {
+  @apply flex items-center space-x-2;
+}
+
+.viewModeLabel {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.viewModeButtons {
+  @apply flex items-center bg-gray-100 rounded-lg p-1;
+}
+
+.viewModeButton {
+  @apply px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200;
+  @apply text-gray-600 hover:text-gray-900;
+}
+
+.viewModeButtonActive {
+  @apply bg-white text-gray-900 shadow-sm;
+}
+
+/* Statistics */
+.statistics {
+  @apply flex items-center space-x-4 text-sm text-gray-600;
+}
+
+.statItem {
+  @apply flex items-center space-x-1;
+}
+
+.statIcon {
+  @apply w-4 h-4;
+}
+
+.statItemHidden {
+  @apply hidden sm:flex items-center space-x-1;
+}
+
+/* Content Area */
+.contentArea {
+  @apply flex-1 overflow-hidden;
+}
+
+/* Toggle View */
+.toggleView {
+  @apply h-full flex flex-col;
+}
+
+.toggleBar {
+  @apply bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0;
+}
+
+.toggleBarContent {
+  @apply max-w-4xl mx-auto;
+}
+
+.versionButtons {
+  @apply flex items-stretch space-x-3;
+}
+
+.versionButton {
+  @apply flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left;
+  @apply border-gray-200 hover:border-gray-300 bg-white;
+}
+
+.versionButtonActiveOriginal {
+  @apply border-gray-900 bg-gray-50;
+}
+
+.versionButtonActiveCustomized {
+  @apply border-blue-600 bg-blue-50;
+}
+
+.versionButtonInner {
+  @apply flex items-center justify-between;
+}
+
+.versionButtonHeader {
+  @apply flex items-center space-x-2;
+}
+
+.versionButtonTitle {
+  @apply font-semibold text-gray-700;
+}
+
+.versionButtonTitleActive {
+  @apply text-gray-900;
+}
+
+.versionButtonTitleCustomized {
+  @apply text-blue-700;
+}
+
+.versionButtonTitleActiveCustomized {
+  @apply text-blue-900;
+}
+
+.versionButtonSubtitle {
+  @apply text-sm text-gray-500 mt-0.5;
+}
+
+.versionButtonSubtitleCustomized {
+  @apply text-sm text-blue-600 mt-0.5;
+}
+
+.viewingBadge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-900 text-white;
+}
+
+.viewingBadgeCustomized {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white;
+}
+
+.checkIcon {
+  @apply w-5 h-5 transition-opacity opacity-0;
+}
+
+.checkIconCustomized {
+  @apply w-5 h-5 text-blue-600 transition-opacity opacity-0;
+}
+
+.checkIconVisible {
+  @apply opacity-100;
+}
+
+/* Toggle Content */
+.toggleContent {
+  @apply flex-1 overflow-auto bg-gray-50 p-4;
+}
+
+.toggleContentInner {
+  @apply max-w-4xl mx-auto;
+}
+
+.resumeCard {
+  @apply bg-white rounded-lg shadow-sm border transition-all duration-300;
+}
+
+.resumeCardOriginal {
+  @apply border-gray-300;
+}
+
+.resumeCardCustomized {
+  @apply border-blue-300;
+}
+
+.resumeHeader {
+  @apply px-6 py-4 border-b transition-colors duration-300;
+}
+
+.resumeHeaderOriginal {
+  @apply bg-gray-50 border-gray-200;
+}
+
+.resumeHeaderCustomized {
+  @apply bg-blue-50 border-blue-200;
+}
+
+.resumeHeaderContent {
+  @apply flex items-start justify-between;
+}
+
+.resumeTitle {
+  @apply text-lg font-semibold;
+}
+
+.resumeTitleOriginal {
+  @apply text-gray-900;
+}
+
+.resumeTitleCustomized {
+  @apply text-blue-900;
+}
+
+.jobDescriptionHint {
+  @apply text-sm text-blue-700 mt-1;
+}
+
+.switchButton {
+  @apply flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors;
+}
+
+.switchButtonOriginal {
+  @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+}
+
+.switchButtonCustomized {
+  @apply bg-white text-blue-700 border border-blue-300 hover:bg-blue-50;
+}
+
+.switchIcon {
+  @apply w-4 h-4;
+}
+
+.resumeContent {
+  @apply p-6 sm:p-8;
+}
+
+.prose {
+  @apply max-w-none;
+}
+
+/* Prose styles - manually defined to avoid circular dependency */
+.prose :global(h1),
+.prose :global(h2),
+.prose :global(h3),
+.prose :global(h4),
+.prose :global(h5),
+.prose :global(h6) {
+  @apply text-gray-900 font-bold mb-4 mt-6;
+}
+
+.prose :global(h1) {
+  @apply text-2xl sm:text-3xl;
+}
+
+.prose :global(h2) {
+  @apply text-xl sm:text-2xl;
+}
+
+.prose :global(h3) {
+  @apply text-lg sm:text-xl;
+}
+
+.prose :global(p) {
+  @apply text-gray-700 mb-4 leading-relaxed;
+}
+
+.prose :global(strong),
+.prose :global(b) {
+  @apply text-gray-900 font-semibold;
+}
+
+.prose :global(ul),
+.prose :global(ol) {
+  @apply text-gray-700 mb-4 pl-6;
+}
+
+.prose :global(li) {
+  @apply text-gray-700 mb-2;
+}
+
+.prose :global(ul li) {
+  @apply list-disc;
+}
+
+.prose :global(ol li) {
+  @apply list-decimal;
+}
+
+.prose :global(a) {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.prose :global(code) {
+  @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.prose :global(pre) {
+  @apply bg-gray-100 p-4 rounded overflow-x-auto mb-4;
+}
+
+.prose :global(blockquote) {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-4;
+}
+
+.prose :global(hr) {
+  @apply border-gray-300 my-6;
+}
+
+.prose :global(table) {
+  @apply w-full border-collapse mb-4;
+}
+
+.prose :global(th),
+.prose :global(td) {
+  @apply border border-gray-300 px-4 py-2;
+}
+
+.prose :global(th) {
+  @apply bg-gray-100 font-semibold;
+}
+
+.switchHint {
+  @apply mt-4 text-center;
+}
+
+.switchHintText {
+  @apply text-sm text-gray-500;
+}
+
+.switchHintDesktop {
+  @apply hidden sm:inline;
+}
+
+.switchHintMobile {
+  @apply sm:hidden;
+}
+
+/* Split View */
+.splitView {
+  @apply h-full overflow-auto bg-gray-50 p-4;
+}
+
+.splitViewContent {
+  @apply max-w-7xl mx-auto;
+}
+
+.splitViewGrid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4 h-full;
+}
+
+.splitCard {
+  @apply bg-white rounded-lg shadow-sm border border-gray-300 flex flex-col;
+  @apply min-h-[600px] lg:min-h-0;
+}
+
+.splitCardCustomized {
+  @apply bg-white rounded-lg shadow-sm border border-blue-300 flex flex-col;
+  @apply min-h-[600px] lg:min-h-0;
+}
+
+.splitHeaderOriginal {
+  @apply bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-200;
+  @apply flex-shrink-0 sticky top-0 z-10;
+}
+
+.splitHeaderCustomized {
+  @apply bg-blue-50 px-4 sm:px-6 py-4 border-b border-blue-200;
+  @apply flex-shrink-0 sticky top-0 z-10;
+}
+
+.splitHeaderContent {
+  @apply flex items-center justify-between;
+}
+
+.splitTitleOriginal {
+  @apply text-base sm:text-lg font-semibold text-gray-900;
+}
+
+.splitTitleCustomized {
+  @apply text-base sm:text-lg font-semibold text-blue-900;
+}
+
+.splitSubtitleOriginal {
+  @apply text-xs sm:text-sm text-gray-600 mt-0.5;
+}
+
+.splitSubtitleCustomized {
+  @apply text-xs sm:text-sm text-blue-700 mt-0.5;
+}
+
+.splitJobHint {
+  @apply text-xs text-blue-600 mt-1 line-clamp-1;
+}
+
+.splitBadgeOriginal {
+  @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium;
+  @apply bg-gray-200 text-gray-700;
+}
+
+.splitBadgeCustomized {
+  @apply inline-flex items-center px-2 py-1 rounded text-xs font-medium;
+  @apply bg-blue-600 text-white;
+}
+
+.splitContent {
+  @apply p-4 sm:p-6 overflow-auto flex-1;
+}
+
+.mobileHint {
+  @apply mt-4 lg:hidden;
+}
+
+.mobileHintContent {
+  @apply bg-blue-50 border border-blue-200 rounded-lg p-3;
+}
+
+.mobileHintText {
+  @apply text-sm text-blue-800;
+}

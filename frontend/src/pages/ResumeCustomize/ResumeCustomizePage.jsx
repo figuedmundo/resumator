@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ResumeCustomizer from './components/ResumeCustomizer';
 import VersionComparison from '../../components/VersionComparison/VersionComparison';
+import ResumeComparison from '../../components/ResumeComparison/ResumeComparison';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import apiService from '../../services/api';
 import { formatDate } from '@/utils/helpers';
@@ -394,7 +395,7 @@ export default function ResumeCustomizePage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex h-full space-x-6 py-6">
             {/* Version History Sidebar */}
             {showVersions && (
@@ -424,42 +425,11 @@ export default function ResumeCustomizePage() {
               )}
 
               {viewMode === 'compare' && hasChanges && (
-                <div className="h-full flex space-x-6">
-                  {/* Original */}
-                  <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                      <h3 className="text-lg font-medium text-gray-900">Original Resume</h3>
-                      <p className="text-sm text-gray-600">Your original resume content</p>
-                    </div>
-                    <div className="p-6 overflow-auto h-full">
-                      <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {originalContent}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Customized */}
-                  <div className="flex-1 bg-white border border-blue-200 rounded-lg overflow-hidden">
-                    <div className="bg-blue-50 px-6 py-4 border-b border-blue-200">
-                      <h3 className="text-lg font-medium text-blue-900">Customized Resume</h3>
-                      <p className="text-sm text-blue-700">AI-tailored for the job description</p>
-                      {currentJobDescription && (
-                        <p className="text-xs text-blue-600 mt-1">
-                          Based on {currentJobDescription.substring(0, 100)}...
-                        </p>
-                      )}
-                    </div>
-                    <div className="p-6 overflow-auto h-full">
-                      <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {customizedContent}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ResumeComparison
+                  originalContent={originalContent}
+                  customizedContent={customizedContent}
+                  jobDescription={currentJobDescription}
+                />
               )}
 
               {viewMode === 'preview' && hasChanges && (
