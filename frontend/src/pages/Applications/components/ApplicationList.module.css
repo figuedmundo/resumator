@@ -155,27 +155,28 @@
 }
 
 .applicationContent {
-  @apply flex items-start justify-between;
+  @apply flex items-center justify-between gap-6;
 }
 
-.applicationMain {
-  @apply flex-1;
+/* Three column layout for better space distribution */
+.applicationLeft {
+  @apply flex-1 min-w-0;
 }
 
-.applicationHeader {
-  @apply flex items-start justify-between;
+.applicationCenter {
+  @apply flex-shrink-0 w-48;
 }
 
-.applicationInfo {
-  @apply flex-1;
+.applicationRight {
+  @apply flex-shrink-0;
 }
 
 .applicationTitleRow {
-  @apply flex items-center space-x-3;
+  @apply flex items-center space-x-3 mb-2;
 }
 
 .applicationTitle {
-  @apply text-lg font-medium text-gray-900;
+  @apply text-lg font-medium text-gray-900 truncate;
 }
 
 .applicationMeta {
@@ -194,20 +195,43 @@
   @apply mt-2 text-sm text-gray-600 line-clamp-2;
 }
 
-.applicationActions {
-  @apply ml-4 flex items-center space-x-2;
+/* Status control styling */
+.statusControl {
+  @apply flex flex-col items-start space-y-2;
 }
 
-.statusSelect {
-  @apply text-sm border-gray-300 rounded-md;
+.statusLabel {
+  @apply text-xs font-medium text-gray-500 uppercase tracking-wide;
+}
+
+.statusSelectInline {
+  @apply w-full text-sm border-gray-300 rounded-md;
 }
 
 .actionButtons {
-  @apply flex items-center space-x-1;
+  @apply flex items-center space-x-2;
 }
 
 .actionButton {
-  @apply p-1 text-gray-400;
+  @apply p-2 text-gray-400 rounded-md border border-transparent transition-all;
+}
+
+.actionButtonText {
+  @apply ml-1.5 text-xs font-medium hidden;
+}
+
+@media (min-width: 1024px) {
+  .actionButtonText {
+    @apply inline;
+  }
+}
+
+.actionButtonDownload {
+  @apply border-gray-200;
+}
+
+.actionButtonDownload:hover {
+  @apply bg-green-50 border-green-200;
 }
 
 .actionButtonView {
@@ -417,6 +441,22 @@
 
 .dark .actionButton {
   @apply text-gray-500;
+}
+
+.dark .actionButtonDownload {
+  @apply border-gray-700;
+}
+
+.dark .actionButtonDownload:hover {
+  @apply bg-green-900 bg-opacity-20 border-green-700;
+}
+
+.dark .statusLabel {
+  @apply text-gray-500;
+}
+
+.dark .statusSelectInline {
+  @apply bg-gray-700 border-gray-600 text-gray-100;
 }
 
 .dark .emptyStateIcon {

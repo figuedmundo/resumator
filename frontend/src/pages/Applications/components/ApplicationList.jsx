@@ -9,7 +9,8 @@ import {
   TrashIcon,
   BuildingOfficeIcon,
   CalendarIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import LoadingSpinner from '../../../components/LoadingSpinner/LoadingSpinner';
@@ -186,6 +187,32 @@ const ApplicationList = () => {
     setCurrentPage(page);
   };
 
+  const handleDownloadResume = async (applicationId, company) => {
+    try {
+      const response = await apiService.api.get(
+        `/api/v1/applications/${applicationId}/resume/download`,
+        {
+          params: { template: 'modern' },
+          responseType: 'blob'
+        }
+      );
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `resume_${company.replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download resume:', error);
+      setError('Failed to download resume');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   if (loading && applications.length === 0) {
     return (
       <div className={styles.loading}>
@@ -332,88 +359,102 @@ const ApplicationList = () => {
                   className={clsx(styles.applicationItem, "hover:bg-gray-50")}
                 >
                   <div className={styles.applicationContent}>
-                    <div className={styles.applicationMain}>
-                      <div className={styles.applicationHeader}>
-                        <div className={styles.applicationInfo}>
-                          <div className={styles.applicationTitleRow}>
-                            <h3 className={styles.applicationTitle}>
-                              {application.position}
-                            </h3>
-                            <StatusBadge status={application.status} />
-                          </div>
-                          
-                          <div className={styles.applicationMeta}>
-                            <div className={styles.metaItem}>
-                              <BuildingOfficeIcon className={styles.metaIcon} />
-                              {application.company}
-                            </div>
-                            <div className={styles.metaItem}>
-                              <CalendarIcon className={styles.metaIcon} />
-                              {formatDate(application.applied_date)}
-                            </div>
-                          </div>
+                    {/* Left Section - Main Info */}
+                    <div className={styles.applicationLeft}>
+                      <div className={styles.applicationTitleRow}>
+                        <h3 className={styles.applicationTitle}>
+                          {application.position}
+                        </h3>
+                        <StatusBadge status={application.status} />
+                      </div>
+                      
+                      <div className={styles.applicationMeta}>
+                        <div className={styles.metaItem}>
+                          <BuildingOfficeIcon className={styles.metaIcon} />
+                          {application.company}
+                        </div>
+                        <div className={styles.metaItem}>
+                          <CalendarIcon className={styles.metaIcon} />
+                          {formatDate(application.applied_date)}
+                        </div>
+                      </div>
 
-                          {application.notes && (
-                            <p className={styles.applicationNotes}>
-                              {application.notes}
-                            </p>
+                      {application.notes && (
+                        <p className={styles.applicationNotes}>
+                          {application.notes}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Center Section - Status Control */}
+                    <div className={styles.applicationCenter}>
+                      <div className={styles.statusControl}>
+                        <span className={styles.statusLabel}>Status</span>
+                        <StatusSelect
+                          value={application.status}
+                          onChange={(newStatus) => handleStatusChange(application.id, newStatus)}
+                          disabled={operationLoading}
+                          className={clsx(
+                            styles.statusSelectInline,
+                            "focus:ring-blue-500 focus:border-blue-500"
                           )}
-                        </div>
+                        />
+                      </div>
+                    </div>
 
-                        <div className={styles.applicationActions}>
-                          {/* Status Dropdown */}
-                          <StatusSelect
-                            value={application.status}
-                            onChange={(newStatus) => handleStatusChange(application.id, newStatus)}
-                            disabled={operationLoading}
-                            className={clsx(
-                              styles.statusSelect,
-                              "focus:ring-blue-500 focus:border-blue-500"
-                            )}
-                          />
-
-                          {/* Actions */}
-                          <div className={styles.actionButtons}>
-                            <button
-                              onClick={() => navigate(`/applications/${application.id}`)}
-                              className={clsx(
-                                styles.actionButton,
-                                styles.actionButtonView,
-                                "hover:text-gray-600"
-                              )}
-                              title="View details"
-                            >
-                              <EyeIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => navigate(`/applications/${application.id}/edit`)}
-                              className={clsx(
-                                styles.actionButton,
-                                styles.actionButtonEdit,
-                                "hover:text-blue-600"
-                              )}
-                              title="Edit application"
-                            >
-                              <PencilIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => confirmDeleteApplication(application)}
-                              disabled={operationLoading}
-                              className={clsx(
-                                styles.actionButton,
-                                styles.actionButtonDelete,
-                                "hover:text-red-600 disabled:opacity-50"
-                              )}
-                              title="Delete application"
-                            >
-                              {operationLoading ? (
-                                <LoadingSpinner size="sm" />
-                              ) : (
-                                <TrashIcon className="h-4 w-4" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
+                    {/* Right Section - Actions */}
+                    <div className={styles.applicationRight}>
+                      <div className={styles.actionButtons}>
+                        <button
+                          onClick={() => handleDownloadResume(application.id, application.company)}
+                          className={clsx(
+                            styles.actionButton,
+                            styles.actionButtonDownload,
+                            "hover:text-green-600"
+                          )}
+                          title="Download resume"
+                        >
+                          <ArrowDownTrayIcon className="h-4 w-4" />
+                          <span className={styles.actionButtonText}>Resume</span>
+                        </button>
+                        <button
+                          onClick={() => navigate(`/applications/${application.id}`)}
+                          className={clsx(
+                            styles.actionButton,
+                            styles.actionButtonView,
+                            "hover:text-gray-600"
+                          )}
+                          title="View details"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/applications/${application.id}/edit`)}
+                          className={clsx(
+                            styles.actionButton,
+                            styles.actionButtonEdit,
+                            "hover:text-blue-600"
+                          )}
+                          title="Edit application"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteApplication(application)}
+                          disabled={operationLoading}
+                          className={clsx(
+                            styles.actionButton,
+                            styles.actionButtonDelete,
+                            "hover:text-red-600 disabled:opacity-50"
+                          )}
+                          title="Delete application"
+                        >
+                          {operationLoading ? (
+                            <LoadingSpinner size="sm" />
+                          ) : (
+                            <TrashIcon className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
