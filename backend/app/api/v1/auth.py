@@ -136,6 +136,7 @@ async def login(
 async def refresh_token(
     refresh_request: RefreshTokenRequest,
     request: Request,
+    db: Session = Depends(get_db),
     _: None = Depends(rate_limit_dependency)
 ):
     """Refresh access token using refresh token."""
@@ -143,7 +144,7 @@ async def refresh_token(
     
     try:
         # Refresh the access token
-        new_tokens = AuthService.refresh_access_token(refresh_request.refresh_token)
+        new_tokens = AuthService.refresh_access_token(refresh_request.refresh_token, db)
         
         if not new_tokens:
             audit_logger.log_sensitive_operation(

@@ -8,6 +8,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import redis
 import hashlib
+from sqlalchemy.orm import Session
 from app.config.settings import settings
 
 
@@ -345,19 +346,29 @@ class AuthService:
         }
     
     @staticmethod
-    def refresh_access_token(refresh_token: str) -> Optional[dict]:
+    def refresh_access_token(refresh_token: str, db: Session) -> Optional[dict]:
         """Create new access token from valid refresh token."""
         payload = AuthService.verify_token(refresh_token, "refresh")
         if not payload:
             return None
-        
+
+        # Verify user still exists in database
+        from app.services.user_service import UserService
+        user_service = UserService(db)
+        user_id = int(payload.get("sub"))
+        user = user_service.get_user_by_id(user_id)
+
+        if not user or not user.is_active:
+            logger.warning(f"Token refresh failed - user not found or inactive: {user_id}")
+            return None
+
         # Create new access token
         access_token_data = {
-            "sub": payload.get("sub"),
-            "username": payload.get("username")
+            "sub": str(user.id),
+            "username": user.username
         }
         access_token = AuthService.create_access_token(access_token_data)
-        
+
         return {
             "access_token": access_token,
             "token_type": "bearer",

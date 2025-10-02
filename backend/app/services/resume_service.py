@@ -313,8 +313,15 @@ class ResumeService:
         except Exception as e:
             logger.warning(f"Failed to save resume to storage: {e}")
     
-    def delete_resume(self, user_id: int, resume_id: int) -> bool:
-        """Delete a resume and all its versions."""
+    def check_resume_dependencies(
+        self, 
+        user_id: int, 
+        resume_id: int
+    ) -> Dict[str, Any]:
+        """Check what applications depend on this resume.
+        
+        Returns detailed information about dependencies and deletion options.
+        """
         from app.models.application import Application
         db = self._get_db()
         
@@ -322,16 +329,307 @@ class ResumeService:
             # Verify ownership
             resume = self.get_resume(user_id, resume_id)
             
-            # Check if any applications reference this resume
-            application_count = db.query(Application).filter(
+            # Get all applications that reference this resume
+            applications = db.query(Application).filter(
                 Application.resume_id == resume_id
+            ).all()
+            
+            result = {
+                'can_delete': len(applications) == 0,
+                'application_count': len(applications),
+                'applications': [],
+                'options': [],
+                'message': ''
+            }
+            
+            if len(applications) == 0:
+                result['message'] = "Resume can be safely deleted. No applications depend on it."
+                result['options'] = ['delete']
+            else:
+                result['message'] = (
+                    f"Cannot delete resume. It is referenced by {len(applications)} application(s). "
+                    "You must first delete the applications or reassign them to a different resume."
+                )
+                result['options'] = [
+                    'delete_applications_and_resume',
+                    'reassign_applications',
+                    'cancel'
+                ]
+                
+                # Include application details
+                for app in applications:
+                    result['applications'].append({
+                        'id': app.id,
+                        'company': app.company,
+                        'position': app.position,
+                        'status': app.status,
+                        'applied_date': app.applied_date.isoformat() if app.applied_date else None,
+                        'has_customized_version': app.customized_resume_version_id is not None
+                    })
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to check resume dependencies: {e}")
+            if isinstance(e, ResumeNotFoundError):
+                raise
+            raise ValidationError(f"Failed to check dependencies: {str(e)}")
+    
+    def check_version_dependencies(
+        self, 
+        user_id: int, 
+        resume_id: int,
+        version_id: int
+    ) -> Dict[str, Any]:
+        """Check what applications depend on this version."""
+        from app.models.application import Application
+        db = self._get_db()
+        
+        try:
+            # Verify ownership and get version
+            self.get_resume(user_id, resume_id)
+            
+            version = db.query(ResumeVersion).filter(
+                and_(
+                    ResumeVersion.id == version_id,
+                    ResumeVersion.resume_id == resume_id
+                )
+            ).first()
+            
+            if not version:
+                raise ValidationError("Version not found")
+            
+            # Check version count
+            version_count = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
             ).count()
             
-            if application_count > 0:
-                raise ValidationError(
-                    f"Cannot delete resume. It is referenced by {application_count} application(s). "
-                    "Please delete or update those applications first."
+            # Check applications that reference this version
+            applications_original = db.query(Application).filter(
+                Application.resume_version_id == version_id
+            ).all()
+            
+            applications_customized = db.query(Application).filter(
+                Application.customized_resume_version_id == version_id
+            ).all()
+            
+            total_apps = len(applications_original) + len(applications_customized)
+            
+            result = {
+                'can_delete': False,
+                'application_count': total_apps,
+                'applications': [],
+                'is_original': version.is_original,
+                'is_last_version': version_count <= 1,
+                'message': ''
+            }
+            
+            # Check deletion rules
+            if version_count <= 1:
+                result['message'] = "Cannot delete the only version of a resume."
+            elif version.is_original and len(applications_original) > 0:
+                result['message'] = (
+                    f"Cannot delete original version. It is referenced by "
+                    f"{len(applications_original)} application(s) as their original version."
                 )
+                for app in applications_original:
+                    result['applications'].append({
+                        'id': app.id,
+                        'company': app.company,
+                        'position': app.position,
+                        'reference_type': 'original'
+                    })
+            elif len(applications_customized) > 0:
+                result['message'] = (
+                    f"Cannot delete version. It is used as a customized version by "
+                    f"{len(applications_customized)} application(s)."
+                )
+                for app in applications_customized:
+                    result['applications'].append({
+                        'id': app.id,
+                        'company': app.company,
+                        'position': app.position,
+                        'reference_type': 'customized'
+                    })
+            else:
+                result['can_delete'] = True
+                result['message'] = "Version can be safely deleted."
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to check version dependencies: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to check dependencies: {str(e)}")
+    
+    def delete_resume_with_applications(
+        self, 
+        user_id: int, 
+        resume_id: int,
+        force: bool = False
+    ) -> Dict[str, Any]:
+        """Delete resume and all dependent applications."""
+        from app.services.application_service import ApplicationService
+        from app.models.application import Application
+        
+        db = self._get_db()
+        application_service = ApplicationService(db)
+        
+        try:
+            # Verify ownership
+            resume = self.get_resume(user_id, resume_id)
+            
+            # Check dependencies
+            dependencies = self.check_resume_dependencies(user_id, resume_id)
+            
+            if not force and not dependencies['can_delete']:
+                raise ValidationError(
+                    f"Resume has {dependencies['application_count']} dependent application(s). "
+                    "Use force=True to delete all applications and the resume."
+                )
+            
+            result = {
+                'success': False,
+                'resume_deleted': False,
+                'applications_deleted': 0,
+                'versions_deleted': 0,
+                'message': ''
+            }
+            
+            # Delete all applications first
+            applications = db.query(Application).filter(
+                Application.resume_id == resume_id
+            ).all()
+            
+            for app in applications:
+                try:
+                    delete_result = application_service.delete_application(
+                        user_id, app.id, dry_run=False
+                    )
+                    if delete_result['success']:
+                        result['applications_deleted'] += 1
+                except Exception as e:
+                    logger.warning(f"Failed to delete application {app.id}: {e}")
+            
+            # Count versions before deletion
+            version_count = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
+            ).count()
+            
+            # Delete resume (cascade will handle versions)
+            db.delete(resume)
+            db.commit()
+            
+            result['success'] = True
+            result['resume_deleted'] = True
+            result['versions_deleted'] = version_count
+            result['message'] = (
+                f"Deleted resume '{resume.title}', "
+                f"{result['applications_deleted']} application(s), "
+                f"and {result['versions_deleted']} version(s)."
+            )
+            
+            logger.info(result['message'])
+            return result
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to delete resume with applications: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to delete resume: {str(e)}")
+    
+    def reassign_applications(
+        self,
+        user_id: int,
+        from_resume_id: int,
+        to_resume_id: int,
+        to_version_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """Reassign all applications from one resume to another."""
+        from app.models.application import Application
+        db = self._get_db()
+        
+        try:
+            # Verify ownership of both resumes
+            from_resume = self.get_resume(user_id, from_resume_id)
+            to_resume = self.get_resume(user_id, to_resume_id)
+            
+            # Get target version
+            if to_version_id:
+                to_version = db.query(ResumeVersion).filter(
+                    and_(
+                        ResumeVersion.id == to_version_id,
+                        ResumeVersion.resume_id == to_resume_id
+                    )
+                ).first()
+                
+                if not to_version:
+                    raise ValidationError("Target version not found")
+            else:
+                # Use latest original version
+                to_version = db.query(ResumeVersion).filter(
+                    and_(
+                        ResumeVersion.resume_id == to_resume_id,
+                        ResumeVersion.is_original == True
+                    )
+                ).order_by(ResumeVersion.created_at.desc()).first()
+                
+                if not to_version:
+                    raise ValidationError("No original version found in target resume")
+            
+            # Get all applications
+            applications = db.query(Application).filter(
+                Application.resume_id == from_resume_id
+            ).all()
+            
+            # Reassign applications
+            for app in applications:
+                app.resume_id = to_resume_id
+                app.resume_version_id = to_version.id
+            
+            db.commit()
+            
+            result = {
+                'success': True,
+                'applications_reassigned': len(applications),
+                'message': (
+                    f"Reassigned {len(applications)} application(s) from "
+                    f"'{from_resume.title}' to '{to_resume.title}'"
+                )
+            }
+            
+            logger.info(result['message'])
+            return result
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to reassign applications: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to reassign applications: {str(e)}")
+    
+    def delete_resume(self, user_id: int, resume_id: int) -> bool:
+        """Delete a resume only if no applications depend on it.
+        
+        Raises ValidationError if applications exist.
+        """
+        db = self._get_db()
+        
+        try:
+            # Check dependencies first
+            dependencies = self.check_resume_dependencies(user_id, resume_id)
+            
+            if not dependencies['can_delete']:
+                raise ValidationError(
+                    f"Cannot delete resume. It is referenced by "
+                    f"{dependencies['application_count']} application(s). "
+                    "Delete those applications first, or use the force delete option."
+                )
+            
+            # Verify ownership
+            resume = self.get_resume(user_id, resume_id)
             
             # Delete from database (cascade will handle versions)
             db.delete(resume)
@@ -348,21 +646,15 @@ class ResumeService:
             return False
     
     def delete_resume_version(self, user_id: int, resume_id: int, version_id: int) -> bool:
-        """Delete a specific resume version."""
-        from app.models.application import Application
+        """Delete a specific resume version with dependency checking."""
         db = self._get_db()
         
         try:
-            # Verify ownership
-            self.get_resume(user_id, resume_id)
+            # Check dependencies
+            dependencies = self.check_version_dependencies(user_id, resume_id, version_id)
             
-            # Cannot delete the original version if it's the only one
-            version_count = db.query(ResumeVersion).filter(
-                ResumeVersion.resume_id == resume_id
-            ).count()
-            
-            if version_count <= 1:
-                raise ValidationError("Cannot delete the only version of a resume")
+            if not dependencies['can_delete']:
+                raise ValidationError(dependencies['message'])
             
             # Get the version to delete
             version = db.query(ResumeVersion).filter(
@@ -374,24 +666,6 @@ class ResumeService:
             
             if not version:
                 return False
-            
-            # Cannot delete original version if other versions exist
-            if version.is_original and version_count > 1:
-                raise ValidationError("Cannot delete the original version while other versions exist")
-            
-            # Check if any applications reference this version
-            application_count = db.query(Application).filter(
-                or_(
-                    Application.resume_version_id == version_id,
-                    Application.customized_resume_version_id == version_id
-                )
-            ).count()
-            
-            if application_count > 0:
-                raise ValidationError(
-                    f"Cannot delete version. It is referenced by {application_count} application(s). "
-                    "Please delete or update those applications first."
-                )
             
             # Delete from database
             db.delete(version)

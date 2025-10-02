@@ -529,26 +529,184 @@ async def delete_resume_version(
         )
 
 
-@router.delete("/{resume_id}")
-async def delete_resume(
+@router.get("/{resume_id}/dependencies")
+async def check_resume_dependencies(
     resume_id: int,
     current_user: User = Depends(get_current_active_user),
     resume_service: ResumeService = Depends(get_resume_service)
 ):
-    """Delete a resume and all its versions."""
+    """Check what applications depend on this resume.
+    
+    Returns detailed information about dependencies and available deletion options.
+    Use this before attempting to delete a resume.
+    """
     try:
-        success = resume_service.delete_resume(current_user.id, resume_id)
+        dependencies = resume_service.check_resume_dependencies(
+            user_id=current_user.id,
+            resume_id=resume_id
+        )
         
-        if not success:
+        return dependencies
+        
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to check resume dependencies: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check dependencies"
+        )
+
+
+@router.get("/{resume_id}/versions/{version_id}/dependencies")
+async def check_version_dependencies(
+    resume_id: int,
+    version_id: int,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Check what applications depend on this specific resume version.
+    
+    Use this before attempting to delete a version.
+    """
+    try:
+        dependencies = resume_service.check_version_dependencies(
+            user_id=current_user.id,
+            resume_id=resume_id,
+            version_id=version_id
+        )
+        
+        return dependencies
+        
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to check version dependencies: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check dependencies"
+        )
+
+
+@router.post("/{resume_id}/reassign")
+async def reassign_applications(
+    resume_id: int,
+    request: dict,  # Should contain 'target_resume_id' and optional 'target_version_id'
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Reassign all applications from one resume to another.
+    
+    This allows you to move applications to a different resume before deleting.
+    """
+    try:
+        if 'target_resume_id' not in request:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="target_resume_id is required"
             )
         
-        return {"message": "Resume deleted successfully"}
+        result = resume_service.reassign_applications(
+            user_id=current_user.id,
+            from_resume_id=resume_id,
+            to_resume_id=request['target_resume_id'],
+            to_version_id=request.get('target_version_id')
+        )
         
-    except HTTPException:
-        raise
+        return result
+        
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to reassign applications: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reassign applications"
+        )
+
+
+@router.delete("/{resume_id}")
+async def delete_resume(
+    resume_id: int,
+    force: bool = Query(False, description="Force delete with all dependent applications"),
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Delete a resume.
+    
+    Deletion Rules:
+    - If no applications depend on it: deletes resume and all versions
+    - If applications depend on it: blocks deletion (unless force=true)
+    - Use force=true to delete resume AND all dependent applications
+    
+    Always check dependencies first using GET /{resume_id}/dependencies
+    """
+    try:
+        if force:
+            # Delete resume and all dependent applications
+            result = resume_service.delete_resume_with_applications(
+                user_id=current_user.id,
+                resume_id=resume_id,
+                force=True
+            )
+            
+            return {
+                "message": result['message'],
+                "details": {
+                    "resume_deleted": result['resume_deleted'],
+                    "applications_deleted": result['applications_deleted'],
+                    "versions_deleted": result['versions_deleted']
+                }
+            }
+        else:
+            # Only delete if no dependencies
+            success = resume_service.delete_resume(
+                user_id=current_user.id,
+                resume_id=resume_id
+            )
+            
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Resume not found"
+                )
+            
+            return {"message": "Resume deleted successfully"}
+        
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
     except Exception as e:
         logger.error(f"Failed to delete resume {resume_id}: {e}")
         raise HTTPException(

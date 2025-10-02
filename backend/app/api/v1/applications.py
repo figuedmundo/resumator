@@ -341,27 +341,94 @@ async def update_application_status(
         )
 
 
-@router.delete("/{application_id}")
-async def delete_application(
+@router.get("/{application_id}/deletion-preview")
+async def get_application_deletion_preview(
     application_id: int,
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Delete an application and cleanup associated customized resume versions."""
+    """Get a preview of what will be deleted when deleting an application.
+    
+    This endpoint helps users understand the impact of deletion before proceeding.
+    """
     try:
-        success = application_service.delete_application(
+        preview = application_service.get_application_deletion_preview(
             user_id=current_user.id,
             application_id=application_id
         )
         
-        if not success:
+        return preview
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to get deletion preview: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get deletion preview"
+        )
+
+
+@router.delete("/{application_id}")
+async def delete_application(
+    application_id: int,
+    dry_run: bool = Query(False, description="Preview deletion without executing"),
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Delete an application with proper cascade deletion of customized resume.
+    
+    Deletion Rules:
+    - Deletes the application
+    - Deletes customized resume version (if not used by other applications)
+    - Preserves original resume and original resume version
+    - Preserves cover letter
+    
+    Use dry_run=true to preview what will be deleted.
+    """
+    try:
+        result = application_service.delete_application(
+            user_id=current_user.id,
+            application_id=application_id,
+            dry_run=dry_run
+        )
+        
+        if not result['success']:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Application not found"
             )
         
-        return {"message": "Application deleted successfully"}
+        return {
+            "message": result['message'],
+            "details": {
+                "application_deleted": result['application_deleted'],
+                "customized_version_deleted": result['customized_version_deleted'],
+                "customized_version_id": result['customized_version_id'],
+                "original_resume_preserved": result['original_resume_preserved'],
+                "original_version_preserved": result['original_version_preserved']
+            },
+            "warnings": result['warnings'] if result['warnings'] else None
+        }
         
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     except Exception as e:
         logger.error(f"Failed to delete application {application_id}: {e}")
         raise HTTPException(
@@ -518,11 +585,18 @@ async def bulk_update_status(
 
 @router.delete("/bulk")
 async def bulk_delete_applications(
-    request: dict,  # Should contain 'application_ids'
+    request: dict,  # Should contain 'application_ids' and optional 'dry_run'
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Delete multiple applications."""
+    """Delete multiple applications with cascade deletion.
+    
+    Request body:
+    {
+        "application_ids": [1, 2, 3],
+        "dry_run": false  // Optional, default false
+    }
+    """
     try:
         if 'application_ids' not in request:
             raise HTTPException(
@@ -531,6 +605,7 @@ async def bulk_delete_applications(
             )
         
         application_ids = request['application_ids']
+        dry_run = request.get('dry_run', False)
         
         if not isinstance(application_ids, list) or not application_ids:
             raise HTTPException(
@@ -538,28 +613,20 @@ async def bulk_delete_applications(
                 detail="application_ids must be a non-empty list"
             )
         
-        deleted_count = 0
-        errors = []
-        
-        for app_id in application_ids:
-            try:
-                success = application_service.delete_application(
-                    user_id=current_user.id,
-                    application_id=app_id
-                )
-                if success:
-                    deleted_count += 1
-                else:
-                    errors.append(f"Application {app_id}: Not found")
-                    
-            except Exception as e:
-                errors.append(f"Application {app_id}: {str(e)}")
-                continue
+        summary = application_service.bulk_delete_applications(
+            user_id=current_user.id,
+            application_ids=application_ids,
+            dry_run=dry_run
+        )
         
         return {
-            "message": f"Deleted {deleted_count} applications",
-            "deleted_count": deleted_count,
-            "errors": errors if errors else None
+            "message": (
+                f"{'Would delete' if dry_run else 'Deleted'} {summary['deleted']} "
+                f"application(s) out of {summary['total']}. "
+                f"Also {'would delete' if dry_run else 'deleted'} "
+                f"{summary['customized_versions_deleted']} customized version(s)."
+            ),
+            "summary": summary
         }
         
     except HTTPException:

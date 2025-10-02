@@ -266,8 +266,27 @@ class ApplicationService:
             meta=meta
         )
     
-    def delete_application(self, user_id: int, application_id: int) -> bool:
-        """Delete an application and cleanup associated customized resume versions."""
+    def delete_application(
+        self, 
+        user_id: int, 
+        application_id: int,
+        dry_run: bool = False
+    ) -> Dict[str, Any]:
+        """Delete an application with proper cascade deletion of customized resume.
+        
+        Cascade Deletion Rules:
+        1. Delete customized resume version (if exists and not used by other applications)
+        2. Preserve original resume and original resume version
+        3. Preserve cover letter (may be used by other applications)
+        
+        Args:
+            user_id: User ID for ownership verification
+            application_id: Application ID to delete
+            dry_run: If True, return what would be deleted without actually deleting
+            
+        Returns:
+            Dict with deletion summary
+        """
         from app.services.resume_service import ResumeService
         
         db = self._get_db()
@@ -277,23 +296,227 @@ class ApplicationService:
             # Get and verify ownership
             application = self.get_application(user_id, application_id)
             
-            # Cleanup customized resume version if it exists
-            if application.customized_resume_version_id:
-                resume_service.delete_application_resume_version(
-                    user_id, application.customized_resume_version_id
-                )
+            result = {
+                'success': False,
+                'application_deleted': False,
+                'customized_version_deleted': False,
+                'customized_version_id': None,
+                'original_resume_preserved': True,
+                'original_version_preserved': True,
+                'message': '',
+                'warnings': []
+            }
             
-            # Delete application
+            # Check if there's a customized version to delete
+            customized_version_id = application.customized_resume_version_id
+            can_delete_customized = False
+            
+            if customized_version_id:
+                # Check if other applications use this customized version
+                other_apps_count = db.query(Application).filter(
+                    and_(
+                        Application.id != application_id,
+                        Application.customized_resume_version_id == customized_version_id
+                    )
+                ).count()
+                
+                if other_apps_count > 0:
+                    result['warnings'].append(
+                        f"Customized resume version (ID: {customized_version_id}) is used by "
+                        f"{other_apps_count} other application(s) and will be preserved."
+                    )
+                else:
+                    can_delete_customized = True
+                    result['customized_version_id'] = customized_version_id
+            
+            if dry_run:
+                # Return what would be deleted without actually deleting
+                result['success'] = True
+                result['message'] = "Dry run completed. No data was deleted."
+                if can_delete_customized:
+                    result['message'] += f" Would delete customized version ID {customized_version_id}."
+                return result
+            
+            # Step 1: Delete customized resume version if safe to do so
+            if can_delete_customized:
+                try:
+                    deleted = resume_service.delete_application_resume_version(
+                        user_id, customized_version_id
+                    )
+                    if deleted:
+                        result['customized_version_deleted'] = True
+                        logger.info(f"Deleted customized resume version {customized_version_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete customized version {customized_version_id}: {e}")
+                    result['warnings'].append(
+                        f"Could not delete customized resume version: {str(e)}"
+                    )
+            
+            # Step 2: Delete the application
             db.delete(application)
             db.commit()
             
-            logger.info(f"Deleted application {application_id} and cleaned up resources")
-            return True
+            result['success'] = True
+            result['application_deleted'] = True
+            result['message'] = f"Application for {application.company} - {application.position} deleted successfully."
+            
+            if result['customized_version_deleted']:
+                result['message'] += " Customized resume version was also deleted."
+            
+            logger.info(
+                f"Deleted application {application_id}. "
+                f"Customized version deleted: {result['customized_version_deleted']}"
+            )
+            
+            return result
             
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to delete application {application_id}: {e}")
-            return False
+            raise ValidationError(f"Failed to delete application: {str(e)}")
+    
+    def bulk_delete_applications(
+        self, 
+        user_id: int, 
+        application_ids: List[int],
+        dry_run: bool = False
+    ) -> Dict[str, Any]:
+        """Delete multiple applications with cascade deletion.
+        
+        Returns summary of deletion results.
+        """
+        summary = {
+            'total': len(application_ids),
+            'deleted': 0,
+            'failed': 0,
+            'customized_versions_deleted': 0,
+            'results': [],
+            'errors': []
+        }
+        
+        for app_id in application_ids:
+            try:
+                result = self.delete_application(user_id, app_id, dry_run=dry_run)
+                
+                if result['success']:
+                    summary['deleted'] += 1
+                    if result['customized_version_deleted']:
+                        summary['customized_versions_deleted'] += 1
+                else:
+                    summary['failed'] += 1
+                
+                summary['results'].append({
+                    'application_id': app_id,
+                    'result': result
+                })
+                
+            except Exception as e:
+                summary['failed'] += 1
+                summary['errors'].append(f"Application {app_id}: {str(e)}")
+                summary['results'].append({
+                    'application_id': app_id,
+                    'result': {'success': False, 'message': str(e)}
+                })
+        
+        return summary
+    
+    def get_application_deletion_preview(
+        self, 
+        user_id: int, 
+        application_id: int
+    ) -> Dict[str, Any]:
+        """Get a preview of what will be deleted.
+        
+        Returns detailed information about what will be deleted and preserved.
+        """
+        db = self._get_db()
+        
+        try:
+            application = self.get_application(user_id, application_id)
+            
+            preview = {
+                'application': {
+                    'id': application.id,
+                    'company': application.company,
+                    'position': application.position,
+                    'applied_date': application.applied_date.isoformat() if application.applied_date else None
+                },
+                'will_delete': {},
+                'will_preserve': {},
+                'warnings': []
+            }
+            
+            # Check customized version
+            if application.customized_resume_version_id:
+                customized_version = db.query(ResumeVersion).filter(
+                    ResumeVersion.id == application.customized_resume_version_id
+                ).first()
+                
+                if customized_version:
+                    # Check if used by other applications
+                    other_apps = db.query(Application).filter(
+                        and_(
+                            Application.id != application_id,
+                            Application.customized_resume_version_id == customized_version.id
+                        )
+                    ).count()
+                    
+                    if other_apps > 0:
+                        preview['warnings'].append(
+                            f"Customized version '{customized_version.version}' is used by "
+                            f"{other_apps} other application(s) and will NOT be deleted."
+                        )
+                        preview['will_preserve']['customized_version'] = {
+                            'id': customized_version.id,
+                            'version': customized_version.version,
+                            'reason': f'Used by {other_apps} other application(s)'
+                        }
+                    else:
+                        preview['will_delete']['customized_resume_version'] = {
+                            'id': customized_version.id,
+                            'version': customized_version.version,
+                            'created_at': customized_version.created_at.isoformat()
+                        }
+            
+            # Original resume will always be preserved
+            original_resume = db.query(Resume).filter(
+                Resume.id == application.resume_id
+            ).first()
+            
+            if original_resume:
+                preview['will_preserve']['original_resume'] = {
+                    'id': original_resume.id,
+                    'title': original_resume.title
+                }
+            
+            # Original version will always be preserved
+            original_version = db.query(ResumeVersion).filter(
+                ResumeVersion.id == application.resume_version_id
+            ).first()
+            
+            if original_version:
+                preview['will_preserve']['original_version'] = {
+                    'id': original_version.id,
+                    'version': original_version.version
+                }
+            
+            # Cover letter preserved
+            if application.cover_letter_id:
+                cover_letter = db.query(CoverLetter).filter(
+                    CoverLetter.id == application.cover_letter_id
+                ).first()
+                
+                if cover_letter:
+                    preview['will_preserve']['cover_letter'] = {
+                        'id': cover_letter.id,
+                        'title': cover_letter.title
+                    }
+            
+            return preview
+            
+        except Exception as e:
+            logger.error(f"Failed to get deletion preview for application {application_id}: {e}")
+            raise ValidationError(f"Failed to get deletion preview: {str(e)}")
     
     def get_application_stats(self, user_id: int) -> Dict[str, Any]:
         """Get application statistics for a user."""
