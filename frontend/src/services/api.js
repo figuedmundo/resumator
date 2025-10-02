@@ -205,7 +205,25 @@ class ApiService {
     return response.data;
   }
 
+  async previewCustomization(id, jobDescription, options = {}) {
+    const response = await this.api.post(`${API_ENDPOINTS.RESUMES}/${id}/customize/preview`, {
+      job_description: jobDescription,
+      instructions: options
+    });
+    return response.data;
+  }
+
+  async saveCustomization(id, customizedMarkdown, jobDescription, options = {}) {
+    const response = await this.api.post(`${API_ENDPOINTS.RESUMES}/${id}/customize/save`, {
+      customized_markdown: customizedMarkdown,
+      job_description: jobDescription,
+      instructions: options
+    });
+    return response.data;
+  }
+
   async customizeResume(id, jobDescription, options = {}) {
+    // Legacy method - directly saves customization
     const response = await this.api.post(API_ENDPOINTS.CUSTOMIZE_RESUME(id), {
       job_description: jobDescription,
       ...options

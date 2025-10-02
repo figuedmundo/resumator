@@ -129,9 +129,86 @@ class ResumeService:
             logger.error(f"Failed to list resumes for user {user_id}: {e}")
             return []
     
+    def preview_customization(self, user_id: int, resume_id: int, job_description: str, 
+                             instructions: Optional[Dict[str, Any]] = None) -> str:
+        """Generate customized resume WITHOUT saving to database (preview only)."""
+        db = self._get_db()
+        
+        try:
+            # Get the resume and verify ownership
+            resume = self.get_resume(user_id, resume_id)
+            
+            # Get the latest version or original
+            latest_version = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
+            ).order_by(ResumeVersion.created_at.desc()).first()
+            
+            if not latest_version:
+                raise ValidationError("No resume version found")
+            
+            # Generate customized resume using AI (NO DATABASE SAVE)
+            customized_markdown = self.ai_client.rewrite_resume(
+                latest_version.markdown_content, 
+                job_description, 
+                instructions
+            )
+            
+            logger.info(f"Generated preview customization for resume {resume_id} (not saved)")
+            return customized_markdown
+            
+        except Exception as e:
+            logger.error(f"Failed to preview customization for resume {resume_id}: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to preview customization: {str(e)}")
+    
+    def save_customization(self, user_id: int, resume_id: int, customized_markdown: str,
+                          job_description: str, instructions: Optional[Dict[str, Any]] = None) -> str:
+        """Save a previewed customization to database as a new version."""
+        db = self._get_db()
+        
+        try:
+            # Verify ownership
+            resume = self.get_resume(user_id, resume_id)
+            
+            # Generate new version number
+            version_count = db.query(ResumeVersion).filter(
+                ResumeVersion.resume_id == resume_id
+            ).count()
+            new_version = f"v{version_count + 1}"
+            
+            # Create new version record
+            new_version_record = ResumeVersion(
+                resume_id=resume_id,
+                version=new_version,
+                markdown_content=customized_markdown,
+                job_description=job_description,
+                is_original=False
+            )
+            
+            db.add(new_version_record)
+            db.commit()
+            db.refresh(new_version_record)
+            
+            # Save to storage
+            self._save_resume_to_storage(user_id, resume_id, new_version, customized_markdown)
+            
+            logger.info(f"Saved customized resume version {new_version} for resume {resume_id}")
+            return customized_markdown
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to save customization for resume {resume_id}: {e}")
+            if isinstance(e, (ResumeNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to save customization: {str(e)}")
+    
     def customize_resume(self, user_id: int, resume_id: int, job_description: str, 
                         instructions: Optional[Dict[str, Any]] = None) -> str:
-        """Call AIGeneratorClient.rewrite_resume and create a new version record; return new markdown."""
+        """Legacy method: Call AIGeneratorClient.rewrite_resume and create a new version record.
+        
+        Deprecated: Use preview_customization followed by save_customization instead.
+        """
         db = self._get_db()
         
         try:
@@ -683,8 +760,13 @@ class ResumeService:
     
     def customize_resume_for_application(self, user_id: int, resume_id: int, 
                                        original_version_id: int, job_description: str, 
-                                       company: str, additional_instructions: Optional[str] = None) -> ResumeVersion:
-        """Create a company-named customized resume version for an application."""
+                                       company: str, customized_markdown: Optional[str] = None,
+                                       additional_instructions: Optional[str] = None) -> ResumeVersion:
+        """Create a company-named customized resume version for an application.
+        
+        If customized_markdown is provided, it will be saved directly.
+        Otherwise, AI will generate the customization.
+        """
         db = self._get_db()
         
         try:
@@ -715,17 +797,19 @@ class ResumeService:
                 logger.info(f"Reusing existing version for company {company}: {existing_version.version}")
                 return existing_version
             
-            # Prepare customization instructions
-            instructions = {}
-            if additional_instructions:
-                instructions['custom_instructions'] = additional_instructions
-            
-            # Generate customized resume using AI
-            customized_markdown = self.ai_client.rewrite_resume(
-                original_version.markdown_content, 
-                job_description, 
-                instructions
-            )
+            # Generate customized markdown if not provided
+            if not customized_markdown:
+                # Prepare customization instructions
+                instructions = {}
+                if additional_instructions:
+                    instructions['custom_instructions'] = additional_instructions
+                
+                # Generate customized resume using AI
+                customized_markdown = self.ai_client.rewrite_resume(
+                    original_version.markdown_content, 
+                    job_description, 
+                    instructions
+                )
             
             # Generate new version name with company
             version_count = db.query(ResumeVersion).filter(

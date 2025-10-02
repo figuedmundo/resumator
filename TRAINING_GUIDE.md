@@ -1,29 +1,35 @@
 # Resumator 
 You are helping with the development and refactoring of Resumator project, you are acting as a senior arquitect
-I need that you create a plan to refactor the app according the points below, I need a plan of what need to be done, the changes that need to be done, divided in steps , and for each step I need a prompt for the AI (you) to train yourself in a new conversation about the plan for that step.
+Please read the points below and I need that you create a plan to refactor the app according the points below, I need a plan of what need to be done, the changes that need to be done, divided in steps , and for each step I need a prompt for the AI (you) to train yourself in a new conversation about the plan for that (each) step. 
 
 Paths: (you can read backend and frontend in 2 different times to do not overcharge)
-backend: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend
-frontend: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend
-ResumeEditorPage: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/pages/ResumeEditor/ResumeEditorPage.jsx
-ResumeViewPage: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/pages/ResumeView/ResumeViewPage.jsx
+backend: "/Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend"
+frontend: "/Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend"
 Points:
-- we need to refactor the project, currently when the ResumeEditorPage is opened the Split view is shown by default, I noticed this view is not useful and create a lot of issues with the layout of the project in general, and not useful when open the page in the phone. we need to delete this view. Keep the edit page as default 
 
-- The wide of all the views is wrong, is wider than expected, is not pleasant to the view
+- Add Customize button in the ResumeViewPage, needs to customize the resume version currlently selected
 
-- When the ResumeViewPage is open the Template Selection takes too much space in the view, please re-think the layout of the page , also take into accoun the Template Selection should be flexible enough that if I want to add a template I should be able without rewrite Pages and Views all over the place, even if there is no view for it, at least just adding a template html and editing the config or .env file I should be able to add another template into the project
+- After The ai Customize the resume, in ResumeComparison the Original Resume is empty
 
-- The customization of a resume is very linked to the job that I will be appliying, so instead to have the Customize button in the ResiveViewPage, it should be in the Aplication process, for example, when I will apply for job I start creating the application where I will add the Job Description and all the Aditional instructions that I need for that application, in that way if later I see the Aplication Details Page, I can have all those details there. , after the application is created , I should be able to select the Resume I will use, and if I want start the customization of the resume (Customize Resume button) with the AI (groq) , In the customize the idea of Compare the original resume with the customized is good but the layout is not working, have 2 pages makes them too narrow and not pleasant to read, also it doesn't work in mobile , please re-think this or remove the Comparizion , After I get the customized resume , I should be able to edit it , and when the use is happy or agrees with the customized resume , we can complete the aplication. 
+- After The ai Customize the resume, in ResumeComparison there is a button Discard changes , but even I clicked that button, the resume customized version is already saved.
+- After The ai Customize the resume, in ResumeComparison there is a button Save changes, after clicked I am redirected to ResumeCustomizePage, I would prefer be redirected to ResumeViewPage 
 
-- The customized resume should show the version and the company like v2 - intel , instead of v2 - Customized  , in this way the custommized resume is clear identificable 
+- I want be able to edit the resume customized in ResumeEditorPage (you can use the same version selector than in ResumeEditorPage)
 
-- In the Aplication List the row where is the aplication has too much empty space the information is all in the left side , also I should be able to download the resume choosen
+- in ResumeEditorPage, I want strongly that the wide of the page is the standard width, pleasant to read, and the lines inside needs to wrapped (right now I have to scroll horizontaly to read and is not good)
 
-- Also I should be able to download the resume I choose when I created the application in the Aolication Details 
+- please improve the layout and css of ApplicationWizard 
 
-- I should be able to delete the Resume from the Resume card in Resumes Page, 
+- in ApplicationWizard , step 2 Select resume , the resume preview doesn't show me anything (empty), please remove the preview
 
-- I should be able to edit and view the resume version I want in the ResumeViewPage and ResumeEditorPage 
+- in ApplicationWizard , step 3 Customize (optional), I have a checkbox to accept the creation of a customized version , if I click on the Generate preview, 1st issue, the preview is truncated, 2do issue, the resume customized is saved in the dabase wieh a new version number, and when after complete the  aplication, another version is saved in the databse v(number) - company ,, so is creating 2 version, only one should be generated. I think that the best option is join step2 and step 3 in one page of the wizard, do not show the preview resume (neither for the original and customized), have the checkbox to select if I want customize using AI and pass to the next page that is Review and Create
 
-- If I delete an aplication and if this had created a customized resume with the application, that customized resume also should be deleted,  never delete the original resume with an aplication of course.
+- in ApplicationWizard , step 4 Review and Create , after click on Create Applcation, the page should show the loading spinner to denota that the page is working with the customization and saving of everything in the database
+
+- When creating a custom resume, in the Additional Instructions section, I added "translate the resume to french", but the resume was not transated by the AI
+
+
+
+- make a plan to add the Cover Letters to the system
+
+- The Pages have too much logic included and is difficult to refactor, please make me a plan to separate the pages into componentes as much as possible, also where the logic can be shared

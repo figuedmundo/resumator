@@ -62,6 +62,7 @@ class ResumeCustomizeRequest(BaseModel):
     """Schema for customizing a resume."""
     job_description: str
     instructions: Optional[Dict[str, Any]] = None
+    customized_markdown: Optional[str] = None  # Used when saving a previewed customization
 
 
 class ResumeCustomizeResponse(BaseModel):

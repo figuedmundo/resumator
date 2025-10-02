@@ -55,9 +55,9 @@ export default function ResumeCustomizePage() {
     if (lastCustomizationResult) {
       setCustomizedContent(lastCustomizationResult.customized_markdown);
       setViewMode('compare');
-      setSuccessMessage('Resume customized successfully! Reviewing customized version.');
+      setSuccessMessage('Resume customized successfully! Review the preview below. Changes are NOT saved yet.');
       
-      // Update resume state with new version info
+      // Update resume state timestamp
       setResume(prev => ({
         ...prev,
         updated_at: new Date().toISOString()
@@ -102,17 +102,15 @@ export default function ResumeCustomizePage() {
       setIsCustomizing(true);
       setError(null);
       
-      // Store form data in case of error
+      // Store form data
       setCurrentJobDescription(jobDescription);
       setCustomInstructions(options.custom_instructions || '');
 
-      const response = await apiService.customizeResume(id, jobDescription, options);
+      // Preview customization WITHOUT saving to database
+      const response = await apiService.previewCustomization(id, jobDescription, options);
       
       // Store result for processing in useEffect
       setLastCustomizationResult(response);
-      
-      // Reload versions to show the new one
-      await loadVersions();
       
     } catch (err) {
       // Don't clear form data on error - keep jobDescription and options
@@ -125,17 +123,24 @@ export default function ResumeCustomizePage() {
   const handleSaveAsApplication = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // First save the customized content as a new version
-      const versionResponse = await apiService.updateResume(id, {
-        title: resume.title,
-        content: customizedContent
-      });
+      // Save the customized content as a new version first
+      await apiService.saveCustomization(
+        id,
+        customizedContent,
+        currentJobDescription,
+        { custom_instructions: customInstructions }
+      );
+      
+      // Reload versions to show the new one
+      await loadVersions();
       
       // Navigate to application form with pre-filled data
       const applicationData = {
         resume_id: parseInt(id),
         job_description: currentJobDescription,
+        customized_resume_markdown: customizedContent,
       };
       
       // Store data in sessionStorage to pass to the form
@@ -152,17 +157,26 @@ export default function ResumeCustomizePage() {
   const handleSaveCustomization = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      const response = await apiService.updateResume(id, {
-        title: resume.title,
-        content: customizedContent
-      });
+      // Save the customization to database
+      await apiService.saveCustomization(
+        id,
+        customizedContent,
+        currentJobDescription,
+        { custom_instructions: customInstructions }
+      );
       
-      setResume(response);
+      // Update local state
       setOriginalContent(customizedContent);
-      setSuccessMessage('Customized resume saved successfully!');
+      setSuccessMessage('Customized resume saved successfully as a new version!');
       
+      // Reload versions to show the new one
       await loadVersions();
+      
+      // Switch to customize mode
+      setViewMode('customize');
+      
     } catch (err) {
       setError(err.message || 'Failed to save customized resume.');
     } finally {
@@ -171,12 +185,14 @@ export default function ResumeCustomizePage() {
   };
 
   const handleDiscardCustomization = () => {
+    // Reset to original content (preview is discarded, no DB changes)
     setCustomizedContent(originalContent);
     setViewMode('customize');
     setCurrentJobDescription('');
     setCustomInstructions('');
     setSuccessMessage('');
     setError(null);
+    setLastCustomizationResult(null);
   };
 
   const handleVersionRestore = async (version) => {

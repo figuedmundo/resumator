@@ -173,6 +173,101 @@ async def update_resume(
         )
 
 
+@router.post("/{resume_id}/customize/preview", response_model=ResumeCustomizeResponse)
+async def preview_customization(
+    resume_id: int,
+    request: ResumeCustomizeRequest,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Preview a customized resume without saving to database."""
+    try:
+        customized_markdown = resume_service.preview_customization(
+            user_id=current_user.id,
+            resume_id=resume_id,
+            job_description=request.job_description,
+            instructions=request.instructions
+        )
+        
+        # Return preview without version info (not saved yet)
+        return ResumeCustomizeResponse(
+            customized_markdown=customized_markdown,
+            version="preview",
+            version_id=0
+        )
+        
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except AIServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to preview customization for resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to preview customization"
+        )
+
+
+@router.post("/{resume_id}/customize/save", response_model=ResumeCustomizeResponse)
+async def save_customization(
+    resume_id: int,
+    request: ResumeCustomizeRequest,
+    current_user: User = Depends(get_current_active_user),
+    resume_service: ResumeService = Depends(get_resume_service)
+):
+    """Save a customized resume version to database.
+    
+    This endpoint should be called after preview_customization when the user
+    confirms they want to save the customization.
+    """
+    try:
+        customized_markdown = resume_service.save_customization(
+            user_id=current_user.id,
+            resume_id=resume_id,
+            customized_markdown=request.customized_markdown,
+            job_description=request.job_description,
+            instructions=request.instructions
+        )
+        
+        # Get the newly created version info
+        versions = resume_service.list_resume_versions(current_user.id, resume_id)
+        latest_version = versions[0] if versions else None
+        
+        return ResumeCustomizeResponse(
+            customized_markdown=customized_markdown,
+            version=latest_version.version if latest_version else "unknown",
+            version_id=latest_version.id if latest_version else 0
+        )
+        
+    except ResumeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Failed to save customization for resume {resume_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save customization"
+        )
+
+
 @router.post("/{resume_id}/customize", response_model=ResumeCustomizeResponse)
 async def customize_resume(
     resume_id: int,
@@ -180,7 +275,11 @@ async def customize_resume(
     current_user: User = Depends(get_current_active_user),
     resume_service: ResumeService = Depends(get_resume_service)
 ):
-    """Customize a resume for a specific job description."""
+    """Legacy endpoint: Customize and immediately save a resume.
+    
+    Deprecated: Use /customize/preview followed by /customize/save instead.
+    This endpoint is kept for backward compatibility.
+    """
     try:
         customized_markdown = resume_service.customize_resume(
             user_id=current_user.id,
