@@ -17,7 +17,8 @@ export default function ResumeCustomizePage() {
 
   // State management
   const [resume, setResume] = useState(null);
-  const [originalContent, setOriginalContent] = useState('');
+  const [originalContent, setOriginalContent] = useState(''); // ALWAYS v1 content
+  const [baselineContent, setBaselineContent] = useState(''); // Current baseline for comparison
   const [customizedContent, setCustomizedContent] = useState('');
   const [versions, setVersions] = useState([]);
   const [currentJobDescription, setCurrentJobDescription] = useState('');
@@ -75,11 +76,23 @@ export default function ResumeCustomizePage() {
       
       const response = await apiService.getResume(id);
       setResume(response);
-      setOriginalContent(response.content || '');
-      
-      // If no customized content yet, use original
+
+      // Load versions to get the original content
+      const versionsResponse = await apiService.getResumeVersions(id);
+      const allVersions = versionsResponse || [];
+
+      // Find the original version (marked as is_original)
+      const originalVersion = allVersions.find(v => v.is_original);
+      setOriginalContent(originalVersion.markdown_content || '');
+
+      // Set baseline to latest version content
+      const latestVersion = allVersions[0]; // Already sorted by created_at desc
+      const latestContent = latestVersion ? latestVersion.markdown_content || '' : '';
+      setBaselineContent(latestContent);
+
+      // If no customized content yet, use latest content
       if (!customizedContent) {
-        setCustomizedContent(response.content || '');
+        setCustomizedContent(latestContent);
       }
     } catch (err) {
       setError(err.message);
@@ -167,8 +180,8 @@ export default function ResumeCustomizePage() {
         { custom_instructions: customInstructions }
       );
       
-      // Update local state
-      setOriginalContent(customizedContent);
+      // Update baseline to the new saved content (but originalContent stays as v1)
+      setBaselineContent(customizedContent);
       setSuccessMessage('Customized resume saved successfully as a new version!');
       
       // Reload versions to show the new one
@@ -185,8 +198,8 @@ export default function ResumeCustomizePage() {
   };
 
   const handleDiscardCustomization = () => {
-    // Reset to original content (preview is discarded, no DB changes)
-    setCustomizedContent(originalContent);
+    // Reset to baseline content (preview is discarded, no DB changes)
+    setCustomizedContent(baselineContent);
     setViewMode('customize');
     setCurrentJobDescription('');
     setCustomInstructions('');
@@ -197,7 +210,9 @@ export default function ResumeCustomizePage() {
 
   const handleVersionRestore = async (version) => {
     try {
-      setCustomizedContent(version.content);
+      // When restoring a version, update both baseline and customized content
+      setBaselineContent(version.markdown_content);
+      setCustomizedContent(version.markdown_content);
       setViewMode('compare');
       setShowVersions(false);
       setSuccessMessage(`Restored to version from ${formatDate(version.created_at, 'relative')}`);
@@ -206,7 +221,7 @@ export default function ResumeCustomizePage() {
     }
   };
 
-  const hasChanges = originalContent !== customizedContent;
+  const hasChanges = baselineContent !== customizedContent;
 
   if (isLoading && !resume) {
     return (

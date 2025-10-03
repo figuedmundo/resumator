@@ -12,10 +12,43 @@ export default function ResumeComparison({
   const [viewMode, setViewMode] = useState('toggle'); // 'toggle' or 'split'
   const [activeVersion, setActiveVersion] = useState('customized'); // 'original' or 'customized'
 
+  // Validation: Check if content exists
+  const hasOriginalContent = originalContent && originalContent.trim().length > 0;
+  const hasCustomizedContent = customizedContent && customizedContent.trim().length > 0;
+
   // Calculate some basic statistics
-  const originalWordCount = originalContent.split(/\s+/).length;
-  const customizedWordCount = customizedContent.split(/\s+/).length;
+  const originalWordCount = hasOriginalContent ? originalContent.split(/\s+/).length : 0;
+  const customizedWordCount = hasCustomizedContent ? customizedContent.split(/\s+/).length : 0;
   const wordDifference = customizedWordCount - originalWordCount;
+
+  // Show error if content is missing
+  if (!hasOriginalContent || !hasCustomizedContent) {
+    return (
+      <div className={styles.container}>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center p-8 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl">
+            <svg className="mx-auto h-12 w-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">Content Missing</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              {!hasOriginalContent && !hasCustomizedContent
+                ? 'Both original and customized content are missing. Please try customizing your resume again.'
+                : !hasOriginalContent
+                ? 'Original resume content is missing. This may indicate a data loading issue.'
+                : 'Customized resume content is missing. Please try customizing your resume again.'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
