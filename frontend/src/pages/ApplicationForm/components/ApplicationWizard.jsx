@@ -12,11 +12,10 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
   const location = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [resumes, setResumes] = useState([]);
   const [resumeVersions, setResumeVersions] = useState([]);
   const [errors, setErrors] = useState({});
-  const [customizationPreview, setCustomizationPreview] = useState('');
-  const [isCustomizing, setIsCustomizing] = useState(false);
 
   const [formData, setFormData] = useState({
     company: '',
@@ -31,11 +30,11 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
     notes: ''
   });
 
+  // Updated steps array - merged step 2 and 3
   const steps = [
     { number: 1, title: 'Job Details', description: 'Company and position information' },
-    { number: 2, title: 'Select Resume', description: 'Choose resume and version' },
-    { number: 3, title: 'Customize (Optional)', description: 'AI-powered resume tailoring' },
-    { number: 4, title: 'Review & Create', description: 'Final review and submission' }
+    { number: 2, title: 'Select Resume & Customize', description: 'Choose resume and customization options' },
+    { number: 3, title: 'Review & Create', description: 'Final review and submission' }
   ];
 
   useEffect(() => {
@@ -99,8 +98,11 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
       case 2:
         if (!formData.resume_id) newErrors.resume_id = 'Please select a resume';
         if (!formData.resume_version_id) newErrors.resume_version_id = 'Please select a version';
+        if (formData.customize_resume && !formData.job_description.trim()) {
+          newErrors.job_description = 'Job description is required for AI customization';
+        }
         break;
-      case 4:
+      case 3:
         if (!formData.applied_date) newErrors.applied_date = 'Applied date is required';
         break;
     }
@@ -110,7 +112,7 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 4));
+      setCurrentStep(prev => Math.min(prev + 1, 3));
     }
   };
 
@@ -118,31 +120,12 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleCustomizationPreview = async () => {
-    if (!formData.job_description.trim()) {
-      setErrors({ job_description: 'Job description is required for customization' });
-      return;
-    }
-    setIsCustomizing(true);
-    try {
-      const response = await apiService.customizeResume(
-        formData.resume_id,
-        formData.job_description,
-        { custom_instructions: formData.additional_instructions }
-      );
-      setCustomizationPreview(response.customized_markdown);
-    } catch (error) {
-      console.error('Failed to generate customization preview:', error);
-      setErrors({ customization: 'Failed to generate preview. You can still proceed without preview.' });
-    } finally {
-      setIsCustomizing(false);
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!validateStep(4)) return;
-    setLoading(true);
+    if (!validateStep(3)) return;
+    
+    setSubmitting(true);
     setErrors({});
+    
     try {
       const submitData = {
         company: formData.company.trim(),
@@ -156,8 +139,10 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
         applied_date: formData.applied_date,
         notes: formData.notes.trim() || null
       };
+      
       const result = await apiService.createApplication(submitData);
       devLog('Application created:', result);
+      
       if (onSuccess) {
         onSuccess(result);
       } else {
@@ -167,7 +152,7 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
       console.error('Failed to create application:', error);
       setErrors({ general: error.message || 'Failed to create application' });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -178,153 +163,243 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
           <div className={styles.stepContent}>
             <h3 className={styles.stepTitle}>Job Details</h3>
             <p className={styles.stepDescription}>Tell us about the position you're applying for</p>
+            
             <div className={styles.formGrid}>
               <div className={styles.fieldGroup}>
                 <label htmlFor="company" className={clsx(styles.label, styles.required)}>Company</label>
-                <input type="text" id="company" name="company" value={formData.company} onChange={handleChange}
-                  className={clsx(styles.input, errors.company && styles.inputError)} placeholder="Enter company name" required />
+                <input 
+                  type="text" 
+                  id="company" 
+                  name="company" 
+                  value={formData.company} 
+                  onChange={handleChange}
+                  className={clsx(styles.input, errors.company && styles.inputError)} 
+                  placeholder="Enter company name" 
+                  required 
+                />
                 {errors.company && <p className={styles.error}>{errors.company}</p>}
               </div>
+              
               <div className={styles.fieldGroup}>
                 <label htmlFor="position" className={clsx(styles.label, styles.required)}>Position</label>
-                <input type="text" id="position" name="position" value={formData.position} onChange={handleChange}
-                  className={clsx(styles.input, errors.position && styles.inputError)} placeholder="Enter job title/position" required />
+                <input 
+                  type="text" 
+                  id="position" 
+                  name="position" 
+                  value={formData.position} 
+                  onChange={handleChange}
+                  className={clsx(styles.input, errors.position && styles.inputError)} 
+                  placeholder="Enter job title/position" 
+                  required 
+                />
                 {errors.position && <p className={styles.error}>{errors.position}</p>}
               </div>
             </div>
+            
             <div className={styles.fieldGroup}>
               <label htmlFor="job_description" className={styles.label}>Job Description</label>
-              <textarea id="job_description" name="job_description" value={formData.job_description} onChange={handleChange}
-                rows={6} className={styles.textarea} placeholder="Paste the job description here (recommended for AI customization)" />
+              <textarea 
+                id="job_description" 
+                name="job_description" 
+                value={formData.job_description} 
+                onChange={handleChange}
+                rows={6} 
+                className={styles.textarea} 
+                placeholder="Paste the job description here (recommended for AI customization)" 
+              />
               <p className={styles.helpText}>Including the job description helps our AI tailor your resume perfectly</p>
-            </div>
-            <div className={styles.fieldGroup}>
-              <label htmlFor="additional_instructions" className={styles.label}>Additional Instructions</label>
-              <textarea id="additional_instructions" name="additional_instructions" value={formData.additional_instructions} onChange={handleChange}
-                rows={3} className={styles.textarea} placeholder="Any specific instructions for resume customization (optional)" />
-              <p className={styles.helpText}>e.g., "Emphasize leadership experience" or "Highlight Python skills"</p>
             </div>
           </div>
         );
+        
       case 2:
         return (
           <div className={styles.stepContent}>
-            <h3 className={styles.stepTitle}>Select Resume</h3>
-            <p className={styles.stepDescription}>Choose which resume and version to use for this application</p>
+            <h3 className={styles.stepTitle}>Select Resume & Customize</h3>
+            <p className={styles.stepDescription}>Choose your resume and decide if you want AI customization</p>
+            
             <div className={styles.formGrid}>
               <div className={styles.fieldGroup}>
                 <label htmlFor="resume_id" className={clsx(styles.label, styles.required)}>Resume</label>
-                <select id="resume_id" name="resume_id" value={formData.resume_id} onChange={handleChange}
-                  className={clsx(styles.select, errors.resume_id && styles.selectError)} required>
+                <select 
+                  id="resume_id" 
+                  name="resume_id" 
+                  value={formData.resume_id} 
+                  onChange={handleChange}
+                  className={clsx(styles.select, errors.resume_id && styles.selectError)} 
+                  required
+                >
                   <option value="">Select a resume</option>
                   {resumes.map(resume => (
-                    <option key={resume.id} value={resume.id}>{resume.title} {resume.is_default && '(Default)'}</option>
+                    <option key={resume.id} value={resume.id}>
+                      {resume.title} {resume.is_default && '(Default)'}
+                    </option>
                   ))}
                 </select>
                 {errors.resume_id && <p className={styles.error}>{errors.resume_id}</p>}
               </div>
+              
               <div className={styles.fieldGroup}>
                 <label htmlFor="resume_version_id" className={clsx(styles.label, styles.required)}>Version</label>
-                <select id="resume_version_id" name="resume_version_id" value={formData.resume_version_id} onChange={handleChange}
-                  disabled={!formData.resume_id} className={clsx(styles.select, errors.resume_version_id && styles.selectError, !formData.resume_id && styles.selectDisabled)} required>
+                <select 
+                  id="resume_version_id" 
+                  name="resume_version_id" 
+                  value={formData.resume_version_id} 
+                  onChange={handleChange}
+                  disabled={!formData.resume_id} 
+                  className={clsx(
+                    styles.select, 
+                    errors.resume_version_id && styles.selectError, 
+                    !formData.resume_id && styles.selectDisabled
+                  )} 
+                  required
+                >
                   <option value="">Select version</option>
                   {resumeVersions.map(version => (
-                    <option key={version.id} value={version.id}>{version.version} {version.is_original && '(Original)'}{version.job_description && ' - Customized'}</option>
+                    <option key={version.id} value={version.id}>
+                      {version.version} {version.is_original && '(Original)'}
+                      {version.job_description && ' - Customized'}
+                    </option>
                   ))}
                 </select>
                 {errors.resume_version_id && <p className={styles.error}>{errors.resume_version_id}</p>}
               </div>
             </div>
-            {formData.resume_id && (
-              <div className={styles.resumePreview}>
-                <h4 className={styles.previewTitle}>Resume Preview</h4>
-                <p className={styles.previewDescription}>Selected: {resumes.find(r => r.id == formData.resume_id)?.title}</p>
+            
+            <div className={styles.customizationSection}>
+              <div className={styles.customizationOption}>
+                <label className={styles.checkboxLabel}>
+                  <input 
+                    type="checkbox" 
+                    name="customize_resume" 
+                    checked={formData.customize_resume} 
+                    onChange={handleChange} 
+                    className={styles.checkbox} 
+                  />
+                  <span className={styles.checkboxText}>
+                    <strong>Customize resume using AI</strong>
+                  </span>
+                </label>
+                <p className={styles.helpText}>
+                  Create a tailored version optimized for this specific {formData.company || 'company'} position
+                  {formData.customize_resume && formData.company && 
+                    ` (will be saved as "v${resumeVersions.length + 1} - ${formData.company}")`
+                  }
+                </p>
               </div>
-            )}
-          </div>
-        );
-      case 3:
-        return (
-          <div className={styles.stepContent}>
-            <h3 className={styles.stepTitle}>Customize Resume (Optional)</h3>
-            <p className={styles.stepDescription}>Let AI tailor your resume specifically for this {formData.company} {formData.position} position</p>
-            <div className={styles.customizationOption}>
-              <label className={styles.checkboxLabel}>
-                <input type="checkbox" name="customize_resume" checked={formData.customize_resume} onChange={handleChange} className={styles.checkbox} />
-                <span className={styles.checkboxText}>Create a customized version of my resume for this application</span>
-              </label>
-              <p className={styles.helpText}>This will create a new version called "v{resumeVersions.length + 1} - {formData.company}" that's optimized for this specific job</p>
-            </div>
-            {formData.customize_resume && (
-              <div className={styles.customizationPreview}>
-                <div className={styles.previewHeader}>
-                  <h4 className={styles.previewTitle}>AI Customization Preview</h4>
-                  {!customizationPreview && (
-                    <button type="button" onClick={handleCustomizationPreview} disabled={isCustomizing || !formData.job_description.trim()} className={styles.previewButton}>
-                      {isCustomizing ? (<><LoadingSpinner size="sm" className={styles.spinner} />Generating Preview...</>) : ('Generate Preview')}
-                    </button>
+              
+              {formData.customize_resume && (
+                <div className={styles.additionalInstructions}>
+                  <label htmlFor="additional_instructions" className={styles.label}>
+                    Additional Instructions (Optional)
+                  </label>
+                  <textarea 
+                    id="additional_instructions" 
+                    name="additional_instructions" 
+                    value={formData.additional_instructions} 
+                    onChange={handleChange}
+                    rows={3} 
+                    className={styles.textarea} 
+                    placeholder='e.g., "Emphasize leadership experience" or "Highlight Python skills"' 
+                  />
+                  <p className={styles.helpText}>
+                    Provide specific instructions for how you want your resume customized
+                  </p>
+                  
+                  {!formData.job_description.trim() && (
+                    <div className={styles.warningMessage}>
+                      <svg className={styles.warningIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                        />
+                      </svg>
+                      <span>
+                        Job description is required for AI customization. Please go back to Step 1 to add it.
+                      </span>
+                    </div>
                   )}
                 </div>
-                {!formData.job_description.trim() && (
-                  <div className={styles.warningMessage}>
-                    <svg className={styles.warningIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Job description is required for AI customization. Please go back to Step 1 to add it.</span>
-                  </div>
-                )}
-                {customizationPreview && (
-                  <div className={styles.previewContent}>
-                    <div className={styles.previewText}>
-                      <h5>Customized Resume Preview:</h5>
-                      <div className={styles.markdownPreview}>
-                        {customizationPreview.split('\n').slice(0, 10).map((line, index) => (<p key={index}>{line}</p>))}
-                        {customizationPreview.split('\n').length > 10 && (<p className={styles.truncated}>... (truncated for preview)</p>)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {errors.customization && (
-                  <div className={styles.errorMessage}>
-                    <svg className={styles.errorIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{errors.customization}</span>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         );
-      case 4:
+        
+      case 3:
         return (
           <div className={styles.stepContent}>
             <h3 className={styles.stepTitle}>Review & Create</h3>
             <p className={styles.stepDescription}>Review your application details before creating</p>
+            
             <div className={styles.reviewGrid}>
               <div className={styles.reviewSection}>
                 <h4 className={styles.reviewSectionTitle}>Job Information</h4>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Company:</span><span className={styles.reviewValue}>{formData.company}</span></div>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Position:</span><span className={styles.reviewValue}>{formData.position}</span></div>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Job Description:</span>
-                  <span className={styles.reviewValue}>{formData.job_description ? `${formData.job_description.substring(0, 100)}${formData.job_description.length > 100 ? '...' : ''}` : 'Not provided'}</span>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Company:</span>
+                  <span className={styles.reviewValue}>{formData.company}</span>
                 </div>
-              </div>
-              <div className={styles.reviewSection}>
-                <h4 className={styles.reviewSectionTitle}>Resume Selection</h4>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Resume:</span><span className={styles.reviewValue}>{resumes.find(r => r.id == formData.resume_id)?.title || 'Unknown'}</span></div>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Version:</span><span className={styles.reviewValue}>{resumeVersions.find(v => v.id == formData.resume_version_id)?.version || 'Unknown'}</span></div>
-                <div className={styles.reviewItem}><span className={styles.reviewLabel}>Customization:</span>
-                  <span className={clsx(styles.reviewValue, formData.customize_resume ? styles.customizationEnabled : styles.customizationDisabled)}>
-                    {formData.customize_resume ? `Yes - Will create "v${resumeVersions.length + 1} - ${formData.company}"` : 'No - Using original version'}
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Position:</span>
+                  <span className={styles.reviewValue}>{formData.position}</span>
+                </div>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Job Description:</span>
+                  <span className={styles.reviewValue}>
+                    {formData.job_description 
+                      ? `${formData.job_description.substring(0, 100)}${formData.job_description.length > 100 ? '...' : ''}` 
+                      : 'Not provided'
+                    }
                   </span>
                 </div>
               </div>
+              
+              <div className={styles.reviewSection}>
+                <h4 className={styles.reviewSectionTitle}>Resume Selection</h4>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Resume:</span>
+                  <span className={styles.reviewValue}>
+                    {resumes.find(r => r.id == formData.resume_id)?.title || 'Unknown'}
+                  </span>
+                </div>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Version:</span>
+                  <span className={styles.reviewValue}>
+                    {resumeVersions.find(v => v.id == formData.resume_version_id)?.version || 'Unknown'}
+                  </span>
+                </div>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Customization:</span>
+                  <span className={clsx(
+                    styles.reviewValue, 
+                    formData.customize_resume ? styles.customizationEnabled : styles.customizationDisabled
+                  )}>
+                    {formData.customize_resume 
+                      ? `Yes - Will create "v${resumeVersions.length + 1} - ${formData.company}"` 
+                      : 'No - Using selected version as-is'
+                    }
+                  </span>
+                </div>
+                {formData.customize_resume && formData.additional_instructions && (
+                  <div className={styles.reviewItem}>
+                    <span className={styles.reviewLabel}>AI Instructions:</span>
+                    <span className={styles.reviewValue}>
+                      {formData.additional_instructions.substring(0, 100)}
+                      {formData.additional_instructions.length > 100 && '...'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
+            
             <div className={styles.formGrid}>
               <div className={styles.fieldGroup}>
                 <label htmlFor="status" className={styles.label}>Status</label>
-                <select id="status" name="status" value={formData.status} onChange={handleChange} className={styles.select}>
+                <select 
+                  id="status" 
+                  name="status" 
+                  value={formData.status} 
+                  onChange={handleChange} 
+                  className={styles.select}
+                >
                   <option value={APPLICATION_STATUS.APPLIED}>Applied</option>
                   <option value={APPLICATION_STATUS.INTERVIEWING}>Interviewing</option>
                   <option value={APPLICATION_STATUS.OFFER}>Offer</option>
@@ -332,19 +407,39 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
                   <option value={APPLICATION_STATUS.WITHDRAWN}>Withdrawn</option>
                 </select>
               </div>
+              
               <div className={styles.fieldGroup}>
-                <label htmlFor="applied_date" className={clsx(styles.label, styles.required)}>Applied Date</label>
-                <input type="date" id="applied_date" name="applied_date" value={formData.applied_date} onChange={handleChange}
-                  className={clsx(styles.input, errors.applied_date && styles.inputError)} required />
+                <label htmlFor="applied_date" className={clsx(styles.label, styles.required)}>
+                  Applied Date
+                </label>
+                <input 
+                  type="date" 
+                  id="applied_date" 
+                  name="applied_date" 
+                  value={formData.applied_date} 
+                  onChange={handleChange}
+                  className={clsx(styles.input, errors.applied_date && styles.inputError)} 
+                  required 
+                />
                 {errors.applied_date && <p className={styles.error}>{errors.applied_date}</p>}
               </div>
             </div>
+            
             <div className={styles.fieldGroup}>
               <label htmlFor="notes" className={styles.label}>Notes</label>
-              <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows={3} className={styles.textarea} placeholder="Any additional notes about this application" />
+              <textarea 
+                id="notes" 
+                name="notes" 
+                value={formData.notes} 
+                onChange={handleChange} 
+                rows={3} 
+                className={styles.textarea} 
+                placeholder="Any additional notes about this application" 
+              />
             </div>
           </div>
         );
+        
       default:
         return null;
     }
@@ -352,12 +447,26 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
 
   return (
     <div className={styles.wizard}>
+      {/* Progress Bar */}
       <div className={styles.progressContainer}>
         <div className={styles.progressBar}>
           {steps.map((step) => (
-            <div key={step.number} className={clsx(styles.progressStep, currentStep >= step.number && styles.progressStepActive, currentStep > step.number && styles.progressStepCompleted)}>
+            <div 
+              key={step.number} 
+              className={clsx(
+                styles.progressStep,
+                currentStep >= step.number && styles.progressStepActive,
+                currentStep > step.number && styles.progressStepCompleted
+              )}
+            >
               <div className={styles.progressStepNumber}>
-                {currentStep > step.number ? (<svg className={styles.checkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>) : (step.number)}
+                {currentStep > step.number ? (
+                  <svg className={styles.checkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  step.number
+                )}
               </div>
               <div className={styles.progressStepContent}>
                 <div className={styles.progressStepTitle}>{step.title}</div>
@@ -367,19 +476,49 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
           ))}
         </div>
       </div>
+
+      {/* Error Alert */}
       {errors.general && (
         <div className={styles.errorAlert}>
           <svg className={styles.errorIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+            />
           </svg>
           <span>{errors.general}</span>
         </div>
       )}
-      <div className={styles.stepContainer}>{renderStep()}</div>
+
+      {/* Step Content */}
+      <div className={styles.stepContainer}>
+        {renderStep()}
+      </div>
+
+      {/* Loading Overlay */}
+      {submitting && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingContent}>
+            <LoadingSpinner size="lg" />
+            <p className={styles.loadingText}>
+              {formData.customize_resume 
+                ? 'Creating application and customizing resume with AI...' 
+                : 'Creating application...'
+              }
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
       <div className={styles.navigation}>
         <div className={styles.navigationLeft}>
           {currentStep > 1 && (
-            <button type="button" onClick={handlePrevious} className={styles.previousButton} disabled={loading}>
+            <button 
+              type="button" 
+              onClick={handlePrevious} 
+              className={styles.previousButton} 
+              disabled={submitting}
+            >
               <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
@@ -387,17 +526,37 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
             </button>
           )}
         </div>
+        
         <div className={styles.navigationRight}>
-          <button type="button" onClick={() => navigate('/applications')} className={styles.cancelButton} disabled={loading}>Cancel</button>
-          {currentStep < 4 ? (
-            <button type="button" onClick={handleNext} className={styles.nextButton} disabled={loading}>Next
+          <button 
+            type="button" 
+            onClick={() => navigate('/applications')} 
+            className={styles.cancelButton} 
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          
+          {currentStep < 3 ? (
+            <button 
+              type="button" 
+              onClick={handleNext} 
+              className={styles.nextButton} 
+              disabled={submitting}
+            >
+              Next
               <svg className={styles.buttonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           ) : (
-            <button type="button" onClick={handleSubmit} disabled={loading} className={styles.submitButton}>
-              {loading && <LoadingSpinner size="sm" className={styles.spinner} />}
+            <button 
+              type="button" 
+              onClick={handleSubmit} 
+              disabled={submitting} 
+              className={styles.submitButton}
+            >
+              {submitting && <LoadingSpinner size="sm" className={styles.spinner} />}
               Create Application
             </button>
           )}

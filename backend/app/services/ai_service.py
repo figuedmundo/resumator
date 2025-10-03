@@ -60,6 +60,8 @@ Rules:
 - Ensure contact details are unchanged unless explicitly provided.
 - Use American English.
 
+{custom_instructions}
+
 Resume Content:
 {resume_markdown}
 
@@ -86,16 +88,34 @@ Generate a professional cover letter:"""
     def rewrite_resume(self, resume_markdown: str, job_description: str, instructions: Optional[Dict] = None) -> str:
         """Return rewritten resume markdown tailored to the JD."""
         try:
+            # Extract and format custom instructions
+            custom_instructions_text = ""
+            if instructions:
+                # Handle both dict and string types
+                if isinstance(instructions, dict):
+                    # Extract from common keys
+                    instruction_value = instructions.get('custom_instructions') or instructions.get('additional_instructions') or str(instructions)
+                else:
+                    instruction_value = str(instructions)
+                
+                if instruction_value:
+                    custom_instructions_text = f"""🔴 CRITICAL CUSTOM INSTRUCTIONS - HIGHEST PRIORITY 🔴
+You MUST follow these specific user instructions EXACTLY as specified.
+These instructions override standard rules if there's a conflict.
+
+CUSTOM INSTRUCTIONS:
+{instruction_value}
+
+⚠️ IMPORTANT: Apply the above instructions IMMEDIATELY to the resume customization.
+================================"""
+            
             # Load and format the prompt template
             prompt_template = self._load_prompt_template("rewrite_resume")
             prompt = prompt_template.format(
                 resume_markdown=resume_markdown,
-                job_description=job_description
+                job_description=job_description,
+                custom_instructions=custom_instructions_text
             )
-            
-            # Add any additional instructions
-            if instructions:
-                prompt += f"\n\nAdditional Instructions: {instructions}"
             
             # Make the API call
             chat_completion = self.client.chat.completions.create(

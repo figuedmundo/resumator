@@ -254,17 +254,37 @@ class ApplicationService:
         meta: Optional[Dict[str, Any]] = None
     ) -> Application:
         """Create an application record (legacy method for backward compatibility)."""
-        return self.create_application_with_customization(
-            user_id=user_id,
-            company=company,
-            position=position,
-            job_description=jd,
-            resume_id=0,  # Will be derived from version
-            original_version_id=resume_version_id,
-            customize_resume=False,
-            cover_letter_id=cover_letter_id,
-            meta=meta
-        )
+        db = self._get_db()
+        
+        try:
+            # Get the resume_id from the resume_version_id
+            version = db.query(ResumeVersion).filter(
+                ResumeVersion.id == resume_version_id
+            ).first()
+            
+            if not version:
+                raise ValidationError("Resume version not found")
+            
+            resume_id = version.resume_id
+            
+            # Now call the full method with proper parameters
+            return self.create_application_with_customization(
+                user_id=user_id,
+                company=company,
+                position=position,
+                job_description=jd,
+                resume_id=resume_id,  # Now properly derived
+                original_version_id=resume_version_id,
+                customize_resume=False,
+                cover_letter_id=cover_letter_id,
+                meta=meta
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to create application: {e}")
+            if isinstance(e, ValidationError):
+                raise
+            raise ValidationError(f"Failed to create application: {str(e)}")
     
     def delete_application(
         self, 

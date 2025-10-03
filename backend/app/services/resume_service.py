@@ -147,10 +147,18 @@ class ResumeService:
                 raise ValidationError("No resume version found")
             
             # Generate customized resume using AI (NO DATABASE SAVE)
+            # Format instructions properly for the AI service
+            formatted_instructions = None
+            if instructions:
+                if isinstance(instructions, str):
+                    formatted_instructions = {'custom_instructions': instructions}
+                elif isinstance(instructions, dict):
+                    formatted_instructions = instructions
+            
             customized_markdown = self.ai_client.rewrite_resume(
                 latest_version.markdown_content, 
                 job_description, 
-                instructions
+                formatted_instructions
             )
             
             logger.info(f"Generated preview customization for resume {resume_id} (not saved)")
@@ -224,10 +232,18 @@ class ResumeService:
                 raise ValidationError("No resume version found")
             
             # Generate customized resume using AI
+            # Format instructions properly for the AI service
+            formatted_instructions = None
+            if instructions:
+                if isinstance(instructions, str):
+                    formatted_instructions = {'custom_instructions': instructions}
+                elif isinstance(instructions, dict):
+                    formatted_instructions = instructions
+            
             customized_markdown = self.ai_client.rewrite_resume(
                 latest_version.markdown_content, 
                 job_description, 
-                instructions
+                formatted_instructions
             )
             
             # Generate new version number
@@ -800,15 +816,21 @@ class ResumeService:
             # Generate customized markdown if not provided
             if not customized_markdown:
                 # Prepare customization instructions
-                instructions = {}
+                formatted_instructions = None
                 if additional_instructions:
-                    instructions['custom_instructions'] = additional_instructions
+                    # Handle both string and dict types
+                    if isinstance(additional_instructions, str):
+                        formatted_instructions = {'custom_instructions': additional_instructions}
+                    elif isinstance(additional_instructions, dict):
+                        formatted_instructions = additional_instructions
+                    else:
+                        formatted_instructions = {'custom_instructions': str(additional_instructions)}
                 
                 # Generate customized resume using AI
                 customized_markdown = self.ai_client.rewrite_resume(
                     original_version.markdown_content, 
                     job_description, 
-                    instructions
+                    formatted_instructions
                 )
             
             # Generate new version name with company
