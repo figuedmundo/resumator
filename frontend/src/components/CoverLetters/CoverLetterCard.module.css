@@ -1,0 +1,137 @@
+/**
+ * CoverLetterCard Component Styles
+ * Card display for individual cover letters
+ */
+
+.card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden;
+}
+
+.cardContent {
+  @apply p-4;
+}
+
+.header {
+  @apply flex justify-between items-start mb-4;
+}
+
+.titleSection {
+  @apply flex-1;
+}
+
+.title {
+  @apply text-lg font-semibold text-gray-900 mb-1;
+}
+
+.date {
+  @apply text-xs text-gray-500;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 ml-2;
+}
+
+.details {
+  @apply space-y-2 mb-4 pb-4 border-b border-gray-100;
+}
+
+.detailItem {
+  @apply flex items-center text-sm;
+}
+
+.label {
+  @apply font-medium text-gray-600 w-20;
+}
+
+.value {
+  @apply text-gray-900;
+}
+
+.preview {
+  @apply mb-4;
+}
+
+.previewText {
+  @apply text-sm text-gray-600 line-clamp-2 leading-relaxed;
+}
+
+.actions {
+  @apply flex gap-2 p-4 bg-gray-50 border-t border-gray-100;
+}
+
+.button {
+  @apply flex items-center justify-center gap-1 px-3 py-2 rounded-md text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  flex: 1;
+}
+
+.buttonPrimary {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.buttonSecondary {
+  @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
+}
+
+.buttonDanger {
+  @apply bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.icon {
+  @apply text-base;
+}
+
+/* Dark mode */
+.dark .card {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .date {
+  @apply text-gray-400;
+}
+
+.dark .badge {
+  @apply bg-blue-900 bg-opacity-30 text-blue-300 border-blue-600;
+}
+
+.dark .details {
+  @apply border-gray-700;
+}
+
+.dark .label {
+  @apply text-gray-400;
+}
+
+.dark .value {
+  @apply text-gray-200;
+}
+
+.dark .previewText {
+  @apply text-gray-400;
+}
+
+.dark .actions {
+  @apply bg-gray-700 border-gray-700;
+}
+
+.dark .buttonSecondary {
+  @apply bg-gray-600 text-gray-100 hover:bg-gray-500;
+}
+
+.dark .buttonDanger {
+  @apply bg-red-900 bg-opacity-30 text-red-300 hover:bg-red-900 hover:bg-opacity-50;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .actions {
+    @apply flex-col;
+  }
+
+  .button {
+    @apply w-full;
+  }
+}

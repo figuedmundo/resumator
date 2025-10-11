@@ -19,6 +19,9 @@ import ApplicationsPage from './pages/Applications/ApplicationsPage';
 import ApplicationFormPage from './pages/ApplicationForm/ApplicationFormPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import ApplicationDetailPage from './pages/ApplicationDetail/ApplicationDetailPage';
+import CoverLettersPage from './pages/CoverLetters/CoverLettersPage';
+import CoverLetterEditorPage from './pages/CoverLetters/CoverLetterEditorPage';
+import CoverLetterGeneratePage from './pages/CoverLetters/CoverLetterGeneratePage';
 
 // 404 page
 import NotFoundPage from './pages/NotFound/NotFoundPage';
@@ -231,6 +234,46 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <ProfilePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cover-letters"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <CoverLettersPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cover-letters/new"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <CoverLetterEditorPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cover-letters/generate"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <CoverLetterGeneratePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cover-letters/:id/edit"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <CoverLetterEditorPage />
               </AppLayout>
             </ProtectedRoute>
           }

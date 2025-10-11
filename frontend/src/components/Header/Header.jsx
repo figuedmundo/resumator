@@ -34,6 +34,7 @@ export default function Header() {
   const navigationItems = [
     { name: 'Dashboard', href: '/', current: location.pathname === '/' },
     { name: 'Resumes', href: '/resumes', current: location.pathname.startsWith('/resumes') },
+    { name: 'Cover Letters', href: '/cover-letters', current: location.pathname.startsWith('/cover-letters') },
     { name: 'Applications', href: '/applications', current: location.pathname.startsWith('/applications') },
   ];
 

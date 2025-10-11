@@ -293,6 +293,62 @@ class ApiService {
     return response.data;
   }
 
+  // Cover Letter CRUD endpoints
+  async getCoverLetters(params = {}) {
+    const response = await this.api.get('/api/v1/cover-letters', { params });
+    return response.data;
+  }
+
+  async getCoverLetter(id) {
+    const response = await this.api.get(`/api/v1/cover-letters/${id}`);
+    return response.data;
+  }
+
+  async createCoverLetter(data) {
+    const response = await this.api.post('/api/v1/cover-letters', data);
+    return response.data;
+  }
+
+  async updateCoverLetter(id, data) {
+    const response = await this.api.put(`/api/v1/cover-letters/${id}`, data);
+    return response.data;
+  }
+
+  async deleteCoverLetter(id) {
+    const response = await this.api.delete(`/api/v1/cover-letters/${id}`);
+    return response.data;
+  }
+
+  // Cover Letter generation endpoints
+  async generateCoverLetterAI(data) {
+    const response = await this.api.post('/api/v1/cover-letters/generate', data);
+    return response.data;
+  }
+
+  async customizeCoverLetterContent(id, data) {
+    const response = await this.api.post(`/api/v1/cover-letters/${id}/customize`, data);
+    return response.data;
+  }
+
+  // Cover Letter template endpoints
+  async getCoverLetterTemplates() {
+    const response = await this.api.get('/api/v1/cover-letters/templates');
+    return response.data;
+  }
+
+  // Application integration endpoints
+  async getApplicationCoverLetter(applicationId) {
+    const response = await this.api.get(`/api/v1/applications/${applicationId}/cover-letter`);
+    return response.data;
+  }
+
+  async downloadApplicationCoverLetter(applicationId) {
+    const response = await this.api.get(`/api/v1/applications/${applicationId}/cover-letter/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  }
+
   // Generic methods
   async get(endpoint, params = {}) {
     const response = await this.api.get(endpoint, { params });

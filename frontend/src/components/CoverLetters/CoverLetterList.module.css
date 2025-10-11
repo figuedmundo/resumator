@@ -1,0 +1,173 @@
+/**
+ * CoverLetterList Component Styles
+ * Filterable and searchable list of cover letters
+ */
+
+.listContainer {
+  @apply w-full;
+}
+
+/* Controls Section */
+.controlsSection {
+  @apply mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4;
+}
+
+.searchBox {
+  @apply relative mb-4;
+}
+
+.searchIcon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400;
+}
+
+.searchInput {
+  @apply w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.filtersRow {
+  @apply flex gap-3 flex-wrap items-center;
+}
+
+.filterSelect {
+  @apply flex-1 min-w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm;
+}
+
+.viewModeButtons {
+  @apply flex gap-2;
+}
+
+.viewButton {
+  @apply px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium;
+}
+
+.viewButtonActive {
+  @apply bg-blue-100 border-blue-500 text-blue-700;
+}
+
+.resultsInfo {
+  @apply text-sm text-gray-600 mt-3;
+}
+
+/* Loading State */
+.loadingContainer {
+  @apply flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200;
+}
+
+.spinner {
+  @apply w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  @apply mt-4 text-gray-600 font-medium;
+}
+
+/* Empty State */
+.emptyState {
+  @apply flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200 border-dashed;
+}
+
+.emptyIcon {
+  @apply text-5xl mb-4;
+}
+
+.emptyTitle {
+  @apply text-xl font-semibold text-gray-900 mb-2;
+}
+
+.emptyText {
+  @apply text-gray-600;
+}
+
+/* Letters List/Grid */
+.lettersList {
+  @apply gap-4;
+}
+
+.gridView {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.listView {
+  @apply flex flex-col;
+}
+
+/* Dark mode */
+.dark .controlsSection {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .searchInput {
+  @apply bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-400;
+}
+
+.dark .searchInput::placeholder {
+  @apply text-gray-500;
+}
+
+.dark .searchIcon {
+  @apply text-gray-500;
+}
+
+.dark .filterSelect {
+  @apply bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-400;
+}
+
+.dark .viewButton {
+  @apply border-gray-600 hover:bg-gray-700 text-gray-300;
+}
+
+.dark .viewButtonActive {
+  @apply bg-blue-900 border-blue-600 text-blue-300;
+}
+
+.dark .resultsInfo {
+  @apply text-gray-400;
+}
+
+.dark .loadingContainer {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .spinner {
+  @apply border-gray-700 border-t-blue-400;
+}
+
+.dark .loadingText {
+  @apply text-gray-400;
+}
+
+.dark .emptyState {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .emptyTitle {
+  @apply text-gray-100;
+}
+
+.dark .emptyText {
+  @apply text-gray-400;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .controlsSection {
+    @apply p-3;
+  }
+
+  .filtersRow {
+    @apply flex-col;
+  }
+
+  .filterSelect {
+    @apply w-full;
+  }
+
+  .gridView {
+    @apply grid-cols-1;
+  }
+}

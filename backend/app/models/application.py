@@ -5,6 +5,13 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
 
+# Import CoverLetter for type hints and relationships
+# Note: Actual import happens at runtime to avoid circular imports
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.cover_letter import CoverLetter
+
 
 class Application(Base):
     """Application model for tracking job applications.
@@ -86,21 +93,5 @@ class Application(Base):
         return f"<Application(id={self.id}, company='{self.company}', position='{self.position}')>"
 
 
-class CoverLetter(Base):
-    """Cover letter model for storing generated cover letters."""
-    
-    __tablename__ = "cover_letters"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    title = Column(String, nullable=False)
-    content = Column(Text, nullable=False)
-    template_used = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Relationships
-    user = relationship("User")
-    applications = relationship("Application", back_populates="cover_letter")
-    
-    def __repr__(self):
-        return f"<CoverLetter(id={self.id}, title='{self.title}')>"
+# CoverLetter model has been moved to app/models/cover_letter.py
+# This maintains backwards compatibility for imports

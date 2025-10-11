@@ -8,7 +8,8 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.application import (
     ApplicationCreate, ApplicationUpdate, ApplicationResponse, 
-    ApplicationListResponse, ApplicationStats, EnhancedApplicationResponse
+    ApplicationListResponse, ApplicationStats, EnhancedApplicationResponse,
+    ApplicationDetailedResponse, CoverLetterDownloadResponse
 )
 from app.services.application_service import ApplicationService
 from app.api.deps import get_current_active_user, get_application_service
@@ -25,7 +26,14 @@ async def create_application(
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Create a new job application with optional resume customization."""
+    """Create a new job application with optional resume and cover letter customization.
+    
+    Parameters:
+    - customize_resume: bool - Whether to customize resume for the job
+    - generate_cover_letter: bool - Whether to generate a cover letter using AI
+    - cover_letter_template_id: Optional[int] - Template ID for cover letter generation
+    - cover_letter_id: Optional[int] - Existing cover letter ID to attach
+    """
     try:
         if hasattr(application_create, 'customize_resume') and application_create.customize_resume:
             application = application_service.create_application_with_customization(
@@ -38,6 +46,8 @@ async def create_application(
                 customize_resume=True,
                 additional_instructions=application_create.additional_instructions,
                 cover_letter_id=application_create.cover_letter_id,
+                generate_cover_letter=application_create.generate_cover_letter,
+                cover_letter_template_id=application_create.cover_letter_template_id,
                 meta={
                     'notes': application_create.notes,
                     'applied_date': application_create.applied_date,
@@ -53,6 +63,8 @@ async def create_application(
                 jd=application_create.job_description or "",
                 resume_version_id=application_create.resume_version_id,
                 cover_letter_id=application_create.cover_letter_id,
+                generate_cover_letter=application_create.generate_cover_letter,
+                cover_letter_template_id=application_create.cover_letter_template_id,
                 meta={
                     'notes': application_create.notes,
                     'applied_date': application_create.applied_date,
@@ -203,20 +215,35 @@ async def get_applications_by_company(
         )
 
 
-@router.get("/{application_id}", response_model=ApplicationResponse)
+@router.get("/{application_id}", response_model=ApplicationDetailedResponse)
 async def get_application(
     application_id: int,
     current_user: User = Depends(get_current_active_user),
     application_service: ApplicationService = Depends(get_application_service)
 ):
-    """Get a specific application."""
+    """Get a specific application with cover letter details.
+    
+    Returns the application details along with associated cover letter content if available.
+    """
     try:
         application = application_service.get_application(
             user_id=current_user.id,
             application_id=application_id
         )
         
-        return ApplicationResponse.from_orm(application)
+        # Get cover letter if available
+        cover_letter_data = application_service.get_application_cover_letter(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        # Build response
+        response_data = ApplicationDetailedResponse.from_orm(application)
+        if cover_letter_data:
+            response_data.cover_letter_content = cover_letter_data.get('content')
+            response_data.cover_letter_title = cover_letter_data.get('title')
+        
+        return response_data
         
     except ApplicationNotFoundError as e:
         raise HTTPException(
@@ -256,6 +283,147 @@ async def get_enhanced_application(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get enhanced application"
+        )
+
+
+@router.get("/{application_id}/cover-letter")
+async def get_application_cover_letter(
+    application_id: int,
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Get the cover letter for a specific application.
+    
+    Returns the full cover letter content and metadata.
+    
+    Response:
+    {
+        "application_id": int,
+        "company": str,
+        "position": str,
+        "id": int,
+        "title": str,
+        "content": str,
+        "template_id": Optional[int],
+        "created_at": datetime,
+        "updated_at": datetime
+    }
+    """
+    try:
+        # Verify application exists and belongs to user
+        application = application_service.get_application(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        # Get cover letter
+        cover_letter = application_service.get_application_cover_letter(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        if not cover_letter:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No cover letter found for this application"
+            )
+        
+        return {
+            "application_id": application_id,
+            "company": application.company,
+            "position": application.position,
+            **cover_letter
+        }
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get cover letter for application {application_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get cover letter"
+        )
+
+
+@router.get("/{application_id}/cover-letter/download")
+async def download_application_cover_letter(
+    application_id: int,
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Download the cover letter for a specific application as PDF.
+    
+    Generates and returns a PDF file of the cover letter for the application.
+    The PDF includes professional formatting with company and position information.
+    """
+    from app.services.pdf_service import pdf_service
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    try:
+        # Verify application exists and belongs to user
+        application = application_service.get_application(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        # Get cover letter
+        cover_letter = application_service.get_application_cover_letter(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        if not cover_letter:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No cover letter found for this application"
+            )
+        
+        # Generate PDF
+        try:
+            pdf_bytes = pdf_service.generate_cover_letter_pdf(
+                content=cover_letter['content'],
+                company=application.company,
+                position=application.position,
+                title=cover_letter['title']
+            )
+        except AttributeError:
+            logger.warning("PDF service does not have generate_cover_letter_pdf method, generating from content")
+            # Fallback: generate PDF from cover letter content directly
+            pdf_bytes = pdf_service.generate_resume_pdf(
+                markdown_content=cover_letter['content'],
+                template_id="modern"
+            )
+        
+        # Create filename
+        filename = f"cover_letter_{application.company.replace(' ', '_')}_{application.position.replace(' ', '_')}.pdf"
+        
+        # Create streaming response
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download cover letter for application {application_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to download cover letter"
         )
 
 
@@ -390,7 +558,7 @@ async def delete_application(
     - Deletes the application
     - Deletes customized resume version (if not used by other applications)
     - Preserves original resume and original resume version
-    - Preserves cover letter
+    - Preserves cover letter (may be used by other applications)
     
     Use dry_run=true to preview what will be deleted.
     """

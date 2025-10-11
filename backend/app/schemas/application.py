@@ -22,6 +22,8 @@ class ApplicationCreate(ApplicationBase):
     cover_letter_id: Optional[int] = None
     additional_instructions: Optional[str] = None
     customize_resume: bool = False
+    generate_cover_letter: bool = False
+    cover_letter_template_id: Optional[int] = None
 
 
 class ApplicationUpdate(BaseModel):
@@ -33,6 +35,16 @@ class ApplicationUpdate(BaseModel):
     applied_date: Optional[date] = None
     notes: Optional[str] = None
     additional_instructions: Optional[str] = None
+
+
+class CoverLetterSummary(BaseModel):
+    """Schema for cover letter summary in application response."""
+    id: int
+    title: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 
 class ApplicationResponse(ApplicationBase):
@@ -74,3 +86,23 @@ class EnhancedApplicationResponse(ApplicationResponse):
     resume_version_name: Optional[str] = None
     customized_version_name: Optional[str] = None
     can_download_resume: bool = True
+    cover_letter: Optional[CoverLetterSummary] = None
+
+
+class ApplicationDetailedResponse(ApplicationResponse):
+    """Detailed application response with full cover letter content."""
+    resume_title: Optional[str] = None
+    resume_version_name: Optional[str] = None
+    customized_version_name: Optional[str] = None
+    can_download_resume: bool = True
+    cover_letter_content: Optional[str] = None
+    cover_letter_title: Optional[str] = None
+
+
+class CoverLetterDownloadResponse(BaseModel):
+    """Schema for cover letter download metadata."""
+    title: str
+    company: str
+    position: str
+    content: str
+    generated_at: datetime

@@ -39,6 +39,8 @@ class ApplicationService:
         customize_resume: bool = False,
         additional_instructions: Optional[str] = None,
         cover_letter_id: Optional[int] = None,
+        generate_cover_letter: bool = False,
+        cover_letter_template_id: Optional[int] = None,
         meta: Optional[Dict[str, Any]] = None
     ) -> Application:
         """Create an application record with optional AI customization."""
@@ -88,13 +90,40 @@ class ApplicationService:
                 version_to_use = customized_version
                 customized_version_id = customized_version.id
             
+            # Generate cover letter if requested
+            generated_cover_letter_id = cover_letter_id
+            if generate_cover_letter:
+                from app.services.cover_letter_service import CoverLetterService
+                cover_letter_service = CoverLetterService(db)
+                
+                try:
+                    # Get resume content for AI generation
+                    resume_content = version_to_use.markdown_content if version_to_use else ""
+                    
+                    # Generate and save cover letter
+                    generated_cl = cover_letter_service.generate_and_save_cover_letter(
+                        user_id=user_id,
+                        company=company,
+                        position=position,
+                        job_description=job_description,
+                        resume_content=resume_content,
+                        template_id=cover_letter_template_id
+                    )
+                    
+                    generated_cover_letter_id = generated_cl.id
+                    logger.info(f"Generated cover letter {generated_cover_letter_id} for application")
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to generate cover letter: {e}")
+                    # Continue with application creation without cover letter
+            
             # Create application
             application = Application(
                 user_id=user_id,
                 resume_id=resume_id,
                 resume_version_id=original_version_id,  # Always reference original
                 customized_resume_version_id=customized_version_id,  # Reference customized if created
-                cover_letter_id=cover_letter_id,
+                cover_letter_id=generated_cover_letter_id,
                 company=company,
                 position=position,
                 job_description=job_description,
@@ -250,7 +279,9 @@ class ApplicationService:
         position: str, 
         jd: str, 
         resume_version_id: int, 
-        cover_letter_id: Optional[int] = None, 
+        cover_letter_id: Optional[int] = None,
+        generate_cover_letter: bool = False,
+        cover_letter_template_id: Optional[int] = None,
         meta: Optional[Dict[str, Any]] = None
     ) -> Application:
         """Create an application record (legacy method for backward compatibility)."""
@@ -277,6 +308,8 @@ class ApplicationService:
                 original_version_id=resume_version_id,
                 customize_resume=False,
                 cover_letter_id=cover_letter_id,
+                generate_cover_letter=generate_cover_letter,
+                cover_letter_template_id=cover_letter_template_id,
                 meta=meta
             )
             
@@ -677,3 +710,43 @@ class ApplicationService:
         except Exception as e:
             logger.error(f"Failed to get applications for company {company}: {e}")
             return []
+    
+    def get_application_cover_letter(self, user_id: int, application_id: int) -> Optional[Dict[str, Any]]:
+        """Get the cover letter associated with an application.
+        
+        Returns the cover letter details if found, None otherwise.
+        """
+        from app.models.cover_letter import CoverLetter
+        
+        db = self._get_db()
+        
+        try:
+            # Verify application ownership
+            application = self.get_application(user_id, application_id)
+            
+            if not application.cover_letter_id:
+                return None
+            
+            # Get cover letter
+            cover_letter = db.query(CoverLetter).filter(
+                and_(
+                    CoverLetter.id == application.cover_letter_id,
+                    CoverLetter.user_id == user_id
+                )
+            ).first()
+            
+            if not cover_letter:
+                return None
+            
+            return {
+                'id': cover_letter.id,
+                'title': cover_letter.title,
+                'content': cover_letter.content,
+                'template_id': cover_letter.template_id,
+                'created_at': cover_letter.created_at.isoformat() if cover_letter.created_at else None,
+                'updated_at': cover_letter.updated_at.isoformat() if cover_letter.updated_at else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get cover letter for application {application_id}: {e}")
+            return None

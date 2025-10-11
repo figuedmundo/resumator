@@ -1,0 +1,183 @@
+/**
+ * CoverLetterEditor Component Styles
+ * Rich text editor for cover letters
+ */
+
+.editor {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+}
+
+.header {
+  @apply mb-6;
+}
+
+.title {
+  @apply text-2xl font-bold text-gray-900 mb-2;
+}
+
+.subtitle {
+  @apply text-sm text-gray-600;
+}
+
+.editorContainer {
+  @apply mb-6 border border-gray-200 rounded-md overflow-hidden;
+}
+
+.textarea {
+  @apply w-full p-4 min-h-96 font-mono text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset resize-vertical;
+}
+
+.textarea::placeholder {
+  @apply text-gray-400;
+}
+
+.textarea:disabled {
+  @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+}
+
+/* Template Variables Section */
+.variablesSection {
+  @apply mb-6 bg-gray-50 rounded-md border border-gray-200 p-4;
+}
+
+.variablesToggle {
+  @apply w-full flex items-center justify-between p-2 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-gray-900;
+}
+
+.toggleIcon {
+  @apply inline-block mr-2 text-sm;
+  transition: transform 0.2s;
+}
+
+.variablesList {
+  @apply grid grid-cols-2 md:grid-cols-3 gap-2 mt-4;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.variableButton {
+  @apply flex flex-col items-start p-2 bg-white border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.variableLabel {
+  @apply text-xs font-medium text-gray-700 mb-1;
+}
+
+.variableCode {
+  @apply text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded;
+}
+
+/* Actions */
+.actions {
+  @apply flex gap-3 mb-4;
+}
+
+.button {
+  @apply flex-1 px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.buttonPrimary {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+.info {
+  @apply p-3 bg-blue-50 border border-blue-200 rounded-md;
+}
+
+.infoText {
+  @apply text-xs text-blue-800 font-medium;
+}
+
+/* Dark mode */
+.dark .editor {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .title {
+  @apply text-gray-100;
+}
+
+.dark .subtitle {
+  @apply text-gray-400;
+}
+
+.dark .editorContainer {
+  @apply border-gray-700;
+}
+
+.dark .textarea {
+  @apply bg-gray-700 text-gray-100 focus:ring-blue-400;
+}
+
+.dark .textarea::placeholder {
+  @apply text-gray-500;
+}
+
+.dark .textarea:disabled {
+  @apply bg-gray-600 text-gray-400;
+}
+
+.dark .variablesSection {
+  @apply bg-gray-700 border-gray-600;
+}
+
+.dark .variablesToggle {
+  @apply text-gray-100 hover:bg-gray-600;
+}
+
+.dark .variableButton {
+  @apply bg-gray-600 border-gray-500 hover:bg-blue-900 hover:border-blue-700;
+}
+
+.dark .variableLabel {
+  @apply text-gray-300;
+}
+
+.dark .variableCode {
+  @apply text-blue-400 bg-blue-900 bg-opacity-30;
+}
+
+.dark .buttonPrimary {
+  @apply bg-blue-600 hover:bg-blue-700;
+}
+
+.dark .info {
+  @apply bg-blue-900 bg-opacity-20 border-blue-700 border-opacity-50;
+}
+
+.dark .infoText {
+  @apply text-blue-300;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .editor {
+    @apply p-4;
+  }
+
+  .textarea {
+    @apply min-h-64;
+  }
+
+  .variablesList {
+    @apply grid-cols-1;
+  }
+
+  .actions {
+    @apply flex-col;
+  }
+
+  .button {
+    @apply w-full;
+  }
+}
