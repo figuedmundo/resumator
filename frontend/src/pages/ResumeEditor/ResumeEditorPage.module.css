@@ -174,16 +174,16 @@
 
 /* Editor Area - Simplified without split view */
 .editorArea {
-  @apply flex-1 flex max-w-6xl mx-auto w-full h-full bg-white;
+  @apply flex-1 flex w-full h-full bg-white overflow-auto;
 }
 
 /* Editor Panel - Only full width now */
 .editorPanelFull {
-  @apply w-full h-full overflow-hidden;
+  @apply w-full h-full overflow-auto;
 }
 
 .editorWrapper {
-  @apply h-full;
+  @apply h-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
 /* Preview Panel - Only full width now */
@@ -192,7 +192,7 @@
 }
 
 .previewContent {
-  @apply max-w-4xl mx-auto p-4 sm:p-6 lg:p-8;
+  @apply max-w-screen-xl mx-auto px-4 sm:px-6 lg:p-8 py-6;
 }
 
 .previewProse {
@@ -330,7 +330,7 @@
 
 /* Improved CodeMirror integration */
 .editorWrapper :global(.cm-editor) {
-  @apply h-full;
+  @apply h-full w-full;
 }
 
 .editorWrapper :global(.cm-scroller) {
@@ -338,7 +338,11 @@
 }
 
 .editorWrapper :global(.cm-content) {
-  @apply p-4 sm:p-6;
+  @apply p-4 sm:p-6 lg:p-8;
+}
+
+.editorWrapper :global(.cm-line) {
+  @apply break-words;
 }
 
 /* Print styles for preview mode */

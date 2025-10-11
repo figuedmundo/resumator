@@ -669,6 +669,7 @@ Write a brief summary of your professional background, key skills, and career ob
                   onChange={(value) => setContent(value)}
                   extensions={[
                     markdown(),
+                    EditorView.lineWrapping,
                     EditorView.theme({
                       '&': {
                         fontSize: '14px',
