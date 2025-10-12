@@ -24,7 +24,7 @@
 }
 
 .textarea {
-  @apply w-full p-4 min-h-96 font-mono text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset resize-vertical;
+  @apply w-full p-4 min-h-96 font-mono text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset resize-y;
 }
 
 .textarea::placeholder {

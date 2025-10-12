@@ -6,7 +6,8 @@ from datetime import date, datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc
 from app.core.database import get_db
-from app.models.application import Application, CoverLetter
+from app.models.application import Application
+from app.models.cover_letter import CoverLetter
 from app.models.user import User
 from app.models.resume import Resume, ResumeVersion
 from app.core.exceptions import ApplicationNotFoundError, ValidationError, UnauthorizedError

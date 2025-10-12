@@ -58,7 +58,7 @@
 }
 
 .preview {
-  @apply bg-white p-8 rounded-lg font-serif text-gray-900 leading-relaxed line-height-relaxed;
+ @apply bg-white p-8 rounded-lg font-serif text-gray-900 leading-relaxed;
 }
 
 .line {

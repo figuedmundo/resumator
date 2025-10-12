@@ -25,7 +25,7 @@ export default function CoverLettersPage() {
       setIsLoading(true);
       setError(null);
       const response = await apiService.getCoverLetters();
-      setCoverLetters(response.coverLetters || response || []);
+      setCoverLetters(response.cover_letters || []);
     } catch (err) {
       setError(err.message);
     } finally {

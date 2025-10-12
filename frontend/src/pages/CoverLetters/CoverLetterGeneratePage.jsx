@@ -53,7 +53,7 @@ export default function CoverLetterGeneratePage() {
   const loadTemplates = async () => {
     try {
       const response = await apiService.getCoverLetterTemplates();
-      const templateList = response.templates || [];
+      const templateList = Array.isArray(response) ? response : [];
       setTemplates(templateList);
       if (templateList.length > 0 && !selectedTemplate) {
         setSelectedTemplate(templateList[0]);
@@ -61,6 +61,16 @@ export default function CoverLetterGeneratePage() {
     } catch (err) {
       console.error('Failed to load templates:', err);
       // Use default templates if API fails
+      const defaultTemplates = [
+        { id: 1, name: 'Professional', description: 'Classic and formal cover letter format' },
+        { id: 2, name: 'Modern', description: 'Contemporary style with clean formatting' },
+        { id: 3, name: 'Creative', description: 'Engaging format for creative roles' },
+        { id: 4, name: 'Concise', description: 'Straight to the point, for quick readers' }
+      ];
+      setTemplates(defaultTemplates);
+      if (!selectedTemplate) {
+        setSelectedTemplate(defaultTemplates[0]);
+      }
     }
   };
 
@@ -92,8 +102,8 @@ export default function CoverLetterGeneratePage() {
     }
 
     if (currentStep === 2) {
-      if (!jobDetails.company || !jobDetails.position) {
-        setError('Please fill in company and position');
+      if (!jobDetails.company || !jobDetails.position || !jobDetails.jobDescription.trim()) {
+        setError('Please fill in company, position, and job description');
         return;
       }
     }
@@ -132,9 +142,8 @@ export default function CoverLetterGeneratePage() {
         resumeContent = selectedResume.versions[0].markdown_content || '';
       }
 
-      const response = await apiService.generateCoverLetter({
+      const response = await apiService.generateCoverLetterAI({
         resume_id: selectedResume.id,
-        resume_content: resumeContent,
         company: jobDetails.company,
         position: jobDetails.position,
         job_description: jobDetails.jobDescription,
@@ -367,7 +376,7 @@ export default function CoverLetterGeneratePage() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Job Description (Optional)</label>
+                  <label className={styles.label}>Job Description *</label>
                   <textarea
                     className={styles.textarea}
                     value={jobDetails.jobDescription}

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from app.core.database import get_db
 from app.models.resume import Resume, ResumeVersion
-from app.models.application import CoverLetter
+from app.models.cover_letter import CoverLetter
 from app.schemas.resume import ResumeCreate, ResumeUpdate
 from app.core.exceptions import ResumeNotFoundError, ValidationError, UnauthorizedError
 from app.services.ai_service import AIGeneratorClient

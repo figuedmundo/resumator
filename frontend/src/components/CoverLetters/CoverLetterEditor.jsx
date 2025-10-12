@@ -78,7 +78,7 @@ export default function CoverLetterEditor({
     <div className={styles.editor}>
       <div className={styles.header}>
         <h2 className={styles.title}>Cover Letter Editor</h2>
-        <p className={styles.subtitle}>Use {{variable}} syntax to insert template variables</p>
+        <p className={styles.subtitle}>{`Use {{variable}} syntax to insert template variables`}</p>
       </div>
 
       <div className={styles.editorContainer}>
@@ -116,7 +116,7 @@ export default function CoverLetterEditor({
                 title={`Insert {{${variable.value}}}`}
               >
                 <span className={styles.variableLabel}>{variable.label}</span>
-                <code className={styles.variableCode}>{{'{{'}{variable.value}{'}}'}}}</code>
+                <code className={styles.variableCode}>{`{{${variable.value}}}`}</code>
               </button>
             ))}
           </div>
@@ -136,7 +136,7 @@ export default function CoverLetterEditor({
 
       <div className={styles.info}>
         <p className={styles.infoText}>
-          💡 Tip: Template variables like {{'{{'}}company{{'}}'}} will be automatically replaced when generating cover letters.
+          {`💡 Tip: Template variables like {{company}} will be automatically replaced when generating cover letters.`}
         </p>
       </div>
     </div>
