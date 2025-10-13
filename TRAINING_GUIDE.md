@@ -1,32 +1,39 @@
 # Resumator 
 You are helping with the development and refactoring of Resumator project, you are acting as a senior arquitect
-Please read the points below and I need that you create a plan to refactor the app according the points below, I need a plan of what need to be done, the changes that need to be done, divided in steps , and for each step I need a prompt for the AI (you) to train yourself in a new conversation about the plan for that (each) step. 
+Please read all the points below, analise and create a plan to refactor the app , I need a plan of what need to be done, the changes that need to be done, divided in steps , and for each step I need a prompt for the AI (you) to train yourself in a new conversation about the plan for that (each) step. 
 
 Paths: (you can read backend and frontend in 2 different times to do not overcharge)
 backend: "/Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend"
 frontend: "/Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend"
 Points:
 
-- Add Customize button in the ResumeViewPage, needs to customize the resume version currlently selected
+- There is a big issue in ResumeEditorPage, let me explain, When I am in the ResumeViewPage there is a selector where I can select and view the different versions of the resume (VersionPicker), and if I click the Edit button I am redirected to ResumeEditorPage , where first, I want to see and edit the version I had selected in ResumeViewPage (issue is that always the original come to the view) and if I save it the last customized version is overwritten , please IMPORTANT we should be able to see the correct version selected in the ResumeEditorPage, and of course save the correct version of the resume selected, also have the VersionPicker in the ResumeEditorPage
 
-- After The ai Customize the resume, in ResumeComparison the Original Resume is empty
+- Add the cover letters in the dashboard, and please revise the layout, mind the white spaces
 
-- After The ai Customize the resume, in ResumeComparison there is a button Discard changes , but even I clicked that button, the resume customized version is already saved.
-- After The ai Customize the resume, in ResumeComparison there is a button Save changes, after clicked I am redirected to ResumeCustomizePage, I would prefer be redirected to ResumeViewPage 
+- please lets revise and refactor the Cover letters work flow, doesnt make sense that to create a cover letter I need to select and insert {{company}}
 
-- I want be able to edit the resume customized in ResumeEditorPage (you can use the same version selector than in ResumeEditorPage)
+Position Title
+{{position}}
 
-- in ResumeEditorPage, I want strongly that the wide of the page is the standard width, pleasant to read, and the lines inside needs to wrapped (right now I have to scroll horizontaly to read and is not good)
+Your Name
+{{name}}
 
-- please improve the layout and css of ApplicationWizard 
+Today's Date
+{{date}}
 
-- in ApplicationWizard , step 2 Select resume , the resume preview doesn't show me anything (empty), please remove the preview
+Hiring Manager Name
+{{hiring_manager}}
 
-- in ApplicationWizard , step 3 Customize (optional), I have a checkbox to accept the creation of a customized version , if I click on the Generate preview, 1st issue, the preview is truncated, 2do issue, the resume customized is saved in the dabase wieh a new version number, and when after complete the  aplication, another version is saved in the databse v(number) - company ,, so is creating 2 version, only one should be generated. I think that the best option is join step2 and step 3 in one page of the wizard, do not show the preview resume (neither for the original and customized), have the checkbox to select if I want customize using AI and pass to the next page that is Review and Create
+Job Description
+{{job_description}}
 
-- in ApplicationWizard , step 4 Review and Create , after click on Create Applcation, the page should show the loading spinner to denota that the page is working with the customization and saving of everything in the database
+, If I select create resume from the dashboard or the top meny bar (Header) I should be able to create and save a cover letter without any job related information,, in the same way that is the resumes are working, I should be able to edit the cover letters and the versions of it
 
-- When creating a custom resume, in the Additional Instructions section, I added "translate the resume to french", but the resume was not transated by the AI
+- When I would create a job application, I can select the option to create a cover letter, and select the cover letter I want use and have the option to decide customize it or not
+
+- if when I am creating a job aplication and I want a cover letter but I do not have a cover letter saved or I do not have any cover letter I want from the saved ones, we can selct the templates and use them as base to customize the cover letter
+
 
 
 

@@ -241,6 +241,11 @@ class ApiService {
     return response.data;
   }
 
+  async updateResumeVersion(resumeId, versionId, data) {
+    const response = await this.api.put(API_ENDPOINTS.RESUME_VERSION(resumeId, versionId), data);
+    return response.data;
+  }
+
   async downloadResumePDF(id, options = {}) {
     const response = await this.api.get(API_ENDPOINTS.DOWNLOAD_PDF(id), {
       params: options,

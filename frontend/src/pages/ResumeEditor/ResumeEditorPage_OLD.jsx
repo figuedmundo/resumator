@@ -25,7 +25,6 @@ export default function ResumeEditorPage() {
   // Refs
   const fileInputRef = useRef(null);
   const codeMirrorRef = useRef(null);
-  const desiredVersionIdRef = useRef(null);
   
   // State management
   const [resume, setResume] = useState(null);
@@ -33,93 +32,64 @@ export default function ResumeEditorPage() {
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('saved');
+  const [saveStatus, setSaveStatus] = useState('saved'); // 'saved', 'saving', 'unsaved', 'error'
   const [error, setError] = useState(null);
   
-  // View options
+  // View options - default to 'edit', only 'edit' and 'preview' available
   const [viewMode, setViewMode] = useState('edit');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(false);
   const [versions, setVersions] = useState([]);
   const [selectedVersionId, setSelectedVersionId] = useState(null);
-  const [versionsLoaded, setVersionsLoaded] = useState(false);
   
   // Auto-save
   const [saveTimeout, setSaveTimeout] = useState(null);
   const [lastSavedContent, setLastSavedContent] = useState('');
   const [lastSavedTitle, setLastSavedTitle] = useState('');
 
-  // PHASE 1: Initialize - store desired version and start loading
+  // Initialize editor
   useEffect(() => {
     if (id && id !== 'new') {
-      // Store the desired version ID from navigation state
-      if (location.state?.versionId) {
-        desiredVersionIdRef.current = location.state.versionId;
-        console.log('📍 Desired version from navigation:', location.state.versionId);
-      }
-      
-      // Load versions and resume metadata
+      loadResume();
       loadVersions();
-      loadResumeMetadata();
+      
+      // If coming from ResumeViewPage with a specific version, store it for later
+      if (location.state?.versionId) {
+        // We'll use this after versions are loaded
+        sessionStorage.setItem(`resumeEditorVersionId_${id}`, location.state.versionId);
+      }
     } else {
-      // New resume
       setIsLoading(false);
       setContent(getDefaultResumeTemplate());
       setTitle('Untitled Resume');
       setLastSavedContent('');
       setLastSavedTitle('');
-      setVersionsLoaded(true);
     }
-  }, [id]);
+  }, [id, location.state]);
 
-  // PHASE 2: Once versions are loaded, set the selected version
-  useEffect(() => {
-    if (versionsLoaded && versions.length > 0 && !selectedVersionId) {
-      const desiredVersionId = desiredVersionIdRef.current;
-      
-      if (desiredVersionId) {
-        // Look for the desired version
-        const desiredVersion = versions.find(v => v.id === desiredVersionId);
-        if (desiredVersion) {
-          console.log('✅ Found desired version, selecting:', desiredVersionId);
-          setSelectedVersionId(desiredVersionId);
-          desiredVersionIdRef.current = null;
-          return;
-        } else {
-          console.log('⚠️ Desired version not found, falling back to latest');
-        }
-      }
-      
-      // Default to latest version
-      console.log('📌 Selecting latest version:', versions[0].id);
-      setSelectedVersionId(versions[0].id);
-    }
-  }, [versionsLoaded, versions, selectedVersionId]);
-
-  // PHASE 3: Load content when selected version changes
+  // Load selected version content
   useEffect(() => {
     if (selectedVersionId && versions.length > 0) {
       const version = versions.find(v => v.id === selectedVersionId);
       if (version) {
-        console.log('📄 Loading content for version:', selectedVersionId);
         setContent(version.markdown_content || '');
         setLastSavedContent(version.markdown_content || '');
-        setIsLoading(false);
-        setSaveStatus('saved');
       }
     }
-  }, [selectedVersionId, versions]);
+  }, [selectedVersionId]);
 
   // Auto-save when content changes
   useEffect(() => {
-    if (!isLoading && selectedVersionId && (content !== lastSavedContent || title !== lastSavedTitle)) {
+    if (!isLoading && (content !== lastSavedContent || title !== lastSavedTitle)) {
       setSaveStatus('unsaved');
       
+      // Clear existing timeout
       if (saveTimeout) {
         clearTimeout(saveTimeout);
       }
 
+      // Set new timeout for auto-save
       const timeout = setTimeout(() => {
         handleAutoSave();
       }, AUTO_SAVE_DELAY);
@@ -132,23 +102,30 @@ export default function ResumeEditorPage() {
         clearTimeout(saveTimeout);
       }
     };
-  }, [content, title, isLoading, lastSavedContent, lastSavedTitle, selectedVersionId]);
+  }, [content, title, isLoading, lastSavedContent, lastSavedTitle]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ctrl+S or Cmd+S to save
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleManualSave();
       }
+      
+      // Ctrl+B or Cmd+B for bold
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
         e.preventDefault();
         insertMarkdown('**bold text**');
       }
+      
+      // Ctrl+I or Cmd+I for italic
       if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
         e.preventDefault();
         insertMarkdown('*italic text*');
       }
+      
+      // Ctrl+P or Cmd+P for preview toggle
       if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
         e.preventDefault();
         setViewMode(prev => prev === 'edit' ? 'preview' : 'edit');
@@ -159,52 +136,97 @@ export default function ResumeEditorPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Load resume metadata
-  const loadResumeMetadata = async () => {
+  const loadResume = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       const response = await apiService.getResume(id);
       setResume(response);
+
+      // Get content from the latest version
+      let content = '';
+      if (response.versions && response.versions.length > 0) {
+        const latestVersion = response.versions[0]; // versions are sorted by creation date desc
+        content = latestVersion.markdown_content || '';
+      }
+
+      setContent(content);
       setTitle(response.title || 'Untitled Resume');
+      setLastSavedContent(content);
       setLastSavedTitle(response.title || 'Untitled Resume');
+      setSaveStatus('saved');
     } catch (err) {
-      console.error('Failed to load resume metadata:', err);
       setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Load all versions
   const loadVersions = async () => {
     try {
-      console.log('🔄 Loading versions...');
       const response = await apiService.getResumeVersions(id);
-      const versionsList = response.versions || response || [];
+      const versionsList = response.versions || [];
       console.log('📦 Versions loaded:', versionsList);
       setVersions(versionsList);
-      setVersionsLoaded(true);
+      
+      // Check if we have a saved version ID from navigation state
+      const savedVersionId = sessionStorage.getItem(`resumeEditorVersionId_${id}`);
+      
+      if (versionsList.length > 0) {
+        // If we have a saved version ID from navigation, use it
+        if (savedVersionId) {
+          const versionIdNum = parseInt(savedVersionId);
+          console.log('🔍 Looking for version ID:', versionIdNum);
+          const versionExists = versionsList.some(v => v.id === versionIdNum);
+          console.log('✓ Version exists:', versionExists);
+          if (versionExists && !selectedVersionId) {
+            console.log('✅ Setting selected version to:', versionIdNum);
+            setSelectedVersionId(versionIdNum);
+            // Clean up the sessionStorage
+            sessionStorage.removeItem(`resumeEditorVersionId_${id}`);
+            return;
+          }
+        }
+        
+        // Otherwise set the latest version as selected by default
+        if (!selectedVersionId) {
+          console.log('📌 Setting default version to latest:', versionsList[0].id);
+          setSelectedVersionId(versionsList[0].id);
+        }
+      }
     } catch (err) {
-      console.error('❌ Failed to load versions:', err);
-      setError('Failed to load resume versions');
-      setVersionsLoaded(true);
+      console.error('Failed to load versions:', err);
     }
   };
 
   const handleAutoSave = async () => {
-    if (saveStatus === 'saved' || !selectedVersionId) return;
+    if (saveStatus === 'saved') return;
 
     try {
       setSaveStatus('saving');
       setIsSaving(true);
       
       if (id && id !== 'new') {
-        await apiService.updateResumeVersion(id, selectedVersionId, {
-          markdown: content,
-        });
+        // Update existing resume version
+        if (selectedVersionId) {
+          await apiService.put(`/resumes/${id}/versions/${selectedVersionId}`, {
+            markdown: content,
+          });
+        } else {
+          // Update resume metadata and content
+          await apiService.updateResume(id, {
+            title,
+            content,
+          });
+        }
       } else {
+        // Create new resume
         const response = await apiService.createResume({
           title,
           markdown: content,
         });
         setResume(response);
+        // Navigate to the new resume's edit URL
         navigate(`/resumes/${response.id}/edit`, { replace: true });
       }
       
@@ -226,8 +248,9 @@ export default function ResumeEditorPage() {
       setError(null);
       
       if (id && id !== 'new') {
+        // Update the selected version
         if (selectedVersionId) {
-          await apiService.updateResumeVersion(id, selectedVersionId, {
+          await apiService.put(`/resumes/${id}/versions/${selectedVersionId}`, {
             markdown: content,
           });
         } else {
@@ -249,11 +272,11 @@ export default function ResumeEditorPage() {
       setLastSavedTitle(title);
       setSaveStatus('saved');
       
+      // Reload versions after save
       if (id && id !== 'new') {
         loadVersions();
       }
     } catch (err) {
-      console.error('Manual save failed:', err);
       setError(err.message);
       setSaveStatus('error');
     } finally {
@@ -272,11 +295,13 @@ export default function ResumeEditorPage() {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Validate file size
     if (file.size > MAX_FILE_SIZE.RESUME_MD) {
       setError(`File size too large. Maximum allowed size is ${MAX_FILE_SIZE.RESUME_MD / 1024}KB`);
       return;
     }
 
+    // Validate file type
     const validTypes = ['.md', '.txt'];
     const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
     if (!validTypes.includes(fileExtension)) {
@@ -289,7 +314,7 @@ export default function ResumeEditorPage() {
       try {
         const fileContent = e.target.result;
         setContent(fileContent);
-        setTitle(file.name.replace(/\.[^/.]+$/, ''));
+        setTitle(file.name.replace(/\.[^/.]+$/, '')); // Remove file extension
         setError(null);
       } catch (err) {
         setError('Failed to read file content.');
@@ -300,6 +325,7 @@ export default function ResumeEditorPage() {
     };
     reader.readAsText(file);
 
+    // Clear the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -311,7 +337,9 @@ export default function ResumeEditorPage() {
       const state = view.state;
       const selection = state.selection.main;
 
+      // Check if there's selected text
       if (selection.from !== selection.to) {
+        // Wrap selected text
         const selectedText = state.sliceDoc(selection.from, selection.to);
         const wrappedText = markdownText.replace('bold text', selectedText).replace('italic text', selectedText).replace('code', selectedText);
         const transaction = state.update({
@@ -327,6 +355,7 @@ export default function ResumeEditorPage() {
         });
         view.dispatch(transaction);
       } else {
+        // Insert at cursor
         const transaction = state.update({
           changes: {
             from: selection.head,
@@ -342,6 +371,7 @@ export default function ResumeEditorPage() {
       }
       view.focus();
     } else {
+      // Fallback: append to content
       setContent(prevContent => prevContent + markdownText);
     }
   }, []);
@@ -378,33 +408,57 @@ export default function ResumeEditorPage() {
 
 ## Professional Summary
 
-Write a brief summary of your professional background, key skills, and career objectives.
+Write a brief summary of your professional background, key skills, and career objectives. This should be 2-3 sentences that highlight your most relevant experience and what you bring to potential employers.
 
 ## Technical Skills
 
-- List your skills here
+### Programming Languages
+- List your programming languages here
+- Include proficiency levels if relevant
+
+### Frameworks & Technologies
+- List frameworks, libraries, and tools
+- Group by category (Frontend, Backend, Database, etc.)
 
 ## Professional Experience
 
 ### Job Title
 **Company Name** | Location | Start Date - End Date
 
-- Achievement 1
-- Achievement 2
+- Bullet point describing key responsibility or achievement
+- Use action verbs and quantify results where possible
+- Include technologies used and impact made
+
+### Previous Job Title
+**Previous Company** | Location | Start Date - End Date
+
+- Another bullet point with specific achievement
+- Focus on results and measurable outcomes
 
 ## Education
 
 ### Degree Name
-**University Name** | Graduation Year
+**University Name** | Location | Graduation Year
+- **GPA:** 3.X/4.0 (if relevant)
+- **Relevant Coursework:** List relevant courses
 
 ## Projects
 
 ### Project Name
-- Description and link
+**Technologies:** List technologies used
+- Brief description of the project
+- What problem it solved or what you learned
+- Link to demo or repository if available
 
 ## Certifications
 
 - Certification Name (Year)
+- Another Certification (Year)
+
+## Languages
+
+- **English:** Native/Fluent
+- **Other Language:** Proficiency Level
 `;
   };
 
@@ -448,6 +502,7 @@ Write a brief summary of your professional background, key skills, and career ob
           </div>
 
           <div className={styles.headerRight}>
+            {/* View Mode Toggle - Only Edit and Preview */}
             <div className={styles.viewModeToggle}>
               <button
                 onClick={() => setViewMode('edit')}
@@ -469,8 +524,8 @@ Write a brief summary of your professional background, key skills, and career ob
               </button>
             </div>
 
-            {/* Version Picker - ALWAYS SHOW if versions exist */}
-            {versions.length > 0 && (
+            {/* Version Picker */}
+            {versions && versions.length > 0 && selectedVersionId && (
               <VersionPicker
                 versions={versions}
                 selectedVersionId={selectedVersionId}
@@ -479,6 +534,7 @@ Write a brief summary of your professional background, key skills, and career ob
               />
             )}
 
+            {/* Versions Button */}
             {versions.length > 0 && (
               <button
                 onClick={() => setShowVersions(!showVersions)}
@@ -491,6 +547,7 @@ Write a brief summary of your professional background, key skills, and career ob
               </button>
             )}
 
+            {/* Theme Toggle */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className={styles.actionButton}
@@ -502,11 +559,12 @@ Write a brief summary of your professional background, key skills, and career ob
                 </svg>
               ) : (
                 <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0112 21a9.003 9.003 0 008.354-5.646z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
               )}
             </button>
 
+            {/* File Upload */}
             <button
               onClick={() => setShowUploadZone(!showUploadZone)}
               className={styles.actionButton}
@@ -517,6 +575,7 @@ Write a brief summary of your professional background, key skills, and career ob
               </svg>
             </button>
 
+            {/* Legacy File Input (hidden) */}
             <input
               ref={fileInputRef}
               type="file"
@@ -525,6 +584,7 @@ Write a brief summary of your professional background, key skills, and career ob
               className={styles.hiddenFileInput}
             />
 
+            {/* View Resume Button */}
             {id && id !== 'new' && (
               <Link
                 to={`/resumes/${id}`}
@@ -538,6 +598,7 @@ Write a brief summary of your professional background, key skills, and career ob
               </Link>
             )}
 
+            {/* Save Button */}
             <button
               onClick={handleManualSave}
               disabled={isSaving || saveStatus === 'saved'}
@@ -561,6 +622,7 @@ Write a brief summary of your professional background, key skills, and career ob
         </div>
       </div>
 
+      {/* Upload Zone Modal */}
       {showUploadZone && (
         <div className={styles.uploadModal}>
           <div className={styles.uploadModalContent}>
@@ -580,6 +642,7 @@ Write a brief summary of your professional background, key skills, and career ob
         </div>
       )}
 
+      {/* Error Message */}
       {error && (
         <div className={styles.errorContainer}>
           <div className={styles.errorContent}>
@@ -601,11 +664,14 @@ Write a brief summary of your professional background, key skills, and career ob
         </div>
       )}
 
+      {/* Markdown Toolbar - Only show in edit mode */}
       {viewMode === 'edit' && (
         <MarkdownToolbar onInsert={insertMarkdown} />
       )}
 
+      {/* Editor/Preview Content */}
       <div className={styles.mainContent}>
+        {/* Version Comparison Sidebar */}
         {showVersions && (
           <div className={styles.versionSidebar}>
             <VersionComparison 
@@ -621,6 +687,7 @@ Write a brief summary of your professional background, key skills, and career ob
           </div>
         )}
 
+        {/* Main Editor/Preview Area */}
         <div className={styles.editorArea}>
           {viewMode === 'edit' && (
             <div className={styles.editorPanelFull}>
