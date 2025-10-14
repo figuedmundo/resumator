@@ -1,8 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
+import CodeMirror from '@uiw/react-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView } from '@codemirror/view';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
-import { CoverLetterEditor, CoverLetterPreview } from '../../components/CoverLetters';
+import MarkdownToolbar from '../ResumeEditor/components/MarkdownToolbar';
+import VersionPicker from '../../components/Resumes/VersionPicker';
 import apiService from '../../services/api';
 import { AUTO_SAVE_DELAY } from '../../utils/constants';
 import styles from './CoverLetterEditorPage.module.css';
@@ -10,8 +17,11 @@ import styles from './CoverLetterEditorPage.module.css';
 export default function CoverLetterEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // State management
+  const codeMirrorRef = useRef(null);
+  const desiredVersionIdRef = useRef(null);
+  
   const [coverLetter, setCoverLetter] = useState(null);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
@@ -19,38 +29,72 @@ export default function CoverLetterEditorPage() {
   const [position, setPosition] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('saved'); // 'saved', 'saving', 'unsaved', 'error'
+  const [saveStatus, setSaveStatus] = useState('saved');
   const [error, setError] = useState(null);
   
-  // View and UI options
-  const [viewMode, setViewMode] = useState('edit'); // 'edit', 'preview', 'split'
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [viewMode, setViewMode] = useState('edit');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [selectedVersionId, setSelectedVersionId] = useState(null);
+  const [versionsLoaded, setVersionsLoaded] = useState(false);
   
-  // Auto-save
   const [saveTimeout, setSaveTimeout] = useState(null);
   const [lastSavedContent, setLastSavedContent] = useState('');
   const [lastSavedTitle, setLastSavedTitle] = useState('');
   const [lastSavedCompany, setLastSavedCompany] = useState('');
   const [lastSavedPosition, setLastSavedPosition] = useState('');
 
-  // Initialize editor
   useEffect(() => {
     if (id && id !== 'new') {
-      loadCoverLetter();
+      if (location.state?.versionId) {
+        desiredVersionIdRef.current = location.state.versionId;
+      }
+      
+      loadVersions();
+      loadCoverLetterMetadata();
     } else {
       setIsLoading(false);
       setContent(getDefaultTemplate());
       setTitle('Untitled Cover Letter');
       setLastSavedContent('');
       setLastSavedTitle('');
+      setVersionsLoaded(true);
     }
   }, [id]);
 
-  // Auto-save when content changes
   useEffect(() => {
-    if (!isLoading && (
+    if (versionsLoaded && versions.length > 0 && !selectedVersionId) {
+      const desiredVersionId = desiredVersionIdRef.current;
+      
+      if (desiredVersionId) {
+        const desiredVersion = versions.find(v => v.id === desiredVersionId);
+        if (desiredVersion) {
+          setSelectedVersionId(desiredVersionId);
+          desiredVersionIdRef.current = null;
+          return;
+        }
+      }
+      
+      setSelectedVersionId(versions[0].id);
+    }
+  }, [versionsLoaded, versions, selectedVersionId]);
+
+  useEffect(() => {
+    if (selectedVersionId && versions.length > 0) {
+      const version = versions.find(v => v.id === selectedVersionId);
+      if (version) {
+        setContent(version.content || '');
+        setLastSavedContent(version.content || '');
+        setIsLoading(false);
+        setSaveStatus('saved');
+      }
+    }
+  }, [selectedVersionId, versions]);
+
+  useEffect(() => {
+    if (!isLoading && selectedVersionId && (
       content !== lastSavedContent || 
-      title !== lastSavedTitle || 
+      title !== lastSavedTitle ||
       company !== lastSavedCompany ||
       position !== lastSavedPosition
     )) {
@@ -72,25 +116,17 @@ export default function CoverLetterEditorPage() {
         clearTimeout(saveTimeout);
       }
     };
-  }, [content, title, company, position, isLoading, lastSavedContent, lastSavedTitle, lastSavedCompany, lastSavedPosition]);
+  }, [content, title, company, position, isLoading, lastSavedContent, lastSavedTitle, lastSavedCompany, lastSavedPosition, selectedVersionId]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl+S or Cmd+S to save
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleManualSave();
       }
-      
-      // Ctrl+P or Cmd+P for preview toggle
       if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
         e.preventDefault();
-        setViewMode(prev => {
-          if (prev === 'edit') return 'preview';
-          if (prev === 'preview') return 'split';
-          return 'edit';
-        });
+        setViewMode(prev => prev === 'edit' ? 'preview' : 'edit');
       }
     };
 
@@ -98,40 +134,43 @@ export default function CoverLetterEditorPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const loadCoverLetter = async () => {
+  const loadCoverLetterMetadata = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
       const response = await apiService.getCoverLetter(id);
       setCoverLetter(response);
-
-      setContent(response.content || '');
       setTitle(response.title || 'Untitled Cover Letter');
       setCompany(response.company || '');
       setPosition(response.position || '');
-      
-      setLastSavedContent(response.content || '');
       setLastSavedTitle(response.title || '');
       setLastSavedCompany(response.company || '');
       setLastSavedPosition(response.position || '');
-      
-      setSaveStatus('saved');
     } catch (err) {
+      console.error('Failed to load metadata:', err);
       setError(err.message);
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const loadVersions = async () => {
+    try {
+      const response = await apiService.get(`/api/v1/cover-letters/${id}/versions`);
+      const versionsList = response.versions || response || [];
+      setVersions(versionsList);
+      setVersionsLoaded(true);
+    } catch (err) {
+      console.error('Failed to load versions:', err);
+      setError('Failed to load cover letter versions');
+      setVersionsLoaded(true);
     }
   };
 
   const handleAutoSave = async () => {
-    if (saveStatus === 'saved') return;
+    if (saveStatus === 'saved' || !selectedVersionId) return;
 
     try {
       setSaveStatus('saving');
       setIsSaving(true);
       
       if (id && id !== 'new') {
-        // Update existing cover letter
         await apiService.updateCoverLetter(id, {
           title,
           company,
@@ -139,7 +178,6 @@ export default function CoverLetterEditorPage() {
           content,
         });
       } else {
-        // Create new cover letter
         const response = await apiService.createCoverLetter({
           title,
           company,
@@ -192,7 +230,12 @@ export default function CoverLetterEditorPage() {
       setLastSavedCompany(company);
       setLastSavedPosition(position);
       setSaveStatus('saved');
+      
+      if (id && id !== 'new') {
+        loadVersions();
+      }
     } catch (err) {
+      console.error('Manual save failed:', err);
       setError(err.message);
       setSaveStatus('error');
     } finally {
@@ -200,25 +243,46 @@ export default function CoverLetterEditorPage() {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    try {
-      setIsDownloading(true);
-      
-      // First save if there are unsaved changes
-      if (saveStatus === 'unsaved') {
-        await handleManualSave();
-      }
+  const insertMarkdown = useCallback((markdownText) => {
+    if (codeMirrorRef.current && codeMirrorRef.current.view) {
+      const view = codeMirrorRef.current.view;
+      const state = view.state;
+      const selection = state.selection.main;
 
-      // Download PDF from API
-      if (id && id !== 'new') {
-        await apiService.downloadCoverLetterPDF(id);
+      if (selection.from !== selection.to) {
+        const selectedText = state.sliceDoc(selection.from, selection.to);
+        const wrappedText = markdownText.replace('text', selectedText);
+        const transaction = state.update({
+          changes: {
+            from: selection.from,
+            to: selection.to,
+            insert: wrappedText
+          },
+          selection: {
+            anchor: selection.from + wrappedText.length,
+            head: selection.from + wrappedText.length
+          }
+        });
+        view.dispatch(transaction);
+      } else {
+        const transaction = state.update({
+          changes: {
+            from: selection.head,
+            to: selection.head,
+            insert: markdownText
+          },
+          selection: {
+            anchor: selection.head + markdownText.length,
+            head: selection.head + markdownText.length
+          }
+        });
+        view.dispatch(transaction);
       }
-    } catch (err) {
-      setError('Failed to download PDF: ' + err.message);
-    } finally {
-      setIsDownloading(false);
+      view.focus();
+    } else {
+      setContent(prevContent => prevContent + markdownText);
     }
-  };
+  }, []);
 
   const getSaveStatusColor = () => {
     switch (saveStatus) {
@@ -269,7 +333,6 @@ Sincerely,
 
   return (
     <div className={styles.pageContainer}>
-      {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerLeft}>
@@ -297,7 +360,6 @@ Sincerely,
           </div>
 
           <div className={styles.headerRight}>
-            {/* Metadata Inputs */}
             <div className={styles.metadataInputs}>
               <input
                 type="text"
@@ -315,7 +377,15 @@ Sincerely,
               />
             </div>
 
-            {/* View Mode Toggle */}
+            {versions.length > 0 && (
+              <VersionPicker
+                versions={versions}
+                selectedVersionId={selectedVersionId}
+                onVersionSelect={(version) => setSelectedVersionId(version.id)}
+                showCount={false}
+              />
+            )}
+
             <div className={styles.viewModeToggle}>
               <button
                 onClick={() => setViewMode('edit')}
@@ -323,7 +393,6 @@ Sincerely,
                   styles.viewModeButton,
                   viewMode === 'edit' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
                 )}
-                title="Edit mode (Ctrl+P)"
               >
                 Edit
               </button>
@@ -333,52 +402,44 @@ Sincerely,
                   styles.viewModeButton,
                   viewMode === 'preview' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
                 )}
-                title="Preview mode (Ctrl+P)"
               >
                 Preview
               </button>
-              <button
-                onClick={() => setViewMode('split')}
-                className={clsx(
-                  styles.viewModeButton,
-                  viewMode === 'split' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
-                )}
-                title="Split view (Ctrl+P)"
-              >
-                Split
-              </button>
             </div>
 
-            {/* Download PDF Button */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={styles.actionButton}
+              title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            >
+              {isDarkMode ? (
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className={styles.actionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0112 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+
             {id && id !== 'new' && (
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                title="Download as PDF"
+              <Link
+                to={`/cover-letters/${id}`}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               >
-                {isDownloading ? (
-                  <>
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    PDF
-                  </>
-                )}
-              </button>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View
+              </Link>
             )}
 
-            {/* Save Button */}
             <button
               onClick={handleManualSave}
               disabled={isSaving || saveStatus === 'saved'}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              title="Save (Ctrl+S)"
             >
               {isSaving ? (
                 <>
@@ -398,7 +459,6 @@ Sincerely,
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className={styles.errorContainer}>
           <div className={styles.errorContent}>
@@ -420,40 +480,62 @@ Sincerely,
         </div>
       )}
 
-      {/* Main Content Area */}
+      {viewMode === 'edit' && (
+        <MarkdownToolbar onInsert={insertMarkdown} />
+      )}
+
       <div className={styles.mainContent}>
         {viewMode === 'edit' && (
           <div className={styles.editorPanelFull}>
-            <CoverLetterEditor
-              initialContent={content}
-              onChange={setContent}
-              onSave={handleManualSave}
-              isLoading={isSaving}
-              metadata={{ company, position, title }}
-            />
+            <div className={styles.editorWrapper}>
+              <CodeMirror
+                ref={codeMirrorRef}
+                value={content}
+                onChange={(value) => setContent(value)}
+                extensions={[
+                  markdown(),
+                  EditorView.lineWrapping,
+                  EditorView.theme({
+                    '&': {
+                      fontSize: '14px',
+                    },
+                    '.cm-content': {
+                      padding: '16px',
+                      minHeight: '100%',
+                    },
+                    '.cm-focused': {
+                      outline: 'none',
+                    },
+                    '.cm-editor': {
+                      height: '100%',
+                    },
+                    '.cm-scroller': {
+                      fontFamily: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+                    },
+                  }),
+                ]}
+                theme={isDarkMode ? oneDark : 'light'}
+                height="100%"
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: true,
+                  dropCursor: false,
+                  allowMultipleSelections: false,
+                  highlightSelectionMatches: false,
+                }}
+              />
+            </div>
           </div>
         )}
 
         {viewMode === 'preview' && (
           <div className={styles.previewPanelFull}>
-            <CoverLetterPreview content={content} />
-          </div>
-        )}
-
-        {viewMode === 'split' && (
-          <div className={styles.splitView}>
-            <div className={styles.splitPanel}>
-              <CoverLetterEditor
-                initialContent={content}
-                onChange={setContent}
-                onSave={handleManualSave}
-                isLoading={isSaving}
-                metadata={{ company, position, title }}
-              />
-            </div>
-            <div className={styles.splitDivider} />
-            <div className={styles.splitPanel}>
-              <CoverLetterPreview content={content} />
+            <div className={styles.previewContent}>
+              <div className={styles.previewProse}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {content}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
         )}

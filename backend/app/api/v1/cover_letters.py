@@ -1,4 +1,4 @@
-"""Cover letter management API endpoints."""
+"""Cover letter management API endpoints - Refactored to match Resume pattern."""
 
 import logging
 from typing import List, Optional
@@ -9,8 +9,8 @@ from app.models.user import User
 from app.schemas.cover_letter import (
     CoverLetterCreate, CoverLetterUpdate, CoverLetterResponse, 
     CoverLetterTemplateResponse, CoverLetterGenerateRequest, 
-    CoverLetterGenerateResponse, CoverLetterCustomizeRequest,
-    CoverLetterListResponse
+    CoverLetterVersionResponse, CoverLetterVersionCreate,
+    CoverLetterListResponse, CoverLetterDetailResponse
 )
 from app.services.cover_letter_service import CoverLetterService
 from app.services.resume_service import ResumeService
@@ -32,7 +32,9 @@ def get_resume_service_dep(db: Session = Depends(get_db)) -> ResumeService:
     return ResumeService(db)
 
 
-# Template endpoints
+# ======================================
+# Template Endpoints
+# ======================================
 
 @router.get("/templates", response_model=List[CoverLetterTemplateResponse])
 async def list_templates(
@@ -42,9 +44,8 @@ async def list_templates(
 ):
     """Get all available cover letter templates."""
     try:
-        templates, _ = cover_letter_service.get_templates(skip, limit)
+        templates, _ = cover_letter_service.list_templates(skip, limit)
         return [CoverLetterTemplateResponse.from_orm(t) for t in templates]
-        
     except Exception as e:
         logger.error(f"Failed to list templates: {e}")
         raise HTTPException(
@@ -62,12 +63,8 @@ async def get_template(
     try:
         template = cover_letter_service.get_template(template_id)
         return CoverLetterTemplateResponse.from_orm(template)
-        
     except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to get template {template_id}: {e}")
         raise HTTPException(
@@ -76,30 +73,29 @@ async def get_template(
         )
 
 
-# Cover letter endpoints
+# ======================================
+# Cover Letter Master Record Endpoints
+# ======================================
 
 @router.post("", response_model=CoverLetterResponse, status_code=status.HTTP_201_CREATED)
 async def create_cover_letter(
     request: CoverLetterCreate,
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Create a new cover letter."""
+    """Create a new master cover letter record.
+    
+    This creates an empty cover letter. Add versions using POST /cover-letters/{id}/versions.
+    """
     try:
-        cover_letter = cover_letter_service.create_cover_letter(
+        cover_letter = service.create_cover_letter(
             user_id=current_user.id,
             title=request.title,
-            content=request.content,
-            template_id=request.template_id
+            is_default=request.is_default or False
         )
-        
         return CoverLetterResponse.from_orm(cover_letter)
-        
     except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to create cover letter: {e}")
         raise HTTPException(
@@ -108,91 +104,15 @@ async def create_cover_letter(
         )
 
 
-@router.post("/generate", response_model=CoverLetterGenerateResponse, 
-            status_code=status.HTTP_201_CREATED)
-async def generate_cover_letter(
-    request: CoverLetterGenerateRequest,
-    current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service),
-    resume_service: ResumeService = Depends(get_resume_service_dep)
-):
-    """Generate a new cover letter from resume and job description.
-    
-    This endpoint generates AI-powered cover letter content based on:
-    - The user's resume (if resume_id provided)
-    - Job description and company/position details
-    - Optional template for formatting guidance
-    """
-    try:
-        # Get resume content if provided
-        resume_content = ""
-        if request.resume_id:
-            resume = resume_service.get_resume(current_user.id, request.resume_id)
-            versions = resume_service.list_resume_versions(current_user.id, request.resume_id)
-            
-            if versions:
-                # Use latest version
-                latest_version = versions[0]
-                resume_content = latest_version.markdown_content
-            else:
-                raise ValidationError("No resume versions found")
-        else:
-            raise ValidationError("resume_id is required for cover letter generation")
-        
-        # Generate and save cover letter
-        cover_letter = cover_letter_service.generate_and_save_cover_letter(
-            user_id=current_user.id,
-            company=request.company,
-            position=request.position,
-            job_description=request.job_description,
-            resume_content=resume_content,
-            template_id=request.template_id
-        )
-        
-        response = CoverLetterGenerateResponse.from_orm(cover_letter)
-        
-        # Add template name if available
-        if cover_letter.template_id:
-            template = cover_letter_service.get_template(cover_letter.template_id)
-            response.template_name = template.name
-        
-        return response
-        
-    except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Failed to generate cover letter: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Failed to generate cover letter"
-        )
-
-
-@router.get("", response_model=CoverLetterListResponse)
+@router.get("", response_model=List[CoverLetterResponse])
 async def list_cover_letters(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """List all cover letters for the current user with pagination."""
+    """List all cover letters for the current user."""
     try:
-        cover_letters, total = cover_letter_service.get_user_cover_letters(
-            current_user.id, skip, limit
-        )
-        
-        page = (skip // limit) + 1
-        
-        return CoverLetterListResponse(
-            cover_letters=[CoverLetterResponse.from_orm(cl) for cl in cover_letters],
-            total=total,
-            page=page,
-            per_page=limit
-        )
-        
+        cover_letters = service.list_user_cover_letters(current_user.id)
+        return [CoverLetterResponse.from_orm(cl) for cl in cover_letters]
     except Exception as e:
         logger.error(f"Failed to list cover letters for user {current_user.id}: {e}")
         raise HTTPException(
@@ -201,25 +121,22 @@ async def list_cover_letters(
         )
 
 
-@router.get("/{cover_letter_id}", response_model=CoverLetterResponse)
+@router.get("/{cover_letter_id}", response_model=CoverLetterDetailResponse)
 async def get_cover_letter(
     cover_letter_id: int,
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Get a specific cover letter."""
+    """Get a specific cover letter with all its versions."""
     try:
-        cover_letter = cover_letter_service.get_cover_letter(
-            current_user.id, cover_letter_id
-        )
+        cover_letter = service.get_cover_letter(current_user.id, cover_letter_id)
+        versions = service.list_versions(current_user.id, cover_letter_id)
         
-        return CoverLetterResponse.from_orm(cover_letter)
-        
+        response = CoverLetterDetailResponse.from_orm(cover_letter)
+        response.versions = [CoverLetterVersionResponse.from_orm(v) for v in versions]
+        return response
     except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to get cover letter {cover_letter_id}: {e}")
         raise HTTPException(
@@ -233,25 +150,19 @@ async def update_cover_letter(
     cover_letter_id: int,
     request: CoverLetterUpdate,
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Update a cover letter."""
+    """Update cover letter metadata (title, is_default)."""
     try:
-        cover_letter = cover_letter_service.update_cover_letter(
+        cover_letter = service.update_cover_letter(
             user_id=current_user.id,
             cover_letter_id=cover_letter_id,
             title=request.title,
-            content=request.content,
-            template_id=request.template_id
+            is_default=request.is_default
         )
-        
         return CoverLetterResponse.from_orm(cover_letter)
-        
     except ValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to update cover letter {cover_letter_id}: {e}")
         raise HTTPException(
@@ -264,25 +175,14 @@ async def update_cover_letter(
 async def delete_cover_letter(
     cover_letter_id: int,
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Delete a cover letter."""
+    """Delete a cover letter (only if no applications reference it)."""
     try:
-        success = cover_letter_service.delete_cover_letter(
-            current_user.id, cover_letter_id
-        )
-        
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cover letter not found"
-            )
-        
-        return None
-        
+        service.delete_cover_letter(current_user.id, cover_letter_id)
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(e)
         )
     except Exception as e:
@@ -293,41 +193,192 @@ async def delete_cover_letter(
         )
 
 
-@router.post("/{cover_letter_id}/customize")
-async def customize_cover_letter(
+# ======================================
+# Cover Letter Version Endpoints
+# ======================================
+
+@router.post("/{cover_letter_id}/versions", response_model=CoverLetterVersionResponse, 
+            status_code=status.HTTP_201_CREATED)
+async def create_version(
     cover_letter_id: int,
-    request: CoverLetterCustomizeRequest,
+    request: CoverLetterVersionCreate,
     current_user: User = Depends(get_current_active_user),
-    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service)
+    service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Customize an existing cover letter with additional instructions.
-    
-    This endpoint allows you to refine a cover letter with specific instructions.
-    Returns the customized content without saving to database.
-    To save, use the PUT endpoint after reviewing the customization.
-    """
+    """Create a new version for a cover letter."""
     try:
-        customized_content = cover_letter_service.customize_cover_letter(
-            current_user.id,
-            cover_letter_id,
-            request.additional_instructions
+        version = service.create_version(
+            user_id=current_user.id,
+            cover_letter_id=cover_letter_id,
+            content=request.content,
+            job_description=request.job_description,
+            is_original=request.is_original or True
         )
-        
-        return {
-            "id": cover_letter_id,
-            "customized_content": customized_content,
-            "preview": True,
-            "message": "Preview generated. Use PUT endpoint to save changes."
-        }
-        
+        return CoverLetterVersionResponse.from_orm(version)
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to create version: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create version"
+        )
+
+
+@router.get("/{cover_letter_id}/versions", response_model=List[CoverLetterVersionResponse])
+async def list_versions(
+    cover_letter_id: int,
+    current_user: User = Depends(get_current_active_user),
+    service: CoverLetterService = Depends(get_cover_letter_service)
+):
+    """List all versions for a cover letter."""
+    try:
+        versions = service.list_versions(current_user.id, cover_letter_id)
+        return [CoverLetterVersionResponse.from_orm(v) for v in versions]
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to list versions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list versions"
+        )
+
+
+@router.get("/{cover_letter_id}/versions/{version_id}", response_model=CoverLetterVersionResponse)
+async def get_version(
+    cover_letter_id: int,
+    version_id: int,
+    current_user: User = Depends(get_current_active_user),
+    service: CoverLetterService = Depends(get_cover_letter_service)
+):
+    """Get a specific version."""
+    try:
+        version = service.get_version(current_user.id, cover_letter_id, version_id)
+        if not version:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Version not found")
+        return CoverLetterVersionResponse.from_orm(version)
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to get version {version_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get version"
+        )
+
+
+@router.put("/{cover_letter_id}/versions/{version_id}", response_model=CoverLetterVersionResponse)
+async def update_version(
+    cover_letter_id: int,
+    version_id: int,
+    request: CoverLetterVersionCreate,
+    current_user: User = Depends(get_current_active_user),
+    service: CoverLetterService = Depends(get_cover_letter_service)
+):
+    """Update a version's content."""
+    try:
+        version = service.update_version(
+            user_id=current_user.id,
+            cover_letter_id=cover_letter_id,
+            version_id=version_id,
+            content=request.content
+        )
+        if not version:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Version not found")
+        return CoverLetterVersionResponse.from_orm(version)
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to update version {version_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update version"
+        )
+
+
+@router.delete("/{cover_letter_id}/versions/{version_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_version(
+    cover_letter_id: int,
+    version_id: int,
+    current_user: User = Depends(get_current_active_user),
+    service: CoverLetterService = Depends(get_cover_letter_service)
+):
+    """Delete a version (only if no applications reference it)."""
+    try:
+        service.delete_version(current_user.id, cover_letter_id, version_id)
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Failed to customize cover letter {cover_letter_id}: {e}")
+        logger.error(f"Failed to delete version {version_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete version"
+        )
+
+
+# ======================================
+# Generation Endpoints
+# ======================================
+
+@router.post("/generate", response_model=CoverLetterDetailResponse, 
+            status_code=status.HTTP_201_CREATED)
+async def generate_cover_letter(
+    request: CoverLetterGenerateRequest,
+    current_user: User = Depends(get_current_active_user),
+    cl_service: CoverLetterService = Depends(get_cover_letter_service),
+    resume_service: ResumeService = Depends(get_resume_service_dep)
+):
+    """Generate and save a new cover letter using AI.
+    
+    Requires:
+    - resume_id: To extract content for personalization
+    - job_description: The job posting
+    - company: Company name for version naming
+    - position: Position title
+    - title: Name for this cover letter
+    
+    Optional:
+    - template_id: Template to guide generation
+    """
+    try:
+        # Get resume content
+        if not request.resume_id:
+            raise ValidationError("resume_id is required")
+        
+        resume = resume_service.get_resume(current_user.id, request.resume_id)
+        versions = resume_service.list_resume_versions(current_user.id, request.resume_id)
+        
+        if not versions:
+            raise ValidationError("No resume versions found")
+        
+        resume_content = versions[0].markdown_content
+        
+        # Generate and save
+        cover_letter = cl_service.generate_and_save(
+            user_id=current_user.id,
+            title=request.title,
+            resume_content=resume_content,
+            job_description=request.job_description,
+            company=request.company,
+            position=request.position,
+            template_id=request.template_id
+        )
+        
+        # Get versions
+        versions_list = cl_service.list_versions(current_user.id, cover_letter.id)
+        
+        response = CoverLetterDetailResponse.from_orm(cover_letter)
+        response.versions = [CoverLetterVersionResponse.from_orm(v) for v in versions_list]
+        return response
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to generate cover letter: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Failed to customize cover letter"
+            detail="Failed to generate cover letter"
         )

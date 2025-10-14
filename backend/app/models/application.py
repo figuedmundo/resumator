@@ -5,22 +5,29 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
 
-# Import CoverLetter for type hints and relationships
-# Note: Actual import happens at runtime to avoid circular imports
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.models.cover_letter import CoverLetter
-
 
 class Application(Base):
-    """Application model for tracking job applications.
+    """Application model for tracking job applications with resume and cover letter versioning.
     
     Cascade Deletion Rules:
-    - When application is deleted: customized_resume_version is deleted (if exists)
+    ========================
+    RESUME REFERENCES (Original versions - PROTECT from deletion):
     - When application is deleted: original resume and resume_version are preserved
-    - When resume is deleted: applications are blocked if they exist
-    - When resume_version is deleted: applications are blocked if they reference it
+    - When resume is deleted: applications block deletion (RESTRICT)
+    - When resume_version is deleted: applications block deletion (RESTRICT)
+    
+    CUSTOMIZED RESUME VERSIONS:
+    - When application is deleted: customized_resume_version is CASCADE deleted
+    - This cleans up generated versions created for this specific application
+    
+    COVER LETTER REFERENCES (Original versions - PROTECT from deletion):
+    - When application is deleted: cover_letter and cover_letter_version are preserved
+    - When cover letter is deleted: applications block deletion (RESTRICT)
+    - When cover_letter_version is deleted: applications block deletion (RESTRICT)
+    
+    CUSTOMIZED COVER LETTER VERSIONS:
+    - When application is deleted: customized_cover_letter_version can be CASCADE deleted
+    - This cleans up company-specific versions created for this application
     """
     
     __tablename__ = "applications"
@@ -50,11 +57,28 @@ class Application(Base):
         comment="Customized version - deleted with application"
     )
     
-    # Optional cover letter reference
+    # Cover letter references - new fields for versioning support
     cover_letter_id = Column(
-        Integer, 
-        ForeignKey("cover_letters.id", ondelete="SET NULL"), 
-        nullable=True
+        Integer,
+        ForeignKey("cover_letters.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="Cover letter master record - preserved on deletion (SET NULL)"
+    )
+    
+    cover_letter_version_id = Column(
+        Integer,
+        ForeignKey("cover_letter_versions.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+        comment="Specific version of cover letter used for this application - protected from deletion"
+    )
+    
+    customized_cover_letter_version_id = Column(
+        Integer,
+        ForeignKey("cover_letter_versions.id", ondelete="CASCADE"),
+        nullable=True,
+        comment="Customized cover letter version for this application - deleted with application"
     )
     
     # Enhanced application fields
@@ -87,11 +111,23 @@ class Application(Base):
         foreign_keys=[customized_resume_version_id],
         passive_deletes=True  # Allow database to handle cascade
     )
-    cover_letter = relationship("CoverLetter", back_populates="applications")
+    cover_letter = relationship(
+        "CoverLetter",
+        back_populates="applications",
+        foreign_keys=[cover_letter_id],
+        passive_deletes=True
+    )
+    cover_letter_version = relationship(
+        "CoverLetterVersion",
+        back_populates="applications",
+        foreign_keys=[cover_letter_version_id],
+        passive_deletes=False
+    )
+    customized_cover_letter_version = relationship(
+        "CoverLetterVersion",
+        foreign_keys=[customized_cover_letter_version_id],
+        passive_deletes=True
+    )
     
     def __repr__(self):
         return f"<Application(id={self.id}, company='{self.company}', position='{self.position}')>"
-
-
-# CoverLetter model has been moved to app/models/cover_letter.py
-# This maintains backwards compatibility for imports
