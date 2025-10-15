@@ -1,8 +1,8 @@
 -- init.sql
 -- PostgreSQL initialization script for Resumator
--- Merged schema: Base schema + Cover Letter Templates System
--- Version: 1.1.0-merged
--- Last updated: 2025-10-12 (Merged migration into init.sql)
+-- Merged schema: Base schema + Cover Letter Templates System + Cover Letter Versions
+-- Version: 1.2.0
+-- Last updated: 2025-10-15 (Merged migration 1.2.0 into init.sql)
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -75,40 +75,69 @@ COMMENT ON COLUMN cover_letter_templates.content_template IS
 'Template content with placeholders for personalization';
 
 -- ======================================
--- Cover letters table
+-- Cover letters table (Restructured to match Resume pattern)
 -- ======================================
 CREATE TABLE IF NOT EXISTS cover_letters (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    template_id INTEGER,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_default BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for cover_letters
+CREATE INDEX IF NOT EXISTS idx_cover_letters_user_id ON cover_letters(user_id);
+CREATE INDEX IF NOT EXISTS idx_cover_letters_is_default ON cover_letters(is_default);
+CREATE INDEX IF NOT EXISTS idx_cover_letters_created_at ON cover_letters(created_at);
+
+-- Comments for cover_letters
+COMMENT ON TABLE cover_letters IS 
+'Master cover letter records for users. Similar to resumes, can have multiple versions.';
+
+COMMENT ON COLUMN cover_letters.user_id IS 
+'User who owns this cover letter - cascade delete on user deletion';
+
+COMMENT ON COLUMN cover_letters.is_default IS 
+'Whether this is the user''s default cover letter';
+
+-- ======================================
+-- Cover letter versions table
+-- ======================================
+CREATE TABLE IF NOT EXISTS cover_letter_versions (
+    id SERIAL PRIMARY KEY,
+    cover_letter_id INTEGER NOT NULL REFERENCES cover_letters(id) ON DELETE CASCADE,
+    version VARCHAR(50) NOT NULL,
+    markdown_content TEXT NOT NULL,
+    job_description TEXT,
+    is_original BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Add template foreign key constraint with SET NULL on template deletion
-ALTER TABLE cover_letters
-ADD CONSTRAINT cover_letters_template_id_fkey
-FOREIGN KEY (template_id)
-REFERENCES cover_letter_templates(id)
-ON DELETE SET NULL;
+-- Indexes for cover_letter_versions
+CREATE INDEX IF NOT EXISTS idx_cover_letter_versions_cover_letter_id ON cover_letter_versions(cover_letter_id);
+CREATE INDEX IF NOT EXISTS idx_cover_letter_versions_version ON cover_letter_versions(version);
+CREATE INDEX IF NOT EXISTS idx_cover_letter_versions_is_original ON cover_letter_versions(is_original);
+CREATE INDEX IF NOT EXISTS idx_cover_letter_versions_created_at ON cover_letter_versions(created_at);
 
--- Add indexes for cover_letters
-CREATE INDEX IF NOT EXISTS idx_cover_letters_user_id ON cover_letters(user_id);
-CREATE INDEX IF NOT EXISTS idx_cover_letters_template_id ON cover_letters(template_id);
-CREATE INDEX IF NOT EXISTS idx_cover_letters_created_at ON cover_letters(created_at);
-CREATE INDEX IF NOT EXISTS idx_cover_letters_title ON cover_letters(title);
+-- Comments for cover_letter_versions
+COMMENT ON TABLE cover_letter_versions IS 
+'Version history for cover letters. Supports customization for applications.';
 
--- Add comments for cover_letters columns
-COMMENT ON COLUMN cover_letters.template_id IS 
-'Optional reference to template used - preserved when template deleted (SET NULL)';
+COMMENT ON COLUMN cover_letter_versions.cover_letter_id IS 
+'Parent cover letter - cascade delete versions when cover letter deleted';
 
-COMMENT ON CONSTRAINT cover_letters_template_id_fkey ON cover_letters IS 
-'SET NULL: Preserves cover letter when template is deleted';
+COMMENT ON COLUMN cover_letter_versions.version IS 
+'Version identifier (e.g., v1, v1.1, v2 - Company Name)';
 
-COMMENT ON CONSTRAINT cover_letters_user_id_fkey ON cover_letters IS 
-'CASCADE: Deletes cover letters when user is deleted';
+COMMENT ON COLUMN cover_letter_versions.markdown_content IS 
+'The actual cover letter content in markdown format';
+
+COMMENT ON COLUMN cover_letter_versions.job_description IS 
+'Job description used for customization (if this is a customized version)';
+
+COMMENT ON COLUMN cover_letter_versions.is_original IS 
+'True for original/master versions, False for company-specific customizations';
 
 -- ======================================
 -- Applications table
@@ -120,6 +149,8 @@ CREATE TABLE IF NOT EXISTS applications (
     resume_version_id INTEGER NOT NULL,
     customized_resume_version_id INTEGER,
     cover_letter_id INTEGER,
+    cover_letter_version_id INTEGER,
+    customized_cover_letter_version_id INTEGER,
     company VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     job_description TEXT,
@@ -135,9 +166,13 @@ CREATE TABLE IF NOT EXISTS applications (
 -- Cascade Deletion Constraints
 -- ======================================
 -- These constraints implement the cascade deletion rules:
+-- RESUMES:
 -- 1. Original resume/version: RESTRICT (blocks deletion if apps exist)
 -- 2. Customized version: CASCADE (deletes with application)
--- 3. Cover letter: SET NULL (preserves cover letter)
+-- COVER LETTERS:
+-- 3. Original cover letter/version: RESTRICT (blocks deletion if apps exist)
+-- 4. Customized cover letter version: CASCADE (deletes with application)
+-- 5. Cover letter master: SET NULL (preserves reference)
 -- ======================================
 
 -- Resume references (RESTRICT - blocks resume deletion)
@@ -161,12 +196,26 @@ ALTER TABLE applications
   REFERENCES resume_versions(id)
   ON DELETE CASCADE;
 
--- Cover letter references (SET NULL - preserves cover letter)
+-- Cover letter master references (SET NULL - preserves cover letter)
 ALTER TABLE applications
   ADD CONSTRAINT applications_cover_letter_id_fkey
   FOREIGN KEY (cover_letter_id)
   REFERENCES cover_letters(id)
   ON DELETE SET NULL;
+
+-- Original cover letter version references (RESTRICT - blocks version deletion)
+ALTER TABLE applications
+  ADD CONSTRAINT applications_cover_letter_version_id_fkey
+  FOREIGN KEY (cover_letter_version_id)
+  REFERENCES cover_letter_versions(id)
+  ON DELETE RESTRICT;
+
+-- Customized cover letter version references (CASCADE - deletes with app)
+ALTER TABLE applications
+  ADD CONSTRAINT applications_customized_cover_letter_version_id_fkey
+  FOREIGN KEY (customized_cover_letter_version_id)
+  REFERENCES cover_letter_versions(id)
+  ON DELETE CASCADE;
 
 -- ======================================
 -- Documentation Comments
@@ -184,7 +233,13 @@ COMMENT ON COLUMN applications.additional_instructions IS
 'Additional instructions used for resume customization';
 
 COMMENT ON COLUMN applications.cover_letter_id IS 
-'Cover letter used for this application - preserved on deletion (SET NULL)';
+'Cover letter master record - preserved on deletion (SET NULL)';
+
+COMMENT ON COLUMN applications.cover_letter_version_id IS 
+'Specific version of cover letter used for this application - protected from deletion (RESTRICT)';
+
+COMMENT ON COLUMN applications.customized_cover_letter_version_id IS 
+'Customized cover letter version for this application - deleted with application (CASCADE)';
 
 COMMENT ON CONSTRAINT applications_resume_id_fkey ON applications IS 
 'RESTRICT: Blocks resume deletion if applications reference it';
@@ -197,6 +252,12 @@ COMMENT ON CONSTRAINT applications_customized_resume_version_id_fkey ON applicat
 
 COMMENT ON CONSTRAINT applications_cover_letter_id_fkey ON applications IS 
 'SET NULL: Preserves cover letter when application is deleted';
+
+COMMENT ON CONSTRAINT applications_cover_letter_version_id_fkey ON applications IS 
+'RESTRICT: Blocks original cover letter version deletion if applications reference it';
+
+COMMENT ON CONSTRAINT applications_customized_cover_letter_version_id_fkey ON applications IS 
+'CASCADE: Deletes customized cover letter version when application is deleted';
 
 -- ======================================
 -- Indexes for Performance
@@ -217,6 +278,9 @@ CREATE INDEX IF NOT EXISTS idx_applications_resume_id ON applications(resume_id)
 CREATE INDEX IF NOT EXISTS idx_applications_resume_version_id ON applications(resume_version_id);
 CREATE INDEX IF NOT EXISTS idx_applications_customized_resume_version_id 
 ON applications(customized_resume_version_id);
+CREATE INDEX IF NOT EXISTS idx_applications_cover_letter_id ON applications(cover_letter_id);
+CREATE INDEX IF NOT EXISTS idx_applications_cover_letter_version_id ON applications(cover_letter_version_id);
+CREATE INDEX IF NOT EXISTS idx_applications_customized_cover_letter_version_id ON applications(customized_cover_letter_version_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_company ON applications(company);
 CREATE INDEX IF NOT EXISTS idx_applications_applied_date ON applications(applied_date);
@@ -317,6 +381,61 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to get cover letter version dependencies
+CREATE OR REPLACE FUNCTION get_cover_letter_version_dependencies(version_id_param INTEGER)
+RETURNS TABLE(
+    application_id INTEGER,
+    company VARCHAR,
+    "position" VARCHAR,
+    reference_type VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        a.id,
+        a.company,
+        a.position,
+        CASE 
+            WHEN a.cover_letter_version_id = version_id_param THEN 'original'
+            WHEN a.customized_cover_letter_version_id = version_id_param THEN 'customized'
+        END as reference_type
+    FROM applications a
+    WHERE a.cover_letter_version_id = version_id_param 
+       OR a.customized_cover_letter_version_id = version_id_param
+    ORDER BY a.applied_date DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION get_cover_letter_version_dependencies(INTEGER) IS 
+'Returns all applications that use a specific cover letter version';
+
+-- Function to get cover letter dependencies
+CREATE OR REPLACE FUNCTION get_cover_letter_dependencies(cover_letter_id_param INTEGER)
+RETURNS TABLE(
+    application_id INTEGER,
+    company VARCHAR,
+    "position" VARCHAR,
+    version VARCHAR,
+    has_version_reference BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        a.id,
+        a.company,
+        a.position,
+        clv.version,
+        (a.cover_letter_version_id IS NOT NULL) as has_version_reference
+    FROM applications a
+    LEFT JOIN cover_letter_versions clv ON a.cover_letter_version_id = clv.id
+    WHERE clv.cover_letter_id = cover_letter_id_param
+    ORDER BY a.applied_date DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION get_cover_letter_dependencies(INTEGER) IS 
+'Returns all applications that use a specific cover letter';
+
 -- Function to get cover letters using a specific template
 CREATE OR REPLACE FUNCTION get_template_usage(template_id_param INTEGER)
 RETURNS TABLE(
@@ -324,7 +443,7 @@ RETURNS TABLE(
     title VARCHAR,
     user_id INTEGER,
     created_at TIMESTAMP WITH TIME ZONE,
-    application_count BIGINT
+    version_count BIGINT
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -333,25 +452,24 @@ BEGIN
         cl.title,
         cl.user_id,
         cl.created_at,
-        COUNT(a.id) as application_count
+        COUNT(clv.id) as version_count
     FROM cover_letters cl
-    LEFT JOIN applications a ON a.cover_letter_id = cl.id
-    WHERE cl.template_id = template_id_param
+    LEFT JOIN cover_letter_versions clv ON clv.cover_letter_id = cl.id
     GROUP BY cl.id, cl.title, cl.user_id, cl.created_at
     ORDER BY cl.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION get_template_usage(INTEGER) IS 
-'Returns all cover letters created from a specific template with application counts';
+'Returns all cover letters with their version counts (templates are now separate from cover letters)';
 
--- Function to get user's cover letters with template and application info
+-- Function to get user's cover letters with version and application info
 CREATE OR REPLACE FUNCTION get_user_cover_letters_with_details(user_id_param INTEGER)
 RETURNS TABLE(
     cover_letter_id INTEGER,
     title VARCHAR,
-    template_name VARCHAR,
     created_at TIMESTAMP WITH TIME ZONE,
+    version_count BIGINT,
     application_count BIGINT,
     companies TEXT
 ) AS $$
@@ -360,21 +478,21 @@ BEGIN
     SELECT 
         cl.id,
         cl.title,
-        clt.name as template_name,
         cl.created_at,
+        COUNT(DISTINCT clv.id) as version_count,
         COUNT(DISTINCT a.id) as application_count,
         STRING_AGG(DISTINCT a.company, ', ') as companies
     FROM cover_letters cl
-    LEFT JOIN cover_letter_templates clt ON cl.template_id = clt.id
+    LEFT JOIN cover_letter_versions clv ON clv.cover_letter_id = cl.id
     LEFT JOIN applications a ON a.cover_letter_id = cl.id
     WHERE cl.user_id = user_id_param
-    GROUP BY cl.id, cl.title, clt.name, cl.created_at
+    GROUP BY cl.id, cl.title, cl.created_at
     ORDER BY cl.created_at DESC;
 END;
 $$ LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION get_user_cover_letters_with_details(INTEGER) IS 
-'Returns user cover letters with template info and application usage';
+'Returns user cover letters with version counts and application usage';
 
 -- ======================================
 -- Default Cover Letter Templates
@@ -496,7 +614,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT INTO schema_version (version, description) 
-VALUES ('1.1.0-merged', 'Merged base schema with cover letter templates system')
+VALUES ('1.2.0', 'Merged base schema with cover letter templates system and cover letter versions')
 ON CONFLICT (version) DO NOTHING;
 
 -- ======================================
@@ -519,7 +637,7 @@ JOIN information_schema.constraint_column_usage AS ccu
 JOIN information_schema.referential_constraints AS rc
     ON rc.constraint_name = tc.constraint_name
 WHERE tc.constraint_type = 'FOREIGN KEY' 
-  AND (tc.table_name = 'applications' OR tc.table_name = 'cover_letters')
+  AND (tc.table_name = 'applications' OR tc.table_name = 'cover_letters' OR tc.table_name = 'cover_letter_versions')
 ORDER BY tc.table_name, tc.constraint_name;
 */
 
@@ -534,16 +652,28 @@ BEGIN
     
     RAISE NOTICE 'Database initialization complete!';
     RAISE NOTICE '';
-    RAISE NOTICE '✓ Tables created: users, resumes, resume_versions, cover_letters, cover_letter_templates, applications';
+    RAISE NOTICE '✓ Tables created:';
+    RAISE NOTICE '  - users';
+    RAISE NOTICE '  - resumes, resume_versions';
+    RAISE NOTICE '  - cover_letters, cover_letter_versions';
+    RAISE NOTICE '  - cover_letter_templates';
+    RAISE NOTICE '  - applications';
+    RAISE NOTICE '';
     RAISE NOTICE '✓ Cascade deletion constraints in place:';
-    RAISE NOTICE '  - Original resumes/versions: RESTRICT (protected)';
-    RAISE NOTICE '  - Customized versions: CASCADE (auto-deleted)';
-    RAISE NOTICE '  - Cover letters: SET NULL (preserved)';
-    RAISE NOTICE '  - Templates: SET NULL (reference cleared)';
+    RAISE NOTICE '  RESUMES:';
+    RAISE NOTICE '    - Original resumes/versions: RESTRICT (protected)';
+    RAISE NOTICE '    - Customized versions: CASCADE (auto-deleted)';
+    RAISE NOTICE '  COVER LETTERS:';
+    RAISE NOTICE '    - Original cover letters/versions: RESTRICT (protected)';
+    RAISE NOTICE '    - Customized cover letter versions: CASCADE (auto-deleted)';
+    RAISE NOTICE '    - Cover letter master: SET NULL (preserved)';
+    RAISE NOTICE '  TEMPLATES:';
+    RAISE NOTICE '    - Templates are independent (no cascade to cover letters)';
+    RAISE NOTICE '';
     RAISE NOTICE '✓ Indexes created for optimal query performance';
     RAISE NOTICE '✓ Triggers configured for updated_at timestamps';
     RAISE NOTICE '✓ Utility functions available';
     RAISE NOTICE '✓ % cover letter templates loaded', template_count;
     RAISE NOTICE '';
-    RAISE NOTICE 'Schema version: 1.1.0-merged';
+    RAISE NOTICE 'Schema version: 1.2.0';
 END $$;

@@ -1,10 +1,11 @@
 /**
  * DashboardPage Component Styles
- * Main dashboard with stats and quick actions
+ * Main dashboard with stats, quick actions, and document management
+ * Improved layout with better spacing and responsive design
  */
 
 .container {
-  @apply max-w-6xl mx-auto px-4 py-8;
+  @apply max-w-7xl mx-auto px-4 py-8;
 }
 
 @media (min-width: 640px) {
@@ -30,16 +31,16 @@
 }
 
 .welcomeTitle {
-  @apply text-3xl font-bold text-gray-900;
+  @apply text-4xl font-bold text-gray-900;
 }
 
 .welcomeSubtitle {
-  @apply text-gray-600 mt-2;
+  @apply text-lg text-gray-600 mt-2;
 }
 
 /* Error Alert */
 .errorAlert {
-  @apply mb-8 bg-red-50 border border-red-200 rounded-md p-4;
+  @apply mb-8 bg-red-50 border border-red-200 rounded-lg p-4;
 }
 
 .errorContent {
@@ -47,7 +48,7 @@
 }
 
 .errorIcon {
-  @apply h-5 w-5 text-red-400;
+  @apply h-5 w-5 text-red-400 flex-shrink-0 mt-0.5;
 }
 
 .errorText {
@@ -60,7 +61,7 @@
 
 /* Statistics Cards */
 .statsGrid {
-  @apply grid grid-cols-1 gap-6 mb-8;
+  @apply grid grid-cols-1 gap-6 mb-12;
 }
 
 @media (min-width: 768px) {
@@ -69,12 +70,18 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .statsGrid {
+    @apply grid-cols-3;
+  }
+}
+
 .statsCard {
-  @apply bg-white overflow-hidden shadow rounded-lg;
+  @apply bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200;
 }
 
 .statsCardContent {
-  @apply p-5;
+  @apply p-6;
 }
 
 .statsCardInner {
@@ -86,36 +93,43 @@
 }
 
 .statsIconResumes {
-  @apply h-6 w-6 text-blue-600;
+  @apply h-8 w-8 text-blue-600;
+}
+
+.statsIconCoverLetters {
+  @apply h-8 w-8 text-purple-600;
 }
 
 .statsIconApplications {
-  @apply h-6 w-6 text-green-600;
+  @apply h-8 w-8 text-green-600;
 }
 
 .statsCardData {
-  @apply ml-5 w-0 flex-1;
+  @apply ml-4 w-0 flex-1;
 }
 
 .statsCardLabel {
-  @apply text-sm font-medium text-gray-500 truncate;
+  @apply text-sm font-medium text-gray-600;
 }
 
 .statsCardValue {
-  @apply text-3xl font-semibold text-gray-900;
+  @apply text-3xl font-bold text-gray-900 mt-1;
 }
 
 .statsCardFooter {
-  @apply bg-gray-50 px-5 py-3;
+  @apply bg-gray-50 px-6 py-4 border-t border-gray-100;
 }
 
 .statsCardLink {
-  @apply font-medium hover:opacity-80;
-  transition: opacity var(--transition-fast);
+  @apply text-sm font-medium hover:opacity-75 transition-opacity;
 }
 
 .statsCardLinkResumes {
   @apply text-blue-600;
+}
+
+.statsCardLinkCoverLetters {
+  @apply text-purple-600;
 }
 
 .statsCardLinkApplications {
@@ -124,11 +138,11 @@
 
 /* Quick Actions */
 .quickActionsSection {
-  @apply mb-8;
+  @apply mb-12;
 }
 
 .quickActionsTitle {
-  @apply text-xl font-semibold text-gray-900 mb-4;
+  @apply text-2xl font-bold text-gray-900 mb-6;
 }
 
 .quickActionsGrid {
@@ -148,8 +162,7 @@
 }
 
 .quickActionCard {
-  @apply bg-white p-6 rounded-lg shadow hover:shadow-md border border-gray-200;
-  transition: box-shadow var(--transition-normal);
+  @apply bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200;
 }
 
 .quickActionContent {
@@ -157,35 +170,35 @@
 }
 
 .quickActionIcon {
-  @apply flex-shrink-0 p-2 rounded-md;
+  @apply flex-shrink-0 p-3 rounded-lg;
 }
 
 .quickActionIconResume {
   @apply bg-blue-100;
 }
 
+.quickActionIconCoverLetter {
+  @apply bg-purple-100;
+}
+
 .quickActionIconApplication {
   @apply bg-green-100;
 }
 
-.quickActionIconRefresh {
-  @apply bg-gray-100;
-}
-
 .quickActionIconSvg {
-  @apply h-5 w-5;
+  @apply h-6 w-6;
 }
 
 .quickActionIconSvgResume {
   @apply text-blue-600;
 }
 
-.quickActionIconSvgApplication {
-  @apply text-green-600;
+.quickActionIconSvgCoverLetter {
+  @apply text-purple-600;
 }
 
-.quickActionIconSvgRefresh {
-  @apply text-gray-600;
+.quickActionIconSvgApplication {
+  @apply text-green-600;
 }
 
 .quickActionText {
@@ -193,76 +206,133 @@
 }
 
 .quickActionTitle {
-  @apply text-sm font-medium text-gray-900;
+  @apply font-semibold text-gray-900;
 }
 
 .quickActionDescription {
-  @apply text-sm text-gray-500;
+  @apply text-sm text-gray-600 mt-1;
 }
 
-/* Recent Activity */
-.activityGrid {
+/* Documents Section */
+.documentsSection {
+  @apply mb-12;
+}
+
+.documentsSectionTitle {
+  @apply text-2xl font-bold text-gray-900 mb-6;
+}
+
+.documentsGrid {
   @apply grid grid-cols-1 gap-8;
 }
 
 @media (min-width: 1024px) {
-  .activityGrid {
+  .documentsGrid {
     @apply grid-cols-2;
   }
 }
 
-.activityCard {
-  @apply bg-white shadow rounded-lg;
+.documentCard {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
 }
 
-.activityCardContent {
-  @apply px-4 py-5;
+.documentCardHeader {
+  @apply flex items-center justify-between px-6 py-4 border-b border-gray-100;
 }
 
-@media (min-width: 640px) {
-  .activityCardContent {
-    @apply p-6;
-  }
+.documentCardTitle {
+  @apply flex items-center text-lg font-semibold text-gray-900 gap-2;
 }
 
-.activityCardTitle {
-  @apply text-lg leading-6 font-medium text-gray-900 mb-4;
+.documentCardIcon {
+  @apply h-5 w-5 text-gray-600;
 }
 
-/* Activity Items */
-.activityList {
+.viewAllLink {
+  @apply text-sm font-medium text-blue-600 hover:text-blue-700;
+}
+
+.documentCardContent {
+  @apply p-6;
+}
+
+/* Document List */
+.documentList {
   @apply space-y-3;
 }
 
-.activityItem {
-  @apply flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0;
+.documentItem {
+  @apply flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all;
 }
 
-.activityItemContent {
-  @apply flex-1;
+.documentItemIcon {
+  @apply flex-shrink-0 mr-3;
 }
 
-.activityItemTitle {
-  @apply text-sm font-medium text-gray-900 hover:text-blue-600;
-  transition: color var(--transition-normal);
+.documentItemIcon svg {
+  @apply h-5 w-5 text-gray-400;
 }
 
-.activityItemMeta {
+.documentItemInfo {
+  @apply flex-1 min-w-0;
+}
+
+.documentItemTitle {
+  @apply text-sm font-medium text-gray-900 hover:text-blue-600 truncate;
+}
+
+.documentItemMeta {
   @apply text-xs text-gray-500 mt-1;
 }
 
-.activityItemActions {
-  @apply flex items-center space-x-2;
+.documentItemAction {
+  @apply ml-2 text-xs font-medium text-blue-600 hover:text-blue-700 whitespace-nowrap;
 }
 
-.activityItemAction {
-  @apply text-xs text-blue-600 hover:text-blue-800;
-  transition: color var(--transition-normal);
+/* Applications Section */
+.applicationsSection {
+  @apply mb-8;
+}
+
+.applicationsSectionHeader {
+  @apply flex items-center justify-between mb-6;
+}
+
+.applicationsSectionTitle {
+  @apply text-2xl font-bold text-gray-900;
+}
+
+.applicationsCard {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
+}
+
+.applicationsList {
+  @apply divide-y divide-gray-100;
+}
+
+.applicationItem {
+  @apply flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors;
+}
+
+.applicationItemLeft {
+  @apply flex-1 min-w-0;
+}
+
+.applicationItemTitle {
+  @apply text-sm font-medium text-gray-900 hover:text-blue-600;
+}
+
+.applicationItemCompany {
+  @apply text-xs text-gray-600 mt-1;
+}
+
+.applicationItemRight {
+  @apply ml-4;
 }
 
 /* Status Badge */
 .statusBadge {
-  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
 }
 
 .statusBadgeApplied {
@@ -287,7 +357,7 @@
 
 /* Empty State */
 .emptyState {
-  @apply text-center py-6;
+  @apply text-center py-12;
 }
 
 .emptyStateIcon {
@@ -295,19 +365,23 @@
 }
 
 .emptyStateText {
-  @apply text-sm text-gray-500 mt-2;
+  @apply text-sm text-gray-600 mt-3 font-medium;
 }
 
 .emptyStateAction {
-  @apply text-sm font-medium mt-1 inline-block;
+  @apply inline-block text-sm font-medium mt-4 px-4 py-2 rounded-lg transition-colors;
 }
 
 .emptyStateActionResumes {
-  @apply text-blue-600 hover:text-blue-800;
+  @apply text-blue-600 hover:bg-blue-50;
+}
+
+.emptyStateActionCoverLetters {
+  @apply text-purple-600 hover:bg-purple-50;
 }
 
 .emptyStateActionApplications {
-  @apply text-blue-600 hover:text-blue-800;
+  @apply text-green-600 hover:bg-green-50;
 }
 
 /* Dark mode support */
@@ -332,7 +406,7 @@
 }
 
 .dark .statsCard {
-  @apply bg-gray-800;
+  @apply bg-gray-800 border-gray-700;
 }
 
 .dark .statsCardLabel {
@@ -344,7 +418,7 @@
 }
 
 .dark .statsCardFooter {
-  @apply bg-gray-700;
+  @apply bg-gray-700 border-gray-600;
 }
 
 .dark .quickActionsTitle {
@@ -359,12 +433,12 @@
   @apply bg-blue-900;
 }
 
-.dark .quickActionIconApplication {
-  @apply bg-green-900;
+.dark .quickActionIconCoverLetter {
+  @apply bg-purple-900;
 }
 
-.dark .quickActionIconRefresh {
-  @apply bg-gray-700;
+.dark .quickActionIconApplication {
+  @apply bg-green-900;
 }
 
 .dark .quickActionTitle {
@@ -375,28 +449,68 @@
   @apply text-gray-400;
 }
 
-.dark .activityCard {
-  @apply bg-gray-800;
-}
-
-.dark .activityCardTitle {
+.dark .documentsSectionTitle {
   @apply text-gray-100;
 }
 
-.dark .activityItem {
+.dark .documentCard {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .documentCardHeader {
   @apply border-gray-700;
 }
 
-.dark .activityItemTitle {
-  @apply text-gray-100 hover:text-blue-400;
+.dark .documentCardTitle {
+  @apply text-gray-100;
 }
 
-.dark .activityItemMeta {
+.dark .documentCardIcon {
   @apply text-gray-400;
 }
 
-.dark .activityItemAction {
+.dark .documentItem {
+  @apply hover:bg-gray-700 hover:border-gray-600;
+}
+
+.dark .documentItemIcon svg {
+  @apply text-gray-500;
+}
+
+.dark .documentItemTitle {
+  @apply text-gray-100 hover:text-blue-400;
+}
+
+.dark .documentItemMeta {
+  @apply text-gray-400;
+}
+
+.dark .documentItemAction {
   @apply text-blue-400 hover:text-blue-300;
+}
+
+.dark .applicationsSectionTitle {
+  @apply text-gray-100;
+}
+
+.dark .applicationsCard {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .applicationsList {
+  @apply divide-gray-700;
+}
+
+.dark .applicationItem {
+  @apply hover:bg-gray-700;
+}
+
+.dark .applicationItemTitle {
+  @apply text-gray-100 hover:text-blue-400;
+}
+
+.dark .applicationItemCompany {
+  @apply text-gray-400;
 }
 
 .dark .emptyStateIcon {
@@ -408,6 +522,11 @@
 }
 
 .dark .emptyStateActionResumes,
+.dark .emptyStateActionCoverLetters,
 .dark .emptyStateActionApplications {
+  @apply hover:bg-gray-700;
+}
+
+.dark .viewAllLink {
   @apply text-blue-400 hover:text-blue-300;
 }
