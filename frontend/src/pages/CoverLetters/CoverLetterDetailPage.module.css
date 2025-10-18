@@ -1,0 +1,51 @@
+.pageContainer {
+  padding: 2rem;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.errorContainer {
+  color: red;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  flex-grow: 1;
+}
+
+.editButton {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.contentContainer {
+  background-color: #f9f9f9;
+  padding: 2rem;
+  border-radius: 5px;
+}

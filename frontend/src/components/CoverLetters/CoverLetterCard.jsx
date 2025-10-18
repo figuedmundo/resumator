@@ -7,7 +7,7 @@ import styles from './CoverLetterCard.module.css';
  * Displays a single cover letter with summary and action buttons
  * 
  * Props:
- *  - coverLetter: object with id, title, company, position, date, content
+ *  - coverLetter: object with id, title, content
  *  - onView: callback when View button clicked
  *  - onEdit: callback when Edit button clicked
  *  - onDelete: callback when Delete button clicked
@@ -16,7 +16,7 @@ export default function CoverLetterCard({ coverLetter, onView, onEdit, onDelete 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (window.confirm(`Delete cover letter for ${coverLetter.company}?`)) {
+    if (window.confirm(`Delete cover letter for ${coverLetter.title}?`)) {
       setIsDeleting(true);
       try {
         await onDelete(coverLetter.id);
@@ -26,31 +26,12 @@ export default function CoverLetterCard({ coverLetter, onView, onEdit, onDelete 
     }
   };
 
-  const formattedDate = new Date(coverLetter.date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-
   return (
     <div className={styles.card}>
       <div className={styles.cardContent}>
         <div className={styles.header}>
           <div className={styles.titleSection}>
             <h3 className={styles.title}>{coverLetter.title || 'Untitled'}</h3>
-            <p className={styles.date}>{formattedDate}</p>
-          </div>
-          <div className={styles.badge}>{coverLetter.status || 'Draft'}</div>
-        </div>
-
-        <div className={styles.details}>
-          <div className={styles.detailItem}>
-            <span className={styles.label}>Company:</span>
-            <span className={styles.value}>{coverLetter.company || 'N/A'}</span>
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.label}>Position:</span>
-            <span className={styles.value}>{coverLetter.position || 'N/A'}</span>
           </div>
         </div>
 

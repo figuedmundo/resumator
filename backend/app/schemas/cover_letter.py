@@ -54,6 +54,7 @@ class CoverLetterVersionResponse(BaseModel):
 class CoverLetterCreate(BaseModel):
     """Create a new master cover letter."""
     title: str = Field(..., description="Name of this cover letter")
+    content: str = Field(default="", description="Initial content for the first version")
     is_default: bool = Field(default=False, description="Whether this is the default cover letter")
 
 
@@ -102,6 +103,7 @@ class CoverLetterGenerateRequest(BaseModel):
     company: str = Field(..., description="Company name")
     position: str = Field(..., description="Position title")
     template_id: Optional[int] = Field(None, description="Optional template to guide generation")
+    base_cover_letter_content: Optional[str] = Field(None, description="Optional base cover letter content to use as a template")
 
 
 class CoverLetterGenerateResponse(BaseModel):

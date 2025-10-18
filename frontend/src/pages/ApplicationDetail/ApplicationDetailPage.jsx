@@ -285,20 +285,24 @@ const ApplicationDetailPage = () => {
             </div>
 
             {/* Cover Letter */}
-            {application.cover_letter_id && (
+            {application.cover_letter_version && (
               <div className={styles.detailItem}>
                 <dt className={styles.detailLabel}>Cover Letter</dt>
                 <dd className={styles.detailValue}>
                   <div className={styles.detailLinkRow}>
                     <DocumentTextIcon className={styles.detailLinkIcon} />
-                    <span>Cover Letter ID: {application.cover_letter_id}</span>
+                    <span>{application.cover_letter_version.version}</span>
                     <Link
-                      to={`/cover-letters/${application.cover_letter_id}`}
+                      to={`/cover-letters/${application.cover_letter_version.cover_letter_id}/versions/${application.cover_letter_version.id}`}
                       className={styles.detailLink}
-                      title="View cover letter"
+                      title="View cover letter version"
                     >
                       <EyeIcon className={styles.detailLinkIconButton} />
                     </Link>
+                  </div>
+                  <div className={styles.coverLetterActions}>
+                    <button className={styles.actionButton}>Customize</button>
+                    <button className={styles.actionButton}>Remove</button>
                   </div>
                 </dd>
               </div>

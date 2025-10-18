@@ -11,7 +11,6 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import MarkdownToolbar from '../ResumeEditor/components/MarkdownToolbar';
 import VersionPicker from '../../components/Resumes/VersionPicker';
 import apiService from '../../services/api';
-import { AUTO_SAVE_DELAY } from '../../utils/constants';
 import styles from './CoverLetterEditorPage.module.css';
 
 export default function CoverLetterEditorPage() {
@@ -25,11 +24,7 @@ export default function CoverLetterEditorPage() {
   const [coverLetter, setCoverLetter] = useState(null);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [position, setPosition] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('saved');
   const [error, setError] = useState(null);
   
   const [viewMode, setViewMode] = useState('edit');
@@ -38,29 +33,23 @@ export default function CoverLetterEditorPage() {
   const [selectedVersionId, setSelectedVersionId] = useState(null);
   const [versionsLoaded, setVersionsLoaded] = useState(false);
   
-  const [saveTimeout, setSaveTimeout] = useState(null);
-  const [lastSavedContent, setLastSavedContent] = useState('');
-  const [lastSavedTitle, setLastSavedTitle] = useState('');
-  const [lastSavedCompany, setLastSavedCompany] = useState('');
-  const [lastSavedPosition, setLastSavedPosition] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
 
   useEffect(() => {
     if (id && id !== 'new') {
       if (location.state?.versionId) {
         desiredVersionIdRef.current = location.state.versionId;
       }
-      
-      loadVersions();
-      loadCoverLetterMetadata();
+      loadCoverLetterData();
     } else {
       setIsLoading(false);
       setContent(getDefaultTemplate());
       setTitle('Untitled Cover Letter');
-      setLastSavedContent('');
-      setLastSavedTitle('');
       setVersionsLoaded(true);
     }
-  }, [id]);
+  }, [id, location.state]);
 
   useEffect(() => {
     if (versionsLoaded && versions.length > 0 && !selectedVersionId) {
@@ -70,12 +59,15 @@ export default function CoverLetterEditorPage() {
         const desiredVersion = versions.find(v => v.id === desiredVersionId);
         if (desiredVersion) {
           setSelectedVersionId(desiredVersionId);
-          desiredVersionIdRef.current = null;
+          desiredVersionIdRef.current = null; // Reset after use
           return;
         }
       }
       
-      setSelectedVersionId(versions[0].id);
+      // Fallback to the first version if desired version not found or not specified
+      if (versions[0]) {
+        setSelectedVersionId(versions[0].id);
+      }
     }
   }, [versionsLoaded, versions, selectedVersionId]);
 
@@ -83,40 +75,21 @@ export default function CoverLetterEditorPage() {
     if (selectedVersionId && versions.length > 0) {
       const version = versions.find(v => v.id === selectedVersionId);
       if (version) {
-        setContent(version.content || '');
-        setLastSavedContent(version.content || '');
+        setContent(version.markdown_content || '');
         setIsLoading(false);
-        setSaveStatus('saved');
       }
     }
   }, [selectedVersionId, versions]);
 
   useEffect(() => {
-    if (!isLoading && selectedVersionId && (
-      content !== lastSavedContent || 
-      title !== lastSavedTitle ||
-      company !== lastSavedCompany ||
-      position !== lastSavedPosition
-    )) {
-      setSaveStatus('unsaved');
-      
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+    if (!isLoading) {
+      if (content || title) {
+        setIsDirty(true);
+      } else {
+        setIsDirty(false);
       }
-
-      const timeout = setTimeout(() => {
-        handleAutoSave();
-      }, AUTO_SAVE_DELAY);
-
-      setSaveTimeout(timeout);
     }
-
-    return () => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
-      }
-    };
-  }, [content, title, company, position, isLoading, lastSavedContent, lastSavedTitle, lastSavedCompany, lastSavedPosition, selectedVersionId]);
+  }, [content, title, isLoading]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -134,70 +107,22 @@ export default function CoverLetterEditorPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const loadCoverLetterMetadata = async () => {
+  const loadCoverLetterData = async () => {
+    setIsLoading(true);
     try {
       const response = await apiService.getCoverLetter(id);
       setCoverLetter(response);
       setTitle(response.title || 'Untitled Cover Letter');
-      setCompany(response.company || '');
-      setPosition(response.position || '');
-      setLastSavedTitle(response.title || '');
-      setLastSavedCompany(response.company || '');
-      setLastSavedPosition(response.position || '');
-    } catch (err) {
-      console.error('Failed to load metadata:', err);
-      setError(err.message);
-    }
-  };
-
-  const loadVersions = async () => {
-    try {
-      const response = await apiService.get(`/api/v1/cover-letters/${id}/versions`);
-      const versionsList = response.versions || response || [];
+      
+      const versionsList = response.versions || [];
       setVersions(versionsList);
       setVersionsLoaded(true);
+
     } catch (err) {
-      console.error('Failed to load versions:', err);
-      setError('Failed to load cover letter versions');
+      console.error('Failed to load cover letter data:', err);
+      setError('Failed to load cover letter data. Please try again.');
+      setIsLoading(false);
       setVersionsLoaded(true);
-    }
-  };
-
-  const handleAutoSave = async () => {
-    if (saveStatus === 'saved' || !selectedVersionId) return;
-
-    try {
-      setSaveStatus('saving');
-      setIsSaving(true);
-      
-      if (id && id !== 'new') {
-        await apiService.updateCoverLetter(id, {
-          title,
-          company,
-          position,
-          content,
-        });
-      } else {
-        const response = await apiService.createCoverLetter({
-          title,
-          company,
-          position,
-          content,
-        });
-        setCoverLetter(response);
-        navigate(`/cover-letters/${response.id}/edit`, { replace: true });
-      }
-      
-      setLastSavedContent(content);
-      setLastSavedTitle(title);
-      setLastSavedCompany(company);
-      setLastSavedPosition(position);
-      setSaveStatus('saved');
-    } catch (err) {
-      console.error('Auto-save failed:', err);
-      setSaveStatus('error');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -210,26 +135,19 @@ export default function CoverLetterEditorPage() {
       if (id && id !== 'new') {
         await apiService.updateCoverLetter(id, {
           title,
-          company,
-          position,
           content,
         });
       } else {
         const response = await apiService.createCoverLetter({
           title,
-          company,
-          position,
           content,
         });
         setCoverLetter(response);
         navigate(`/cover-letters/${response.id}/edit`, { replace: true });
       }
       
-      setLastSavedContent(content);
-      setLastSavedTitle(title);
-      setLastSavedCompany(company);
-      setLastSavedPosition(position);
       setSaveStatus('saved');
+      setIsDirty(false);
       
       if (id && id !== 'new') {
         loadVersions();
@@ -284,25 +202,7 @@ export default function CoverLetterEditorPage() {
     }
   }, []);
 
-  const getSaveStatusColor = () => {
-    switch (saveStatus) {
-      case 'saved': return styles.saveStatusSaved;
-      case 'saving': return styles.saveStatusSaving;
-      case 'unsaved': return styles.saveStatusUnsaved;
-      case 'error': return styles.saveStatusError;
-      default: return 'text-gray-600';
-    }
-  };
 
-  const getSaveStatusText = () => {
-    switch (saveStatus) {
-      case 'saved': return '✓ Saved';
-      case 'saving': return 'Saving...';
-      case 'unsaved': return '• Unsaved changes';
-      case 'error': return '⚠ Save failed';
-      default: return '';
-    }
-  };
 
   const getDefaultTemplate = () => {
     return `Dear Hiring Manager,
@@ -353,30 +253,10 @@ Sincerely,
                 className={styles.titleInput}
                 placeholder="Cover Letter Title"
               />
-              <span className={clsx(styles.saveStatus, getSaveStatusColor())}>
-                {getSaveStatusText()}
-              </span>
             </div>
           </div>
 
           <div className={styles.headerRight}>
-            <div className={styles.metadataInputs}>
-              <input
-                type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                className={styles.metadataInput}
-                placeholder="Company Name"
-              />
-              <input
-                type="text"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                className={styles.metadataInput}
-                placeholder="Position Title"
-              />
-            </div>
-
             {versions.length > 0 && (
               <VersionPicker
                 versions={versions}
@@ -438,7 +318,7 @@ Sincerely,
 
             <button
               onClick={handleManualSave}
-              disabled={isSaving || saveStatus === 'saved'}
+              disabled={isSaving || !isDirty}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {isSaving ? (
@@ -487,43 +367,45 @@ Sincerely,
       <div className={styles.mainContent}>
         {viewMode === 'edit' && (
           <div className={styles.editorPanelFull}>
-            <div className={styles.editorWrapper}>
-              <CodeMirror
-                ref={codeMirrorRef}
-                value={content}
-                onChange={(value) => setContent(value)}
-                extensions={[
-                  markdown(),
-                  EditorView.lineWrapping,
-                  EditorView.theme({
-                    '&': {
-                      fontSize: '14px',
-                    },
-                    '.cm-content': {
-                      padding: '16px',
-                      minHeight: '100%',
-                    },
-                    '.cm-focused': {
-                      outline: 'none',
-                    },
-                    '.cm-editor': {
-                      height: '100%',
-                    },
-                    '.cm-scroller': {
-                      fontFamily: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-                    },
-                  }),
-                ]}
-                theme={isDarkMode ? oneDark : 'light'}
-                height="100%"
-                basicSetup={{
-                  lineNumbers: true,
-                  foldGutter: true,
-                  dropCursor: false,
-                  allowMultipleSelections: false,
-                  highlightSelectionMatches: false,
-                }}
-              />
+            <div className={styles.editorProse}>
+              <div className={styles.editorWrapper}>
+                <CodeMirror
+                  ref={codeMirrorRef}
+                  value={content}
+                  onChange={(value) => setContent(value)}
+                  extensions={[
+                    markdown(),
+                    EditorView.lineWrapping,
+                    EditorView.theme({
+                      '&': {
+                        fontSize: '14px',
+                      },
+                      '.cm-content': {
+                        padding: '16px',
+                        minHeight: '100%',
+                      },
+                      '.cm-focused': {
+                        outline: 'none',
+                      },
+                      '.cm-editor': {
+                        height: '100%',
+                      },
+                      '.cm-scroller': {
+                        fontFamily: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+                      },
+                    }),
+                  ]}
+                  theme={isDarkMode ? oneDark : 'light'}
+                  height="100%"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: true,
+                    dropCursor: false,
+                    allowMultipleSelections: false,
+                    highlightSelectionMatches: false,
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}

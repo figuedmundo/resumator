@@ -6,6 +6,7 @@ import apiService from '../../../services/api';
 import { APPLICATION_STATUS } from '@/utils/constants';
 import { devLog } from '@/utils/helpers';
 import styles from './ApplicationWizard.module.css';
+import CoverLetterSelector from '../../../components/Applications/CoverLetterSelector';
 
 const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
     additional_instructions: '',
     resume_id: '',
     resume_version_id: '',
+    cover_letter_version_id: '',
     customize_resume: false,
     status: APPLICATION_STATUS.APPLIED,
     applied_date: new Date().toISOString().split('T')[0],
@@ -133,6 +135,7 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
         job_description: formData.job_description.trim() || null,
         resume_id: parseInt(formData.resume_id),
         resume_version_id: parseInt(formData.resume_version_id),
+        cover_letter_version_id: formData.cover_letter_version_id ? parseInt(formData.cover_letter_version_id) : null,
         customize_resume: formData.customize_resume,
         additional_instructions: formData.additional_instructions.trim() || null,
         status: formData.status,
@@ -215,8 +218,8 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
       case 2:
         return (
           <div className={styles.stepContent}>
-            <h3 className={styles.stepTitle}>Select Resume & Customize</h3>
-            <p className={styles.stepDescription}>Choose your resume and decide if you want AI customization</p>
+            <h3 className={styles.stepTitle}>Select Resume & Cover Letter</h3>
+            <p className={styles.stepDescription}>Choose your resume and an optional cover letter</p>
             
             <div className={styles.formGrid}>
               <div className={styles.fieldGroup}>
@@ -265,6 +268,8 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
                 {errors.resume_version_id && <p className={styles.error}>{errors.resume_version_id}</p>}
               </div>
             </div>
+
+            <CoverLetterSelector onSelect={(id) => setFormData(prev => ({...prev, cover_letter_version_id: id}))} selectedCoverLetter={formData.cover_letter_version_id} />
             
             <div className={styles.customizationSection}>
               <div className={styles.customizationOption}>
@@ -353,7 +358,7 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
               </div>
               
               <div className={styles.reviewSection}>
-                <h4 className={styles.reviewSectionTitle}>Resume Selection</h4>
+                <h4 className={styles.reviewSectionTitle}>Resume & Cover Letter</h4>
                 <div className={styles.reviewItem}>
                   <span className={styles.reviewLabel}>Resume:</span>
                   <span className={styles.reviewValue}>
@@ -364,6 +369,12 @@ const ApplicationWizard = ({ applicationId = null, onSuccess }) => {
                   <span className={styles.reviewLabel}>Version:</span>
                   <span className={styles.reviewValue}>
                     {resumeVersions.find(v => v.id == formData.resume_version_id)?.version || 'Unknown'}
+                  </span>
+                </div>
+                <div className={styles.reviewItem}>
+                  <span className={styles.reviewLabel}>Cover Letter:</span>
+                  <span className={styles.reviewValue}>
+                    {formData.cover_letter_version_id ? 'Selected' : 'Not Selected'}
                   </span>
                 </div>
                 <div className={styles.reviewItem}>

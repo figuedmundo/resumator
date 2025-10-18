@@ -1,8 +1,8 @@
 -- init.sql
 -- PostgreSQL initialization script for Resumator
 -- Merged schema: Base schema + Cover Letter Templates System + Cover Letter Versions
--- Version: 1.2.0
--- Last updated: 2025-10-15 (Merged migration 1.2.0 into init.sql)
+-- Version: 1.3.0
+-- Last updated: 2025-10-15 (Refactored cover letter integration)
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -145,12 +145,16 @@ COMMENT ON COLUMN cover_letter_versions.is_original IS
 CREATE TABLE IF NOT EXISTS applications (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    resume_id INTEGER NOT NULL,
-    resume_version_id INTEGER NOT NULL,
-    customized_resume_version_id INTEGER,
-    cover_letter_id INTEGER,
-    cover_letter_version_id INTEGER,
-    customized_cover_letter_version_id INTEGER,
+    resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE RESTRICT,
+    resume_version_id INTEGER NOT NULL REFERENCES resume_versions(id) ON DELETE RESTRICT,
+    customized_resume_version_id INTEGER REFERENCES resume_versions(id) ON DELETE CASCADE,
+    
+    -- These columns need to be added or corrected
+    cover_letter_id INTEGER REFERENCES cover_letters(id) ON DELETE SET NULL,
+    cover_letter_version_id INTEGER REFERENCES cover_letter_versions(id) ON DELETE RESTRICT,
+    customized_cover_letter_version_id INTEGER REFERENCES cover_letter_versions(id) ON DELETE CASCADE,
+    cover_letter_customized_at TIMESTAMP WITH TIME ZONE,
+
     company VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     job_description TEXT,
@@ -165,57 +169,9 @@ CREATE TABLE IF NOT EXISTS applications (
 -- ======================================
 -- Cascade Deletion Constraints
 -- ======================================
--- These constraints implement the cascade deletion rules:
--- RESUMES:
--- 1. Original resume/version: RESTRICT (blocks deletion if apps exist)
--- 2. Customized version: CASCADE (deletes with application)
--- COVER LETTERS:
--- 3. Original cover letter/version: RESTRICT (blocks deletion if apps exist)
--- 4. Customized cover letter version: CASCADE (deletes with application)
--- 5. Cover letter master: SET NULL (preserves reference)
+-- These constraints are now defined directly in the CREATE TABLE statement.
+-- This section is preserved for documentation purposes.
 -- ======================================
-
--- Resume references (RESTRICT - blocks resume deletion)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_resume_id_fkey
-  FOREIGN KEY (resume_id)
-  REFERENCES resumes(id)
-  ON DELETE RESTRICT;
-
--- Original resume version references (RESTRICT - blocks version deletion)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_resume_version_id_fkey
-  FOREIGN KEY (resume_version_id)
-  REFERENCES resume_versions(id)
-  ON DELETE RESTRICT;
-
--- Customized resume version references (CASCADE - deletes with app)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_customized_resume_version_id_fkey
-  FOREIGN KEY (customized_resume_version_id)
-  REFERENCES resume_versions(id)
-  ON DELETE CASCADE;
-
--- Cover letter master references (SET NULL - preserves cover letter)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_cover_letter_id_fkey
-  FOREIGN KEY (cover_letter_id)
-  REFERENCES cover_letters(id)
-  ON DELETE SET NULL;
-
--- Original cover letter version references (RESTRICT - blocks version deletion)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_cover_letter_version_id_fkey
-  FOREIGN KEY (cover_letter_version_id)
-  REFERENCES cover_letter_versions(id)
-  ON DELETE RESTRICT;
-
--- Customized cover letter version references (CASCADE - deletes with app)
-ALTER TABLE applications
-  ADD CONSTRAINT applications_customized_cover_letter_version_id_fkey
-  FOREIGN KEY (customized_cover_letter_version_id)
-  REFERENCES cover_letter_versions(id)
-  ON DELETE CASCADE;
 
 -- ======================================
 -- Documentation Comments
@@ -232,14 +188,11 @@ COMMENT ON COLUMN applications.customized_resume_version_id IS
 COMMENT ON COLUMN applications.additional_instructions IS 
 'Additional instructions used for resume customization';
 
-COMMENT ON COLUMN applications.cover_letter_id IS 
-'Cover letter master record - preserved on deletion (SET NULL)';
-
 COMMENT ON COLUMN applications.cover_letter_version_id IS 
-'Specific version of cover letter used for this application - protected from deletion (RESTRICT)';
+'Specific version of cover letter used for this application - preserved on deletion (SET NULL)';
 
-COMMENT ON COLUMN applications.customized_cover_letter_version_id IS 
-'Customized cover letter version for this application - deleted with application (CASCADE)';
+COMMENT ON COLUMN applications.cover_letter_customized_at IS 
+'Timestamp for when the cover letter was customized for this application';
 
 COMMENT ON CONSTRAINT applications_resume_id_fkey ON applications IS 
 'RESTRICT: Blocks resume deletion if applications reference it';
@@ -249,15 +202,6 @@ COMMENT ON CONSTRAINT applications_resume_version_id_fkey ON applications IS
 
 COMMENT ON CONSTRAINT applications_customized_resume_version_id_fkey ON applications IS 
 'CASCADE: Deletes customized version when application is deleted';
-
-COMMENT ON CONSTRAINT applications_cover_letter_id_fkey ON applications IS 
-'SET NULL: Preserves cover letter when application is deleted';
-
-COMMENT ON CONSTRAINT applications_cover_letter_version_id_fkey ON applications IS 
-'RESTRICT: Blocks original cover letter version deletion if applications reference it';
-
-COMMENT ON CONSTRAINT applications_customized_cover_letter_version_id_fkey ON applications IS 
-'CASCADE: Deletes customized cover letter version when application is deleted';
 
 -- ======================================
 -- Indexes for Performance
@@ -278,9 +222,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_resume_id ON applications(resume_id)
 CREATE INDEX IF NOT EXISTS idx_applications_resume_version_id ON applications(resume_version_id);
 CREATE INDEX IF NOT EXISTS idx_applications_customized_resume_version_id 
 ON applications(customized_resume_version_id);
-CREATE INDEX IF NOT EXISTS idx_applications_cover_letter_id ON applications(cover_letter_id);
 CREATE INDEX IF NOT EXISTS idx_applications_cover_letter_version_id ON applications(cover_letter_version_id);
-CREATE INDEX IF NOT EXISTS idx_applications_customized_cover_letter_version_id ON applications(customized_cover_letter_version_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 CREATE INDEX IF NOT EXISTS idx_applications_company ON applications(company);
 CREATE INDEX IF NOT EXISTS idx_applications_applied_date ON applications(applied_date);
@@ -386,22 +328,16 @@ CREATE OR REPLACE FUNCTION get_cover_letter_version_dependencies(version_id_para
 RETURNS TABLE(
     application_id INTEGER,
     company VARCHAR,
-    "position" VARCHAR,
-    reference_type VARCHAR
+    "position" VARCHAR
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
         a.id,
         a.company,
-        a.position,
-        CASE 
-            WHEN a.cover_letter_version_id = version_id_param THEN 'original'
-            WHEN a.customized_cover_letter_version_id = version_id_param THEN 'customized'
-        END as reference_type
+        a.position
     FROM applications a
-    WHERE a.cover_letter_version_id = version_id_param 
-       OR a.customized_cover_letter_version_id = version_id_param
+    WHERE a.cover_letter_version_id = version_id_param
     ORDER BY a.applied_date DESC;
 END;
 $$ LANGUAGE plpgsql;
@@ -415,8 +351,7 @@ RETURNS TABLE(
     application_id INTEGER,
     company VARCHAR,
     "position" VARCHAR,
-    version VARCHAR,
-    has_version_reference BOOLEAN
+    version VARCHAR
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -424,10 +359,9 @@ BEGIN
         a.id,
         a.company,
         a.position,
-        clv.version,
-        (a.cover_letter_version_id IS NOT NULL) as has_version_reference
+        clv.version
     FROM applications a
-    LEFT JOIN cover_letter_versions clv ON a.cover_letter_version_id = clv.id
+    JOIN cover_letter_versions clv ON a.cover_letter_version_id = clv.id
     WHERE clv.cover_letter_id = cover_letter_id_param
     ORDER BY a.applied_date DESC;
 END;
@@ -484,7 +418,7 @@ BEGIN
         STRING_AGG(DISTINCT a.company, ', ') as companies
     FROM cover_letters cl
     LEFT JOIN cover_letter_versions clv ON clv.cover_letter_id = cl.id
-    LEFT JOIN applications a ON a.cover_letter_id = cl.id
+    LEFT JOIN applications a ON a.cover_letter_version_id = clv.id
     WHERE cl.user_id = user_id_param
     GROUP BY cl.id, cl.title, cl.created_at
     ORDER BY cl.created_at DESC;
@@ -614,8 +548,8 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT INTO schema_version (version, description) 
-VALUES ('1.2.0', 'Merged base schema with cover letter templates system and cover letter versions')
-ON CONFLICT (version) DO NOTHING;
+VALUES ('1.3.0', 'Refactored cover letter integration in applications table')
+ON CONFLICT (version) DO UPDATE SET description = EXCLUDED.description, applied_at = NOW();
 
 -- ======================================
 -- Verification Query
@@ -657,23 +591,19 @@ BEGIN
     RAISE NOTICE '  - resumes, resume_versions';
     RAISE NOTICE '  - cover_letters, cover_letter_versions';
     RAISE NOTICE '  - cover_letter_templates';
-    RAISE NOTICE '  - applications';
+    RAISE NOTICE '  - applications (Cover Letter integration refactored)';
     RAISE NOTICE '';
     RAISE NOTICE '✓ Cascade deletion constraints in place:';
     RAISE NOTICE '  RESUMES:';
     RAISE NOTICE '    - Original resumes/versions: RESTRICT (protected)';
     RAISE NOTICE '    - Customized versions: CASCADE (auto-deleted)';
     RAISE NOTICE '  COVER LETTERS:';
-    RAISE NOTICE '    - Original cover letters/versions: RESTRICT (protected)';
-    RAISE NOTICE '    - Customized cover letter versions: CASCADE (auto-deleted)';
-    RAISE NOTICE '    - Cover letter master: SET NULL (preserved)';
-    RAISE NOTICE '  TEMPLATES:';
-    RAISE NOTICE '    - Templates are independent (no cascade to cover letters)';
+    RAISE NOTICE '    - Cover letter versions: SET NULL (preserved on app deletion)';
     RAISE NOTICE '';
     RAISE NOTICE '✓ Indexes created for optimal query performance';
     RAISE NOTICE '✓ Triggers configured for updated_at timestamps';
     RAISE NOTICE '✓ Utility functions available';
     RAISE NOTICE '✓ % cover letter templates loaded', template_count;
     RAISE NOTICE '';
-    RAISE NOTICE 'Schema version: 1.2.0';
+    RAISE NOTICE 'Schema version: 1.3.0';
 END $$;

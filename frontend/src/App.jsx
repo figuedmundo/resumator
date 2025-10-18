@@ -22,6 +22,7 @@ import ApplicationDetailPage from './pages/ApplicationDetail/ApplicationDetailPa
 import CoverLettersPage from './pages/CoverLetters/CoverLettersPage';
 import CoverLetterEditorPage from './pages/CoverLetters/CoverLetterEditorPage';
 import CoverLetterGeneratePage from './pages/CoverLetters/CoverLetterGeneratePage';
+import CoverLetterDetailPage from './pages/CoverLetters/CoverLetterDetailPage';
 
 // 404 page
 import NotFoundPage from './pages/NotFound/NotFoundPage';
@@ -264,6 +265,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <CoverLetterGeneratePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cover-letters/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <CoverLetterDetailPage />
               </AppLayout>
             </ProtectedRoute>
           }

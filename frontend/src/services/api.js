@@ -342,15 +342,18 @@ class ApiService {
   }
 
   // Application integration endpoints
-  async getApplicationCoverLetter(applicationId) {
-    const response = await this.api.get(`/api/v1/applications/${applicationId}/cover-letter`);
+  async attachCoverLetter(applicationId, coverLetterVersionId) {
+    const response = await this.api.post(`/api/v1/applications/${applicationId}/cover-letter`, { cover_letter_version_id: coverLetterVersionId });
     return response.data;
   }
 
-  async downloadApplicationCoverLetter(applicationId) {
-    const response = await this.api.get(`/api/v1/applications/${applicationId}/cover-letter/download`, {
-      responseType: 'blob',
-    });
+  async customizeCoverLetter(applicationId) {
+    const response = await this.api.put(`/api/v1/applications/${applicationId}/cover-letter`);
+    return response.data;
+  }
+
+  async removeCoverLetter(applicationId) {
+    const response = await this.api.delete(`/api/v1/applications/${applicationId}/cover-letter`);
     return response.data;
   }
 

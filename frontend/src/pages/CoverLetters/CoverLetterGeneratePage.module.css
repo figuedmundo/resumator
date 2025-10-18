@@ -1,591 +1,88 @@
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  background-color: #f9fafb;
-  min-height: calc(100vh - 80px);
+.pageContainer {
+  display: flex;
+  height: 100vh;
 }
 
-.header {
-  background-color: white;
+.leftPanel {
+  width: 40%;
   padding: 2rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  border-right: 1px solid #e0e0e0;
 }
 
-.headerContent {
-  max-width: 1200px;
+.rightPanel {
+  width: 60%;
+  padding: 2rem;
+  overflow-y: auto;
 }
 
 .title {
   font-size: 2rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
+  font-weight: bold;
+  margin-bottom: 2rem;
 }
 
-.subtitle {
-  font-size: 1rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Alerts */
-.errorAlert,
-.successAlert {
+.formGroup {
   margin-bottom: 1.5rem;
-  border-radius: 6px;
-  animation: slideIn 0.3s ease-out;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
 }
 
-.errorAlert {
-  background-color: #fef2f2;
-  border: 1px solid #fee2e2;
+.select, .input, .textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
-.successAlert {
-  background-color: #ecfdf5;
-  border: 1px solid #d1fae5;
-}
-
-.errorContent,
-.successContent {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-}
-
-.errorIcon,
-.successIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-}
-
-.errorIcon {
-  color: #ef4444;
-}
-
-.successIcon {
-  color: #10b981;
-}
-
-.errorText,
-.successText {
-  flex: 1;
-  margin: 0;
-  font-size: 0.875rem;
-  color: #1f2937;
-}
-
-.errorClose {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.errorClose:hover {
-  color: #111827;
-}
-
-/* Main Content */
-.mainContent {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-/* Steps Container */
-.stepsContainer {
-  padding: 2rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  overflow-x: auto;
-}
-
-.stepsWrapper {
-  display: flex;
-  gap: 1rem;
-  min-width: min-content;
-}
-
-.stepButton {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  min-width: 200px;
-}
-
-.stepButton:hover:not(:disabled) {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
-}
-
-.stepButtonActive {
-  background-color: #3b82f6;
+.generateButton {
+  background-color: #007bff;
   color: white;
-  border-color: #3b82f6;
-}
-
-.stepButtonCompleted {
-  background-color: #ecfdf5;
-  border-color: #10b981;
-  color: #059669;
-}
-
-.stepButtonDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.stepNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background-color: #f3f4f6;
-  font-weight: 600;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.stepButtonActive .stepNumber {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.stepButtonCompleted .stepNumber {
-  background-color: rgba(16, 185, 129, 0.2);
-}
-
-.stepLabel {
-  text-align: left;
-}
-
-.stepTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.stepDescription {
-  font-size: 0.75rem;
-  opacity: 0.7;
-}
-
-.stepConnector {
-  width: 2rem;
-  height: 1px;
-  background-color: #d1d5db;
-  align-self: center;
-  flex-shrink: 0;
-}
-
-.stepConnectorActive {
-  background-color: #10b981;
-}
-
-/* Step Content */
-.stepContent {
-  padding: 3rem;
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-}
-
-.stepPanel {
-  flex: 1;
-}
-
-.stepPanel .stepTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
-}
-
-.stepPanel .stepDescription {
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
   font-size: 1rem;
-  color: #6b7280;
-  margin: 0 0 2rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.generateButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}
+
+.previewContainer {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 1rem;
+  min-height: 400px;
+  background-color: #f9f9f9;
+}
+
+.saveButton {
+  background-color: #28a745;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+  float: right;
 }
 
 .loadingContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
-}
-
-.emptyState {
-  text-align: center;
-  padding: 3rem 2rem;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  border: 2px dashed #e5e7eb;
-  color: #6b7280;
-}
-
-/* Resume Grid */
-.resumeGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.resumeCard {
-  padding: 1.5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  background-color: white;
-}
-
-.resumeCard:hover {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.resumeCardSelected {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.resumeCardContent {
-  text-align: left;
-}
-
-.resumeTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
-}
-
-.resumeDescription {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 1rem 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.resumeMeta {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.checkmark {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: #10b981;
-  color: white;
-  border-radius: 50%;
-  font-weight: bold;
-}
-
-/* Form */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-width: 600px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.input,
-.textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-
-.input:focus,
-.textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.textarea {
-  resize: vertical;
-}
-
-.helperText {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Review Container */
-.reviewContainer {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 2rem;
-}
-
-.previewSection {
-  background-color: #f9fafb;
-  border-radius: 8px;
-  padding: 2rem;
-  border: 1px solid #e5e7eb;
-}
-
-.jobDetailsBox {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.detailsTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 1rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detailItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-}
-
-.detailItem:last-child {
-  margin-bottom: 0;
-}
-
-.detailLabel {
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.detailValue {
-  font-size: 0.875rem;
-  color: #111827;
-  font-weight: 600;
-  word-break: break-word;
-}
-
-/* Actions */
-.actions {
-  display: flex;
-  gap: 1rem;
-  padding: 2rem;
-  background-color: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.cancelButton,
-.backButton,
-.nextButton,
-.editButton,
-.saveButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancelButton {
-  background-color: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-}
-
-.cancelButton:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-.backButton {
-  background-color: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-}
-
-.backButton:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-.nextButton {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-}
-
-.nextButton:hover:not(:disabled) {
-  background-color: #2563eb;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.editButton {
-  background-color: #f59e0b;
-  color: white;
-  border: none;
-}
-
-.editButton:hover {
-  background-color: #d97706;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.saveButton {
-  background-color: #10b981;
-  color: white;
-  border: none;
-}
-
-.saveButton:hover:not(:disabled) {
-  background-color: #059669;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.buttonIcon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.buttonDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .reviewContainer {
-    grid-template-columns: 1fr;
-  }
-
-  .jobDetailsBox {
-    position: sticky;
-    top: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .header {
-    padding: 1.5rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
-
-  .stepsContainer {
-    padding: 1rem;
-  }
-
-  .stepsWrapper {
-    gap: 0.5rem;
-  }
-
-  .stepButton {
-    min-width: 150px;
-    padding: 0.75rem;
-  }
-
-  .stepLabel {
-    display: none;
-  }
-
-  .stepContent {
-    padding: 1.5rem;
-    min-height: auto;
-  }
-
-  .stepPanel .stepTitle {
-    font-size: 1.25rem;
-  }
-
-  .form {
-    max-width: 100%;
-  }
-
-  .resumeGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .actions {
-    padding: 1rem;
-    justify-content: space-between;
-  }
-
-  .cancelButton,
-  .backButton,
-  .nextButton,
-  .editButton,
-  .saveButton {
-    flex: 1;
-    justify-content: center;
-  }
+  height: 100%;
 }

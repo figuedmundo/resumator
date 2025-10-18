@@ -83,14 +83,12 @@ async def create_cover_letter(
     current_user: User = Depends(get_current_active_user),
     service: CoverLetterService = Depends(get_cover_letter_service)
 ):
-    """Create a new master cover letter record.
-    
-    This creates an empty cover letter. Add versions using POST /cover-letters/{id}/versions.
-    """
+    """Create a new master cover letter and its initial version."""
     try:
         cover_letter = service.create_cover_letter(
             user_id=current_user.id,
             title=request.title,
+            content=request.content,
             is_default=request.is_default or False
         )
         return CoverLetterResponse.from_orm(cover_letter)
@@ -365,7 +363,8 @@ async def generate_cover_letter(
             job_description=request.job_description,
             company=request.company,
             position=request.position,
-            template_id=request.template_id
+            template_id=request.template_id,
+            base_cover_letter_content=request.base_cover_letter_content
         )
         
         # Get versions

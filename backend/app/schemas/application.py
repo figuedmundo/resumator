@@ -2,7 +2,10 @@
 
 from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel
+from uuid import UUID
+from pydantic import BaseModel, Field
+
+from ..schemas.cover_letter import CoverLetterVersionResponse
 
 
 class ApplicationBase(BaseModel):
@@ -19,11 +22,11 @@ class ApplicationCreate(ApplicationBase):
     """Schema for creating an application."""
     resume_id: int
     resume_version_id: int
-    cover_letter_id: Optional[int] = None
     additional_instructions: Optional[str] = None
     customize_resume: bool = False
-    generate_cover_letter: bool = False
-    cover_letter_template_id: Optional[int] = None
+    # New fields for cover letter selection
+    cover_letter_id: Optional[int] = None
+    cover_letter_version_id: Optional[int] = None
 
 
 class ApplicationUpdate(BaseModel):
@@ -35,16 +38,7 @@ class ApplicationUpdate(BaseModel):
     applied_date: Optional[date] = None
     notes: Optional[str] = None
     additional_instructions: Optional[str] = None
-
-
-class CoverLetterSummary(BaseModel):
-    """Schema for cover letter summary in application response."""
-    id: int
-    title: str
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+    cover_letter_version_id: Optional[int] = None
 
 
 class ApplicationResponse(ApplicationBase):
@@ -53,14 +47,30 @@ class ApplicationResponse(ApplicationBase):
     user_id: int
     resume_id: int
     resume_version_id: int
-    cover_letter_id: Optional[int]
     customized_resume_version_id: Optional[int]
     additional_instructions: Optional[str]
     created_at: datetime
     updated_at: datetime
-    
+
+    # New fields for cover letter integration
+    cover_letter_version_id: Optional[int] = None
+    cover_letter_customized_at: Optional[datetime] = None
+    cover_letter_version: Optional[CoverLetterVersionResponse] = None
+
+    # Enhanced fields
+    resume_title: Optional[str] = None
+    resume_version_name: Optional[str] = None
+    customized_version_name: Optional[str] = None
+    can_download_resume: bool = True
+
     class Config:
         from_attributes = True
+
+
+class CoverLetterSelectionRequest(BaseModel):
+    """Schema for selecting a cover letter for an application."""
+    cover_letter_id: Optional[UUID] = Field(None, description="The master cover letter ID")
+    template_id: Optional[UUID] = Field(None, description="The template to create a new cover letter from")
 
 
 class ApplicationListResponse(BaseModel):
@@ -78,31 +88,3 @@ class ApplicationStats(BaseModel):
     interviewing: int
     rejected: int
     offers: int
-
-
-class EnhancedApplicationResponse(ApplicationResponse):
-    """Enhanced schema for application response with resume details."""
-    resume_title: Optional[str] = None
-    resume_version_name: Optional[str] = None
-    customized_version_name: Optional[str] = None
-    can_download_resume: bool = True
-    cover_letter: Optional[CoverLetterSummary] = None
-
-
-class ApplicationDetailedResponse(ApplicationResponse):
-    """Detailed application response with full cover letter content."""
-    resume_title: Optional[str] = None
-    resume_version_name: Optional[str] = None
-    customized_version_name: Optional[str] = None
-    can_download_resume: bool = True
-    cover_letter_content: Optional[str] = None
-    cover_letter_title: Optional[str] = None
-
-
-class CoverLetterDownloadResponse(BaseModel):
-    """Schema for cover letter download metadata."""
-    title: str
-    company: str
-    position: str
-    content: str
-    generated_at: datetime

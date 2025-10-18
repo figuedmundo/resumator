@@ -21,33 +21,17 @@ export default function CoverLetterList({
   onEdit
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCompany, setFilterCompany] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
-
-  // Extract unique companies and statuses for filters
-  const companies = useMemo(() => {
-    return [...new Set(coverLetters.map(cl => cl.company).filter(Boolean))];
-  }, [coverLetters]);
-
-  const statuses = useMemo(() => {
-    return [...new Set(coverLetters.map(cl => cl.status || 'Draft').filter(Boolean))];
-  }, [coverLetters]);
 
   // Filter and search
   const filteredLetters = useMemo(() => {
     return coverLetters.filter(letter => {
       const matchesSearch = 
-        letter.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.position?.toLowerCase().includes(searchTerm.toLowerCase());
+        letter.title?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCompany = filterCompany === 'all' || letter.company === filterCompany;
-      const matchesStatus = filterStatus === 'all' || (letter.status || 'Draft') === filterStatus;
-
-      return matchesSearch && matchesCompany && matchesStatus;
+      return matchesSearch;
     });
-  }, [coverLetters, searchTerm, filterCompany, filterStatus]);
+  }, [coverLetters, searchTerm]);
 
   if (loading) {
     return (
@@ -100,32 +84,6 @@ export default function CoverLetterList({
         </div>
 
         <div className={styles.filtersRow}>
-          <select
-            className={styles.filterSelect}
-            value={filterCompany}
-            onChange={(e) => setFilterCompany(e.target.value)}
-          >
-            <option value="all">All Companies</option>
-            {companies.map(company => (
-              <option key={company} value={company}>
-                {company}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className={styles.filterSelect}
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            {statuses.map(status => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-
           <div className={styles.viewModeButtons}>
             <button
               className={clsx(styles.viewButton, viewMode === 'grid' && styles.viewButtonActive)}

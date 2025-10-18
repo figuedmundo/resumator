@@ -1,0 +1,15 @@
+.selectorContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.selectorContainer label {
+    font-weight: 600;
+}
+
+.selectorContainer select {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}

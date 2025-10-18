@@ -32,11 +32,8 @@ class CoverLetterService:
     # Master Cover Letter Operations
     # ======================================
     
-    def create_cover_letter(self, user_id: int, title: str, is_default: bool = False) -> CoverLetter:
-        """Create a new master cover letter without versions.
-        
-        Versions should be created separately using create_version().
-        """
+    def create_cover_letter(self, user_id: int, title: str, content: Optional[str] = None, is_default: bool = False) -> CoverLetter:
+        """Create a new master cover letter and its initial version."""
         db = self._get_db()
         
         try:
@@ -48,6 +45,17 @@ class CoverLetterService:
             )
             
             db.add(cover_letter)
+            db.flush()  # Use flush to get the ID before committing
+
+            # Create initial version if content is provided
+            if content:
+                self.create_version(
+                    user_id=user_id,
+                    cover_letter_id=cover_letter.id,
+                    content=content,
+                    is_original=True
+                )
+            
             db.commit()
             db.refresh(cover_letter)
             
@@ -299,18 +307,19 @@ class CoverLetterService:
     
     def generate_and_save(self, user_id: int, title: str, resume_content: str, 
                          job_description: str, company: str, position: str,
-                         template_id: Optional[int] = None) -> CoverLetter:
+                         template_id: Optional[int] = None,
+                         base_cover_letter_content: Optional[str] = None) -> CoverLetter:
         """Generate cover letter using AI and save as new cover letter with initial version."""
         try:
             # Get template name if provided
-            template_name = None
-            if template_id:
+            template_content = base_cover_letter_content
+            if not template_content and template_id:
                 db = self._get_db()
                 template = db.query(CoverLetterTemplate).filter(
                     CoverLetterTemplate.id == template_id
                 ).first()
                 if template:
-                    template_name = template.name
+                    template_content = template.content_template
             
             # Generate content
             content = self.generate_content(
@@ -318,7 +327,7 @@ class CoverLetterService:
                 job_description,
                 company,
                 position,
-                template_name
+                template_content
             )
             
             # Create cover letter
