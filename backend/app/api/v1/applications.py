@@ -580,6 +580,80 @@ async def bulk_delete_applications(
             detail="Failed to bulk delete applications"
         )
 
+@router.get("/{application_id}/cover-letter/download")
+async def download_application_cover_letter(
+    application_id: int,
+    template: str = Query("modern", description="PDF template to use"),
+    current_user: User = Depends(get_current_active_user),
+    application_service: ApplicationService = Depends(get_application_service)
+):
+    """Download the cover letter used for a specific application as PDF."""
+    from app.services.pdf_service import pdf_service
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    try:
+        # Get the application
+        application = application_service.get_application(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        # Check if application has a cover letter
+        if not application.cover_letter_version_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No cover letter attached to this application"
+            )
+        
+        # Get cover letter content
+        cover_letter_data = application_service.get_application_cover_letter(
+            user_id=current_user.id,
+            application_id=application_id
+        )
+        
+        if not cover_letter_data or not cover_letter_data.get('content'):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cover letter content not found"
+            )
+        
+        # Generate PDF
+        pdf_bytes = pdf_service.generate_cover_letter_pdf(
+            content=cover_letter_data['content'],
+            company=application.company,
+            position=application.position,
+            title=cover_letter_data.get('title')
+        )
+        
+        # Create filename
+        company_safe = application.company.replace(" ", "_").replace("/", "_")
+        filename = f"cover_letter_{company_safe}.pdf"
+        
+        # Create streaming response
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except ApplicationNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download cover letter for application {application_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to download cover letter"
+        )
+
+
 @router.post("/{application_id}/cover-letter", response_model=ApplicationResponse)
 async def attach_cover_letter(
     application_id: int,

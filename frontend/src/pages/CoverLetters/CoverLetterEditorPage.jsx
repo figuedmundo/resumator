@@ -150,7 +150,7 @@ export default function CoverLetterEditorPage() {
       setIsDirty(false);
       
       if (id && id !== 'new') {
-        loadVersions();
+        loadCoverLetterData();
       }
     } catch (err) {
       console.error('Manual save failed:', err);

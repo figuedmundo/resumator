@@ -10,7 +10,8 @@ from app.schemas.cover_letter import (
     CoverLetterCreate, CoverLetterUpdate, CoverLetterResponse, 
     CoverLetterTemplateResponse, CoverLetterGenerateRequest, 
     CoverLetterVersionResponse, CoverLetterVersionCreate,
-    CoverLetterListResponse, CoverLetterDetailResponse
+    CoverLetterListResponse, CoverLetterDetailResponse,
+    CoverLetterPreviewResponse
 )
 from app.services.cover_letter_service import CoverLetterService
 from app.services.resume_service import ResumeService
@@ -283,7 +284,7 @@ async def update_version(
             content=request.content
         )
         if not version:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Version not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_NOT_FOUND, detail="Version not found")
         return CoverLetterVersionResponse.from_orm(version)
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -321,6 +322,48 @@ async def delete_version(
 # ======================================
 # Generation Endpoints
 # ======================================
+
+@router.post("/preview-generate", response_model=CoverLetterPreviewResponse)
+async def preview_generate_cover_letter(
+    request: CoverLetterGenerateRequest,
+    current_user: User = Depends(get_current_active_user),
+    cl_service: CoverLetterService = Depends(get_cover_letter_service),
+    resume_service: ResumeService = Depends(get_resume_service_dep)
+):
+    """Generate a cover letter preview using AI without saving."""
+    try:
+        # Get resume content
+        if not request.resume_id:
+            raise ValidationError("resume_id is required")
+        
+        resume = resume_service.get_resume(current_user.id, request.resume_id)
+        versions = resume_service.list_resume_versions(current_user.id, request.resume_id)
+        
+        if not versions:
+            raise ValidationError("No resume versions found")
+        
+        resume_content = versions[0].markdown_content
+        
+        # Generate content only
+        generated_content = cl_service.generate_content(
+            resume_content=resume_content,
+            job_description=request.job_description,
+            company=request.company,
+            position=request.position,
+            template=request.base_cover_letter_content,  # Assuming this is the template
+            additional_instructions=request.additional_instructions
+        )
+        
+        return CoverLetterPreviewResponse(content=generated_content)
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to generate cover letter preview: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Failed to generate cover letter preview"
+        )
+
 
 @router.post("/generate", response_model=CoverLetterDetailResponse, 
             status_code=status.HTTP_201_CREATED)
@@ -364,7 +407,8 @@ async def generate_cover_letter(
             company=request.company,
             position=request.position,
             template_id=request.template_id,
-            base_cover_letter_content=request.base_cover_letter_content
+            base_cover_letter_content=request.base_cover_letter_content,
+            additional_instructions=request.additional_instructions
         )
         
         # Get versions
@@ -381,3 +425,5 @@ async def generate_cover_letter(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Failed to generate cover letter"
         )
+
+

@@ -70,6 +70,7 @@ class CoverLetterResponse(BaseModel):
     user_id: int
     title: str
     is_default: bool
+    version: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -104,6 +105,7 @@ class CoverLetterGenerateRequest(BaseModel):
     position: str = Field(..., description="Position title")
     template_id: Optional[int] = Field(None, description="Optional template to guide generation")
     base_cover_letter_content: Optional[str] = Field(None, description="Optional base cover letter content to use as a template")
+    additional_instructions: Optional[str] = Field(None, description="Optional additional instructions for the AI")
 
 
 class CoverLetterGenerateResponse(BaseModel):
@@ -118,6 +120,11 @@ class CoverLetterGenerateResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class CoverLetterPreviewResponse(BaseModel):
+    """Response model for a generated cover letter preview."""
+    content: str
 
 
 # ======================================

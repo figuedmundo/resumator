@@ -213,6 +213,32 @@ const ApplicationList = () => {
     }
   };
 
+  const handleDownloadCoverLetter = async (applicationId, company) => {
+    try {
+      const response = await apiService.api.get(
+        `/api/v1/applications/${applicationId}/cover-letter/download`,
+        {
+          params: { template: 'modern' },
+          responseType: 'blob'
+        }
+      );
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `cover_letter_${company.replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download cover letter:', error);
+      setError('Failed to download cover letter');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   if (loading && applications.length === 0) {
     return (
       <div className={styles.loading}>
@@ -417,6 +443,20 @@ const ApplicationList = () => {
                           <ArrowDownTrayIcon className="h-4 w-4" />
                           <span className={styles.actionButtonText}>Resume</span>
                         </button>
+                        {application.cover_letter_version_id && (
+                          <button
+                            onClick={() => handleDownloadCoverLetter(application.id, application.company)}
+                            className={clsx(
+                              styles.actionButton,
+                              styles.actionButtonDownloadCL,
+                              "hover:text-green-600"
+                            )}
+                            title="Download cover letter"
+                          >
+                            <ArrowDownTrayIcon className="h-4 w-4" />
+                            <span className={styles.actionButtonText}>Cover Letter</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => navigate(`/applications/${application.id}`)}
                           className={clsx(

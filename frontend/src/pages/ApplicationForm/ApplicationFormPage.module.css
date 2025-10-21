@@ -1,51 +1,220 @@
-.container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/**
+ * ApplicationFormPage Component Styles
+ * Modern form design with clear sections and visual hierarchy
+ * Card-based layout with prominent AI customization section
+ */
+
+/* Page Container */
+.pageContainer {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Header */
 .header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.headerContent {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.backButton:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.backIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.headerInfo {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-top: 0.5rem;
 }
 
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
 }
 
 .subtitle {
   font-size: 1rem;
   color: #6b7280;
-  margin-top: 0.5rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Messages */
+.messagesContainer {
+  max-width: 1000px;
+  margin: 1rem auto 0;
+  padding: 0 2rem;
+}
+
+.successMessage,
+.errorMessage {
+  border-radius: 8px;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.successMessage {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.messageContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.messageIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.successMessage .messageIcon {
+  color: #10b981;
+}
+
+.errorMessage .messageIcon {
+  color: #ef4444;
+}
+
+.messageText {
+  flex: 1;
+}
+
+.messageText p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.messageClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.messageClose:hover {
+  color: #111827;
+}
+
+.messageCloseIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Form Container */
+.formContainer {
+  max-width: 1000px;
+  margin: 1.5rem auto 2rem;
+  padding: 0 2rem;
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 2rem;
 }
 
+/* Form Sections */
 .formSection {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.sectionTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+.formSection:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
+.sectionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Form Grid */
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
 }
 
 @media (min-width: 768px) {
@@ -54,115 +223,474 @@
   }
 }
 
+/* Form Elements */
 .formGroup {
   display: flex;
   flex-direction: column;
 }
 
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
 .label {
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.optional {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
 
 .input,
 .select,
 .textarea {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  background-color: white;
+  transition: all 0.2s;
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+.input:disabled,
+.select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  appearance: none;
 }
 
 .textarea {
-  min-height: 150px;
   resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.inputError {
+  border-color: #ef4444;
+}
+
+.inputError:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.errorText {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* AI Customization Section - Special Styling */
+.aiSection {
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  transition: all 0.3s;
+}
+
+.aiSectionActive {
+  border-color: #10b981;
+  border-style: solid;
+  background-color: #ecfdf5;
+}
+
+.aiSection .sectionIcon {
+  color: #10b981;
+}
+
+.aiToggle {
+  margin-bottom: 0;
 }
 
 .checkboxGroup {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
 }
 
 .checkbox {
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: 4px;
-  border-color: #d1d5db;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  transition: all 0.2s;
 }
 
+.checkbox:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+.checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.checkboxLabel {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkboxLabelText {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.checkboxLabelHelper {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.aiInstructions {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #d1fae5;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Action Buttons */
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
-  border-top: 1px solid #e5e7eb;
   padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
 }
 
 .button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  min-width: 120px;
 }
 
 .cancelButton {
-  background-color: #e5e7eb;
-  color: #1f2937;
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
-.cancelButton:hover {
-  background-color: #d1d5db;
+.cancelButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .submitButton {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
   background-color: #2563eb;
-  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
-.submitButton:hover {
-  background-color: #1d4ed8;
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.submitButton:disabled {
-  background-color: #9ca3af;
+.buttonDisabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.errorAlert {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+.buttonSpinner {
+  width: 1rem;
+  height: 1rem;
 }
 
+/* Loading Container */
 .loadingContainer {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loadingText {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerContent {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .formContainer {
+    padding: 0 1rem;
+  }
+
+  .form {
+    padding: 1.5rem;
+  }
+
+  .formSection {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .formGrid {
+    gap: 1rem;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  .aiSection {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerContent {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .messagesContainer,
+  .formContainer {
+    padding: 0 0.75rem;
+  }
+
+  .form {
+    padding: 1rem;
+  }
+
+  .formSection {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .sectionContent {
+    gap: 1rem;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 0.625rem 0.875rem;
+  }
+
+  .aiSection {
+    padding: 1rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .pageContainer {
+    background-color: #111827;
+  }
+
+  .header {
+    background-color: #1f2937;
+    border-bottom-color: #374151;
+  }
+
+  .title {
+    color: #f9fafb;
+  }
+
+  .subtitle {
+    color: #9ca3af;
+  }
+
+  .backButton {
+    color: #9ca3af;
+  }
+
+  .backButton:hover {
+    color: #f9fafb;
+    background-color: #374151;
+  }
+
+  .form {
+    background-color: #1f2937;
+  }
+
+  .formSection {
+    border-bottom-color: #374151;
+  }
+
+  .sectionTitle {
+    color: #f9fafb;
+  }
+
+  .label {
+    color: #d1d5db;
+  }
+
+  .helperText {
+    color: #9ca3af;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    background-color: #111827;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+
+  .input::placeholder,
+  .textarea::placeholder {
+    color: #6b7280;
+  }
+
+  .input:disabled,
+  .select:disabled {
+    background-color: #374151;
+  }
+
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    border-color: #3b82f6;
+  }
+
+  .aiSection {
+    background-color: #111827;
+    border-color: #374151;
+  }
+
+  .aiSectionActive {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+  }
+
+  .checkboxLabelText {
+    color: #f9fafb;
+  }
+
+  .checkboxLabelHelper {
+    color: #9ca3af;
+  }
+
+  .checkbox {
+    border-color: #4b5563;
+  }
+
+  .aiInstructions {
+    border-top-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .actions {
+    border-top-color: #374151;
+  }
+
+  .cancelButton {
+    background-color: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+  }
+
+  .cancelButton:hover:not(:disabled) {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
 }

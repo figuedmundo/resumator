@@ -324,9 +324,19 @@ class ApiService {
     return response.data;
   }
 
+  async getCoverLetterVersions(coverLetterId) {
+    const response = await this.api.get(`/api/v1/cover-letters/${coverLetterId}/versions`);
+    return response.data;
+  }
+
   // Cover Letter generation endpoints
   async generateCoverLetterAI(data) {
     const response = await this.api.post('/api/v1/cover-letters/generate', data);
+    return response.data;
+  }
+
+  async generateCoverLetterPreview(data) {
+    const response = await this.api.post('/api/v1/cover-letters/preview-generate', data);
     return response.data;
   }
 

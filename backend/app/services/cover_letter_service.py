@@ -95,9 +95,24 @@ class CoverLetterService:
         db = self._get_db()
         
         try:
-            return db.query(CoverLetter).filter(
+            results = db.query(
+                CoverLetter,
+                CoverLetterVersion.version
+            ).outerjoin(
+                CoverLetterVersion,
+                and_(
+                    CoverLetter.id == CoverLetterVersion.cover_letter_id,
+                    CoverLetterVersion.is_original == True
+                )
+            ).filter(
                 CoverLetter.user_id == user_id
             ).order_by(CoverLetter.created_at.desc()).all()
+
+            cover_letters = []
+            for cl, version in results:
+                cl.version = version
+                cover_letters.append(cl)
+            return cover_letters
         except Exception as e:
             logger.error(f"Failed to list cover letters for user {user_id}: {e}")
             return []
@@ -144,10 +159,13 @@ class CoverLetterService:
             cover_letter = self.get_cover_letter(user_id, cover_letter_id)
             
             # Generate version number
-            version_count = db.query(CoverLetterVersion).filter(
-                CoverLetterVersion.cover_letter_id == cover_letter_id
-            ).count()
-            version_name = f"v{version_count + 1}"
+            if is_original:
+                version_name = "v1"
+            else:
+                version_count = db.query(CoverLetterVersion).filter(
+                    CoverLetterVersion.cover_letter_id == cover_letter_id
+                ).count()
+                version_name = f"v{version_count + 1}"
             
             # Create version
             version = CoverLetterVersion(
@@ -290,7 +308,7 @@ class CoverLetterService:
     
     def generate_content(self, resume_content: str, job_description: str, 
                         company: str, position: str, 
-                        template: Optional[str] = None) -> str:
+                        template: Optional[str] = None, additional_instructions: Optional[str] = None) -> str:
         """Generate cover letter content using AI (preview only)."""
         try:
             content = self.ai_client.generate_cover_letter(
@@ -298,7 +316,8 @@ class CoverLetterService:
                 job_description,
                 resume_content,
                 company,
-                position
+                position,
+                additional_instructions=additional_instructions
             )
             return content
         except Exception as e:
@@ -308,7 +327,8 @@ class CoverLetterService:
     def generate_and_save(self, user_id: int, title: str, resume_content: str, 
                          job_description: str, company: str, position: str,
                          template_id: Optional[int] = None,
-                         base_cover_letter_content: Optional[str] = None) -> CoverLetter:
+                         base_cover_letter_content: Optional[str] = None,
+                         additional_instructions: Optional[str] = None) -> CoverLetter:
         """Generate cover letter using AI and save as new cover letter with initial version."""
         try:
             # Get template name if provided
@@ -327,7 +347,8 @@ class CoverLetterService:
                 job_description,
                 company,
                 position,
-                template_content
+                template_content,
+                additional_instructions=additional_instructions
             )
             
             # Create cover letter
@@ -356,7 +377,8 @@ class CoverLetterService:
     
     def customize_for_application(self, user_id: int, cover_letter_id: int, 
                                  job_description: str, company: str,
-                                 customized_content: Optional[str] = None) -> CoverLetterVersion:
+                                 customized_content: Optional[str] = None,
+                                 additional_instructions: Optional[str] = None) -> CoverLetterVersion:
         """Create a company-customized version of a cover letter.
         
         If customized_content is provided, it will be saved directly.
@@ -379,12 +401,14 @@ class CoverLetterService:
             if not original_version:
                 raise ValidationError("No original version found")
             
-            # Check if customized version already exists for this company
-            company_suffix = f" - {company}"
+            # Define the expected version name for the customization
+            version_name = f"v2 - {company}"
+
+            # Check if this specific customized version already exists
             existing_version = db.query(CoverLetterVersion).filter(
                 and_(
                     CoverLetterVersion.cover_letter_id == cover_letter_id,
-                    CoverLetterVersion.version.like(f"%{company_suffix}")
+                    CoverLetterVersion.version == version_name
                 )
             ).first()
             
@@ -399,15 +423,11 @@ class CoverLetterService:
                     job_description,
                     "",
                     company,
-                    ""
+                    "",
+                    additional_instructions=additional_instructions
                 )
             
             # Create customized version
-            version_count = db.query(CoverLetterVersion).filter(
-                CoverLetterVersion.cover_letter_id == cover_letter_id
-            ).count()
-            version_name = f"v{version_count + 1} - {company}"
-            
             version = CoverLetterVersion(
                 cover_letter_id=cover_letter_id,
                 version=version_name,

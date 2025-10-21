@@ -1,75 +1,58 @@
-import { useState } from 'react';
-import clsx from 'clsx';
-import styles from './CoverLetterCard.module.css';
+import { EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 /**
  * CoverLetterCard Component
- * Displays a single cover letter with summary and action buttons
+ * Displays a single cover letter with summary and action buttons, styled with Tailwind CSS.
  * 
  * Props:
- *  - coverLetter: object with id, title, content
- *  - onView: callback when View button clicked
- *  - onEdit: callback when Edit button clicked
- *  - onDelete: callback when Delete button clicked
+ *  - coverLetter: object with id, title, and a summary/content.
+ *  - onView: callback when View button clicked, receives cover letter ID.
+ *  - onEdit: callback when Edit button clicked, receives cover letter ID.
+ *  - onDelete: callback when Delete button clicked, receives the full cover letter object.
  */
 export default function CoverLetterCard({ coverLetter, onView, onEdit, onDelete }) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { id, title, content, updated_at } = coverLetter;
 
-  const handleDelete = async () => {
-    if (window.confirm(`Delete cover letter for ${coverLetter.title}?`)) {
-      setIsDeleting(true);
-      try {
-        await onDelete(coverLetter.id);
-      } finally {
-        setIsDeleting(false);
-      }
-    }
+  const getSummary = (text) => {
+    if (!text) return 'No content available.';
+    const summary = text.substring(0, 120).replace(/\n/g, ' ');
+    return text.length > 120 ? `${summary}...` : summary;
   };
 
   return (
-    <div className={styles.card}>
-      <div className={styles.cardContent}>
-        <div className={styles.header}>
-          <div className={styles.titleSection}>
-            <h3 className={styles.title}>{coverLetter.title || 'Untitled'}</h3>
-          </div>
-        </div>
-
-        {coverLetter.content && (
-          <div className={styles.preview}>
-            <p className={styles.previewText}>
-              {coverLetter.content.substring(0, 150).replace(/\n/g, ' ')}
-              {coverLetter.content.length > 150 ? '...' : ''}
-            </p>
-          </div>
-        )}
+    <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-transform duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+      <div className="p-5">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate mb-2">
+          {title || 'Untitled Cover Letter'}
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 h-12">
+          {getSummary(content)}
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+          Last updated: {new Date(updated_at).toLocaleDateString()}
+        </p>
       </div>
-
-      <div className={styles.actions}>
+      <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex items-center justify-end space-x-3">
         <button
-          className={clsx(styles.button, styles.buttonPrimary)}
-          onClick={() => onView(coverLetter.id)}
+          onClick={() => onView(id)}
+          className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors"
           title="View cover letter"
         >
-          <span className={styles.icon}>👁️</span>
-          View
+          <EyeIcon className="h-5 w-5" />
         </button>
         <button
-          className={clsx(styles.button, styles.buttonSecondary)}
-          onClick={() => onEdit(coverLetter.id)}
+          onClick={() => onEdit(id)}
+          className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors"
           title="Edit cover letter"
         >
-          <span className={styles.icon}>✏️</span>
-          Edit
+          <PencilSquareIcon className="h-5 w-5" />
         </button>
         <button
-          className={clsx(styles.button, styles.buttonDanger)}
-          onClick={handleDelete}
-          disabled={isDeleting}
+          onClick={() => onDelete(coverLetter)}
+          className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 dark:hover:bg-red-500 transition-colors"
           title="Delete cover letter"
         >
-          <span className={styles.icon}>🗑️</span>
-          {isDeleting ? 'Deleting...' : 'Delete'}
+          <TrashIcon className="h-5 w-5" />
         </button>
       </div>
     </div>

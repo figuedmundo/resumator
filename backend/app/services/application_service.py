@@ -36,10 +36,12 @@ class ApplicationService:
     ) -> Application:
         """Create an application record with optional AI customization."""
         from app.services.resume_service import ResumeService
+        from app.services.cover_letter_service import CoverLetterService
         from app.schemas.application import ApplicationCreate
 
         db = self._get_db()
         resume_service = ResumeService(db)
+        cover_letter_service = CoverLetterService(db)
         
         try:
             # Validate original resume version belongs to user
@@ -66,7 +68,7 @@ class ApplicationService:
                     raise ValidationError("Invalid cover letter version")
             
             # Determine which resume version to use
-            customized_version_id = None
+            customized_resume_version_id = None
             if application_data.customize_resume:
                 customized_version = resume_service.customize_resume_for_application(
                     user_id=user_id,
@@ -76,16 +78,30 @@ class ApplicationService:
                     company=application_data.company,
                     additional_instructions=application_data.additional_instructions
                 )
-                customized_version_id = customized_version.id
+                customized_resume_version_id = customized_version.id
+            
+            # Determine which cover letter version to use
+            customized_cover_letter_version_id = application_data.cover_letter_version_id
+            if application_data.customize_cover_letter and application_data.cover_letter_id:
+                customized_cl_version = cover_letter_service.customize_for_application(
+                    user_id=user_id,
+                    cover_letter_id=application_data.cover_letter_id,
+                    job_description=application_data.job_description,
+                    company=application_data.company,
+                    customized_content=None,  # Let AI generate
+                    additional_instructions=application_data.additional_instructions
+                )
+                customized_cover_letter_version_id = customized_cl_version.id
+                logger.info(f"Created/reused customized cover letter version {customized_cl_version.version} for company {application_data.company}")
             
             # Create application
             application = Application(
                 user_id=user_id,
                 resume_id=application_data.resume_id,
                 resume_version_id=application_data.resume_version_id,
-                customized_resume_version_id=customized_version_id,
+                customized_resume_version_id=customized_resume_version_id,
                 cover_letter_id=application_data.cover_letter_id,
-                cover_letter_version_id=application_data.cover_letter_version_id,
+                cover_letter_version_id=customized_cover_letter_version_id,
                 company=application_data.company,
                 position=application_data.position,
                 job_description=application_data.job_description,
@@ -115,7 +131,7 @@ class ApplicationService:
         
         try:
             application = db.query(Application).options(
-                joinedload(Application.cover_letter_version)
+                joinedload(Application.cover_letter_version).joinedload(CoverLetterVersion.cover_letter)
             ).filter(
                 and_(
                     Application.id == application_id,
@@ -125,6 +141,11 @@ class ApplicationService:
             
             if not application:
                 raise ApplicationNotFoundError(application_id)
+
+            if application.cover_letter_version and application.cover_letter_version.cover_letter:
+                application.cover_letter_title = application.cover_letter_version.cover_letter.title
+            else:
+                application.cover_letter_title = None
             
             return application
             
@@ -147,7 +168,7 @@ class ApplicationService:
         
         try:
             query = db.query(Application).options(
-                joinedload(Application.cover_letter_version)
+                joinedload(Application.cover_letter_version).joinedload(CoverLetterVersion.cover_letter)
             ).filter(Application.user_id == user_id)
             
             if status:
@@ -162,6 +183,12 @@ class ApplicationService:
             # Apply pagination
             offset = (page - 1) * per_page
             applications = query.order_by(desc(Application.applied_date)).offset(offset).limit(per_page).all()
+
+            for app in applications:
+                if app.cover_letter_version and app.cover_letter_version.cover_letter:
+                    app.cover_letter_title = app.cover_letter_version.cover_letter.title
+                else:
+                    app.cover_letter_title = None
             
             return applications, total
             
@@ -249,8 +276,17 @@ class ApplicationService:
                 result['customized_resume_version_deleted'] = True
 
             if can_delete_custom_cl:
-                cover_letter_service.delete_version(user_id, customized_cl_version_id)
-                result['customized_cover_letter_version_deleted'] = True
+                # Get cover_letter_id for deletion
+                cl_version = db.query(CoverLetterVersion).filter(
+                    CoverLetterVersion.id == customized_cl_version_id
+                ).first()
+                if cl_version:
+                    cover_letter_service.delete_version(
+                        user_id=user_id,
+                        cover_letter_id=cl_version.cover_letter_id,
+                        version_id=customized_cl_version_id
+                    )
+                    result['customized_cover_letter_version_deleted'] = True
 
             # Delete the application
             db.delete(application)
@@ -476,6 +512,66 @@ class ApplicationService:
             logger.error(f"Failed to get recent applications: {e}")
             return []
     
+    def get_applications_by_company(self, user_id: int, company: str) -> List[Application]:
+        """Get all applications for a specific company."""
+        db = self._get_db()
+        
+        try:
+            return db.query(Application).filter(
+                and_(
+                    Application.user_id == user_id,
+                    Application.company.ilike(f"%{company}%")
+                )
+            ).order_by(desc(Application.applied_date)).all()
+            
+        except Exception as e:
+            logger.error(f"Failed to get applications by company: {e}")
+            return []
+    
+    def update_application(self, user_id: int, application_id: int, 
+                         application_update: "ApplicationUpdate") -> Application:
+        """Update an application."""
+        db = self._get_db()
+        
+        try:
+            application = self.get_application(user_id, application_id)
+            
+            # Update fields
+            update_data = application_update.dict(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(application, field, value)
+            
+            db.commit()
+            db.refresh(application)
+            
+            logger.info(f"Updated application {application_id}")
+            return application
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to update application {application_id}: {e}")
+            if isinstance(e, ApplicationNotFoundError):
+                raise
+            raise ValidationError(f"Failed to update application: {str(e)}")
+    
+    def update_status(self, application_id: int, status: str, user_id: int):
+        """Update application status."""
+        db = self._get_db()
+        
+        try:
+            application = self.get_application(user_id, application_id)
+            application.status = status
+            db.commit()
+            
+            logger.info(f"Updated application {application_id} status to {status}")
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to update application status: {e}")
+            if isinstance(e, ApplicationNotFoundError):
+                raise
+            raise ValidationError(f"Failed to update status: {str(e)}")
+    
     def attach_cover_letter(self, user_id: int, application_id: int, cover_letter_version_id: int) -> Application:
         """Attach a cover letter version to an application."""
         db = self._get_db()
@@ -506,7 +602,7 @@ class ApplicationService:
             raise ValidationError(f"Failed to attach cover letter: {str(e)}")
 
     def customize_cover_letter_for_application(self, user_id: int, application_id: int, job_description: Optional[str] = None) -> Application:
-        """Customize a cover letter for a specific application."""
+        """Customize a cover letter for an existing application."""
         from app.services.cover_letter_service import CoverLetterService
 
         db = self._get_db()
@@ -516,30 +612,28 @@ class ApplicationService:
             if not application.cover_letter_version_id:
                 raise ValidationError("Application does not have a cover letter to customize.")
 
-            # Get the original cover letter version
-            original_version = db.query(CoverLetterVersion).filter(
+            # Get the current cover letter version
+            current_version = db.query(CoverLetterVersion).filter(
                 CoverLetterVersion.id == application.cover_letter_version_id
             ).first()
 
-            if not original_version:
-                raise ValidationError("Original cover letter version not found.")
+            if not current_version:
+                raise ValidationError("Cover letter version not found.")
 
-            # Create a new customized version
-            customized_version = cover_letter_service.customize_cover_letter_for_application(
+            # Create or reuse customized version
+            customized_version = cover_letter_service.customize_for_application(
                 user_id=user_id,
-                cover_letter_id=original_version.cover_letter_id,
-                original_version_id=original_version.id,
+                cover_letter_id=current_version.cover_letter_id,
                 job_description=job_description or application.job_description,
                 company=application.company,
-                position=application.position
+                customized_content=None  # Let AI generate
             )
 
-            # Update the application to point to the new customized version
+            # Update the application to point to the customized version
             application.cover_letter_version_id = customized_version.id
-            application.cover_letter_customized_at = datetime.utcnow()
             db.commit()
             db.refresh(application)
-            logger.info(f"Customized cover letter for application {application_id}. New version: {customized_version.id}")
+            logger.info(f"Customized cover letter for application {application_id}. Version: {customized_version.version}")
             return application
         except Exception as e:
             db.rollback()
@@ -565,3 +659,50 @@ class ApplicationService:
             if isinstance(e, ApplicationNotFoundError):
                 raise
             raise ValidationError(f"Failed to remove cover letter: {str(e)}")
+    
+    def get_application_cover_letter(self, user_id: int, application_id: int) -> Dict[str, Any]:
+        """Get the cover letter content for an application.
+        
+        Args:
+            user_id: User ID for ownership verification
+            application_id: Application ID
+            
+        Returns:
+            Dict with cover letter title and content
+            
+        Raises:
+            ApplicationNotFoundError: If application not found
+            ValidationError: If no cover letter attached
+        """
+        db = self._get_db()
+        
+        try:
+            # Get application with ownership check
+            application = self.get_application(user_id, application_id)
+            
+            # Check if application has a cover letter
+            if not application.cover_letter_version_id:
+                raise ValidationError("No cover letter attached to this application")
+            
+            # Get the cover letter version
+            cover_letter_version = db.query(CoverLetterVersion).options(
+                joinedload(CoverLetterVersion.cover_letter)
+            ).filter(
+                CoverLetterVersion.id == application.cover_letter_version_id
+            ).first()
+            
+            if not cover_letter_version:
+                raise ValidationError("Cover letter version not found")
+            
+            return {
+                'title': cover_letter_version.cover_letter.title,
+                'content': cover_letter_version.markdown_content,
+                'version': cover_letter_version.version,
+                'is_original': cover_letter_version.is_original
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get cover letter for application {application_id}: {e}")
+            if isinstance(e, (ApplicationNotFoundError, ValidationError)):
+                raise
+            raise ValidationError(f"Failed to retrieve cover letter: {str(e)}")

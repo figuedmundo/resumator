@@ -76,6 +76,8 @@ Output the revised resume in Markdown format:""",
 - Friendly but professional tone; match JD tone.
 - Output plain text suitable for email body or PDF.
 
+{custom_instructions}
+
 Company: {company}
 Position: {position}
 Job Description: {job_description}
@@ -151,16 +153,30 @@ CUSTOM INSTRUCTIONS:
             raise AIServiceError(f"Resume customization failed: {str(e)}")
     
     def generate_cover_letter(self, template: str, job_description: str, resume_summary: str, 
-                            company: str = "", position: str = "") -> str:
+                            company: str = "", position: str = "", additional_instructions: Optional[str] = None) -> str:
         """Return a tailored cover letter (plain text)."""
         try:
+            # Handle custom instructions
+            custom_instructions_text = ""
+            if additional_instructions:
+                custom_instructions_text = f"""🔴 CRITICAL CUSTOM INSTRUCTIONS - HIGHEST PRIORITY 🔴
+You MUST follow these specific user instructions EXACTLY as specified.
+These instructions override standard rules if there's a conflict.
+
+CUSTOM INSTRUCTIONS:
+{additional_instructions}
+
+⚠️ IMPORTANT: Apply the above instructions IMMEDIATELY to the resume customization.
+================================"""
+
             # Load and format the prompt template
             prompt_template = self._load_prompt_template("cover_letter")
             prompt = prompt_template.format(
                 company=company,
                 position=position,
                 job_description=job_description,
-                resume_summary=resume_summary
+                resume_summary=resume_summary,
+                custom_instructions=custom_instructions_text
             )
             
             if template:

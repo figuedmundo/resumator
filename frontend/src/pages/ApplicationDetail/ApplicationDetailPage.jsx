@@ -291,7 +291,7 @@ const ApplicationDetailPage = () => {
                 <dd className={styles.detailValue}>
                   <div className={styles.detailLinkRow}>
                     <DocumentTextIcon className={styles.detailLinkIcon} />
-                    <span>{application.cover_letter_version.version}</span>
+                    <span>{application.cover_letter_title} ({application.cover_letter_version.version})</span>
                     <Link
                       to={`/cover-letters/${application.cover_letter_version.cover_letter_id}/versions/${application.cover_letter_version.id}`}
                       className={styles.detailLink}

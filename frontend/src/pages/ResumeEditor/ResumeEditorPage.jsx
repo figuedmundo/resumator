@@ -113,18 +113,20 @@ export default function ResumeEditorPage() {
 
   // Auto-save when content changes
   useEffect(() => {
-    if (!isLoading && selectedVersionId && (content !== lastSavedContent || title !== lastSavedTitle)) {
+    if (isLoading) return;
+
+    const hasChanges = content !== lastSavedContent || title !== lastSavedTitle;
+
+    if (hasChanges) {
       setSaveStatus('unsaved');
-      
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+
+      if (id && id !== 'new') {
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+        const timeout = setTimeout(() => handleAutoSave(), AUTO_SAVE_DELAY);
+        setSaveTimeout(timeout);
       }
-
-      const timeout = setTimeout(() => {
-        handleAutoSave();
-      }, AUTO_SAVE_DELAY);
-
-      setSaveTimeout(timeout);
     }
 
     return () => {
@@ -132,7 +134,7 @@ export default function ResumeEditorPage() {
         clearTimeout(saveTimeout);
       }
     };
-  }, [content, title, isLoading, lastSavedContent, lastSavedTitle, selectedVersionId]);
+  }, [content, title, isLoading, lastSavedContent, lastSavedTitle, id]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -189,7 +191,7 @@ export default function ResumeEditorPage() {
   };
 
   const handleAutoSave = async () => {
-    if (saveStatus === 'saved' || !selectedVersionId) return;
+    if (saveStatus !== 'unsaved') return;
 
     try {
       setSaveStatus('saving');
@@ -200,6 +202,7 @@ export default function ResumeEditorPage() {
           markdown: content,
         });
       } else {
+        // This case should not be reached due to the new useEffect logic
         const response = await apiService.createResume({
           title,
           markdown: content,

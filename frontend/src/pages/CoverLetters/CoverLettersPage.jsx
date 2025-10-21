@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
+import { DocumentTextIcon, SparklesIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import ConfirmDialog from '../Applications/components/ConfirmDialog';
 import { CoverLetterList } from '../../components/CoverLetters';
@@ -48,12 +49,25 @@ export default function CoverLettersPage() {
       setCoverLetters(coverLetters.filter(cl => cl.id !== deleteConfirm.id));
       
       // Show success message
-      setSuccessMessage(`Cover letter for "${deleteConfirm.company}" deleted successfully`);
+      setSuccessMessage(`Cover letter "${deleteConfirm.title}" deleted successfully`);
       setTimeout(() => setSuccessMessage(null), 3000);
       
       setDeleteConfirm(null);
     } catch (err) {
-      setError(err.message || 'Failed to delete cover letter');
+      console.error(err);
+      let detail;
+      try {
+      if (err?.response?.data) {
+        const data = err.response.data;
+        detail = typeof data === 'string'
+        ? data
+        : data.detail ?? (Object.keys(data).length ? JSON.stringify(data) : undefined);
+      }
+      } catch (e) {
+      // ignore parsing errors
+      }
+      const baseMsg = err?.message || 'Failed to delete cover letter';
+      setError(detail ? `${baseMsg}: ${detail}` : baseMsg);
       setDeleteConfirm(null);
     } finally {
       setIsDeleting(false);
@@ -104,7 +118,7 @@ export default function CoverLettersPage() {
             to="/cover-letters/generate"
             className={clsx(
               styles.generateButton,
-              "hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              "hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
             )}
           >
             <svg className={styles.generateButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +130,7 @@ export default function CoverLettersPage() {
             to="/cover-letters/new"
             className={clsx(
               styles.createButton,
-              "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             )}
           >
             <svg className={styles.createButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,22 +144,28 @@ export default function CoverLettersPage() {
       {/* Stats Cards */}
       {coverLetters.length > 0 && (
         <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📄</div>
+          <div className={clsx(styles.statCard, "hover:shadow-md transition-shadow duration-200")}>
+            <div className={styles.statIconContainer}>
+              <DocumentTextIcon className={styles.statIcon} />
+            </div>
             <div className={styles.statContent}>
               <p className={styles.statLabel}>Total</p>
               <p className={styles.statValue}>{stats.total}</p>
             </div>
           </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>⭐</div>
+          <div className={clsx(styles.statCard, "hover:shadow-md transition-shadow duration-200")}>
+            <div className={styles.statIconContainer}>
+              <SparklesIcon className={styles.statIcon} />
+            </div>
             <div className={styles.statContent}>
               <p className={styles.statLabel}>This Week</p>
               <p className={styles.statValue}>{stats.recent}</p>
             </div>
           </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>🏢</div>
+          <div className={clsx(styles.statCard, "hover:shadow-md transition-shadow duration-200")}>
+            <div className={styles.statIconContainer}>
+              <BuildingOfficeIcon className={styles.statIcon} />
+            </div>
             <div className={styles.statContent}>
               <p className={styles.statLabel}>Companies</p>
               <p className={styles.statValue}>{stats.companies}</p>
@@ -185,9 +205,7 @@ export default function CoverLettersPage() {
       {/* Cover Letters List */}
       {coverLetters.length === 0 && !isLoading && !error ? (
         <div className={styles.emptyState}>
-          <svg className={styles.emptyStateIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <DocumentTextIcon className={styles.emptyStateIcon} />
           <h3 className={styles.emptyStateTitle}>No cover letters yet</h3>
           <p className={styles.emptyStateDescription}>
             Start by creating a new cover letter or generating one with AI.
@@ -197,7 +215,7 @@ export default function CoverLettersPage() {
               to="/cover-letters/generate"
               className={clsx(
                 styles.emptyStateButtonGenerate,
-                "hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                "hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
               )}
             >
               <svg className={styles.emptyStateButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +227,7 @@ export default function CoverLettersPage() {
               to="/cover-letters/new"
               className={clsx(
                 styles.emptyStateButton,
-                "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               )}
             >
               <svg className={styles.emptyStateButtonIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +253,7 @@ export default function CoverLettersPage() {
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDeleteConfirm}
         title="Delete Cover Letter"
-        message={`Are you sure you want to delete the cover letter for "${deleteConfirm?.company}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete the cover letter "${deleteConfirm?.title}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"

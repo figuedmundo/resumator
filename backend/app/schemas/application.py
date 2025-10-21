@@ -24,9 +24,10 @@ class ApplicationCreate(ApplicationBase):
     resume_version_id: int
     additional_instructions: Optional[str] = None
     customize_resume: bool = False
-    # New fields for cover letter selection
+    # Cover letter customization fields
     cover_letter_id: Optional[int] = None
     cover_letter_version_id: Optional[int] = None
+    customize_cover_letter: bool = False
 
 
 class ApplicationUpdate(BaseModel):
@@ -59,6 +60,7 @@ class ApplicationResponse(ApplicationBase):
 
     # Enhanced fields
     resume_title: Optional[str] = None
+    cover_letter_title: Optional[str] = None
     resume_version_name: Optional[str] = None
     customized_version_name: Optional[str] = None
     can_download_resume: bool = True
