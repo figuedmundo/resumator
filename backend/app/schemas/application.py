@@ -23,7 +23,7 @@ class ApplicationCreate(ApplicationBase):
     resume_id: int
     resume_version_id: int
     additional_instructions: Optional[str] = None
-    customize_resume: bool = False
+    customize_with_ai: bool = False
     # Cover letter customization fields
     cover_letter_id: Optional[int] = None
     cover_letter_version_id: Optional[int] = None

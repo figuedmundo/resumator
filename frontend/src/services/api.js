@@ -324,6 +324,11 @@ class ApiService {
     return response.data;
   }
 
+  async updateCoverLetterVersion(coverLetterId, versionId, data) {
+    const response = await this.api.put(API_ENDPOINTS.COVER_LETTER_VERSION(coverLetterId, versionId), data);
+    return response.data;
+  }
+
   async getCoverLetterVersions(coverLetterId) {
     const response = await this.api.get(`/api/v1/cover-letters/${coverLetterId}/versions`);
     return response.data;

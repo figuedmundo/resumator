@@ -307,7 +307,7 @@ export default function CoverLetterDetailPage() {
               >
                 {coverLetter.versions.map((version, index) => (
                   <option key={version.id} value={version.id}>
-                    Version {coverLetter.versions.length - index} - {formatDate(version.created_at, 'short')}
+                    {version.version}
                     {version.is_original && ' (Original)'}
                   </option>
                 ))}

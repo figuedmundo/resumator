@@ -1495,3 +1495,13 @@ Please let us know if you see any issues.
 
 Thanks,
 [Your name]
+
+---
+
+## 🏁 PHASE 6: Finalization
+
+### Step 6.1: Final Summary
+**AI Instructions**: After all implementation and verification steps are complete, provide one final, concise summary of the work done. This summary should be the last thing you output before stopping.
+
+### Step 6.2: Stop and Await Instructions
+**AI Instructions**: Once the final summary is provided, the task is considered complete. **DO NOT** repeat the summary, ask to update the task document again, or attempt any further actions. Simply stop and wait for the user's next command.

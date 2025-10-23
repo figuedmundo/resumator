@@ -133,10 +133,21 @@ export default function CoverLetterEditorPage() {
       setError(null);
       
       if (id && id !== 'new') {
+        // Update title (metadata)
         await apiService.updateCoverLetter(id, {
           title,
-          content,
         });
+
+        // Update content (version)
+        if (selectedVersionId) {
+          await apiService.updateCoverLetterVersion(id, selectedVersionId, {
+            content,
+          });
+        } else {
+            console.error("No selected version to save content to.");
+            // Or should we throw an error? For now, just log it.
+        }
+
       } else {
         const response = await apiService.createCoverLetter({
           title,

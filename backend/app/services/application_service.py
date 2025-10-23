@@ -69,7 +69,7 @@ class ApplicationService:
             
             # Determine which resume version to use
             customized_resume_version_id = None
-            if application_data.customize_resume:
+            if application_data.customize_with_ai:
                 customized_version = resume_service.customize_resume_for_application(
                     user_id=user_id,
                     resume_id=application_data.resume_id,
@@ -82,7 +82,7 @@ class ApplicationService:
             
             # Determine which cover letter version to use
             customized_cover_letter_version_id = application_data.cover_letter_version_id
-            if application_data.customize_cover_letter and application_data.cover_letter_id:
+            if application_data.customize_with_ai and application_data.cover_letter_id:
                 customized_cl_version = cover_letter_service.customize_for_application(
                     user_id=user_id,
                     cover_letter_id=application_data.cover_letter_id,

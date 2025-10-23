@@ -27,7 +27,7 @@ export default function ApplicationFormPage() {
     resumeVersionId: '',
     coverLetterId: '',
     coverLetterVersionId: '',
-    customizeResume: false,
+    customizeWithAi: false,
     additionalInstructions: '',
     status: 'Applied',
     appliedDate: new Date().toISOString().split('T')[0],
@@ -68,7 +68,7 @@ export default function ApplicationFormPage() {
             resumeVersionId: application.resume_version_id || '',
             coverLetterId: application.cover_letter_id || '',
             coverLetterVersionId: application.cover_letter_version_id || '',
-            customizeResume: !!application.additional_instructions,
+            customizeWithAi: !!application.additional_instructions,
             additionalInstructions: application.additional_instructions || '',
             status: application.status || 'Applied',
             appliedDate: application.applied_date ? new Date(application.applied_date).toISOString().split('T')[0] : '',
@@ -188,8 +188,8 @@ export default function ApplicationFormPage() {
         resume_version_id: parseInt(formData.resumeVersionId, 10),
         cover_letter_id: formData.coverLetterId ? parseInt(formData.coverLetterId, 10) : null,
         cover_letter_version_id: formData.coverLetterVersionId ? parseInt(formData.coverLetterVersionId, 10) : null,
-        additional_instructions: formData.customizeResume ? formData.additionalInstructions : null,
-        customize_resume: formData.customizeResume,
+        additional_instructions: formData.customizeWithAi ? formData.additionalInstructions : null,
+        customize_with_ai: formData.customizeWithAi,
       };
 
       if (isEdit) {
@@ -467,7 +467,7 @@ export default function ApplicationFormPage() {
           <div className={clsx(
             styles.formSection,
             styles.aiSection,
-            formData.customizeResume && styles.aiSectionActive
+            formData.customizeWithAi && styles.aiSectionActive
           )}>
             <div className={styles.sectionHeader}>
               <SparklesIcon className={styles.sectionIcon} />
@@ -478,13 +478,13 @@ export default function ApplicationFormPage() {
                 <div className={styles.checkboxGroup}>
                   <input
                     type="checkbox"
-                    id="customizeResume"
-                    name="customizeResume"
-                    checked={formData.customizeResume}
+                    id="customizeWithAi"
+                    name="customizeWithAi"
+                    checked={formData.customizeWithAi}
                     onChange={handleInputChange}
                     className={styles.checkbox}
                   />
-                  <label htmlFor="customizeResume" className={styles.checkboxLabel}>
+                  <label htmlFor="customizeWithAi" className={styles.checkboxLabel}>
                     <span className={styles.checkboxLabelText}>
                       Customize resume and cover letter using AI
                     </span>
@@ -495,7 +495,7 @@ export default function ApplicationFormPage() {
                 </div>
               </div>
 
-              {formData.customizeResume && (
+              {formData.customizeWithAi && (
                 <div className={styles.aiInstructions}>
                   <div className={styles.formGroup}>
                     <label htmlFor="additionalInstructions" className={styles.label}>

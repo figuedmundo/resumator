@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   CUSTOMIZE_RESUME: (id) => `/api/v1/resumes/${id}/customize`,
   RESUME_VERSIONS: (id) => `/api/v1/resumes/${id}/versions`,
   RESUME_VERSION: (resumeId, versionId) => `/api/v1/resumes/${resumeId}/versions/${versionId}`,
+  COVER_LETTER_VERSION: (coverLetterId, versionId) => `/api/v1/cover-letters/${coverLetterId}/versions/${versionId}`,
   DOWNLOAD_PDF: (id) => `/api/v1/resumes/${id}/download`,
   PREVIEW_PDF: (id) => `/api/v1/resumes/${id}/preview`,
   RESUME_HTML: (id) => `/api/v1/resumes/${id}/html`,
