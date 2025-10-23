@@ -1,0 +1,40 @@
+# Alembic Migrations
+
+This directory contains the Alembic migration scripts for the Resumator backend.
+
+## Setting Up for Migrations
+
+Before you can generate or apply migrations, you need to ensure your environment is set up correctly.
+
+1.  **Create and activate a virtual environment:**
+
+    ```bash
+    python -m venv venv
+    source venv/bin/activate
+    ```
+
+2.  **Install dependencies:**
+
+    Make sure you have all the required dependencies installed from the `requirements.txt` file in the `backend` directory.
+
+    ```bash
+    pip install -r ../requirements.txt
+    ```
+
+    **NOTE:** The `ModuleNotFoundError: No module named 'pydantic_settings'` error you encountered indicates that dependencies were not installed in the environment where you ran the `alembic` command.
+
+## Generating Migrations
+
+After making changes to the SQLAlchemy models (in `app/models/`), you can generate a new migration script:
+
+```bash
+alembic revision --autogenerate -m "Your descriptive migration message"
+```
+
+## Applying Migrations
+
+To apply the latest migrations to your database, run:
+
+```bash
+alembic upgrade head
+```

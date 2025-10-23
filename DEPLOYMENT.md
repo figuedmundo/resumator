@@ -27,8 +27,20 @@ This review covers the project's architecture, risks, and recommendations for a 
     *   **Recommendation**: Before deploying, generate pinned dependency files. For the backend, run `pip freeze > backend/requirements.prod.txt` and use that file in the `Dockerfile.prod`. For the frontend, ensure `package-lock.json` is created and committed.
 
 *   **Medium Risk: Storage Strategy.**
-    *   **Observation**: The application uses a local Docker volume for file storage.
-    *   **Recommendation**: This is fine for your current single-host setup. For future multi-server scalability, you would need to transition to a shared object storage solution like MinIO or a cloud equivalent (e.g., AWS S3).
+    *   **Observation**: The application currently uses a local Docker volume (`storage_data`) for file storage, as configured in the `backend` service's `STORAGE_TYPE=local` environment variable.
+    *   **Recommendation**: While local storage is acceptable for a single-host setup, for future multi-server scalability and robustness, it's recommended to transition to a shared object storage solution. MinIO is included in the `docker-compose.yml` for development and can be used as a self-hosted S3-compatible solution. Alternatively, a cloud equivalent like AWS S3 can be used.
+
+    To switch to MinIO (or any S3-compatible storage), you would need to:
+    1.  Ensure the MinIO service is running (or your chosen S3-compatible service is accessible).
+    2.  Modify the `backend` service's environment variables in your `docker-compose.prod.yml` (or `.env` file) to:
+        *   `STORAGE_TYPE=s3`
+        *   `MINIO_ENDPOINT=<your_minio_endpoint>:9000` (e.g., `minio:9000` if running within the same Docker network, or an external IP/hostname)
+        *   `MINIO_ACCESS_KEY=<your_access_key>`
+        *   `MINIO_SECRET_KEY=<your_secret_key>`
+        *   `MINIO_SECURE=false` (or `true` if using HTTPS for MinIO)
+        *   `MINIO_BUCKET_NAME=<your_bucket_name>` (e.g., `resumator-files`)
+
+    This change would direct the backend to store files in the specified S3-compatible bucket instead of the local volume.
 
 ---
 
@@ -36,7 +48,7 @@ This review covers the project's architecture, risks, and recommendations for a 
 
 (This is a one-time setup to be done on your local machine before the first deployment)
 
-### Step 1: Initialize and Configure Alembic
+### Step 1: Initialize and Configure Alembic (DONE)
 
 1.  **Initialize**: `cd backend && pip install alembic && alembic init migrations`
 2.  **Configure `alembic.ini`**: Set `sqlalchemy.url = %(DATABASE_URL)s`.
@@ -72,7 +84,7 @@ exec gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     ```
 2.  Make it executable: `chmod +x backend/entrypoint.prod.sh`
 
-### Step 4: Update the Dockerfile
+### Step 4: Update the Dockerfile (DONE)
 
 Modify `backend/Dockerfile.prod` to copy and use the entrypoint.
 
