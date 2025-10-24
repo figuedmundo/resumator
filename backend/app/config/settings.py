@@ -1,9 +1,8 @@
 """Application configuration settings."""
 
 import os
-from typing import Optional, List, Union
+from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -49,26 +48,14 @@ class Settings(BaseSettings):
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
     
     # CORS - Allow both HTTP and HTTPS for development
-    allowed_origins: List[str] = []
-
-    @field_validator('allowed_origins', mode='before')
-    @classmethod
-    def assemble_cors_origins(cls, v: Optional[Union[str, List[str]]]) -> List[str]:
-        if isinstance(v, str) and v:
-            return [item.strip() for item in v.split(',')]
-        if isinstance(v, list):
-            return v
-        # Default for development if env var is not set
-        if not v and os.getenv("ENVIRONMENT", "dev") == "dev":
-            return [
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "https://localhost:3000",
-                "https://localhost:5173",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:5173",
-            ]
-        return []
+    allowed_origins: list = [
+        "http://localhost:3000",  # React dev server
+        "http://localhost:5173",  # Vite dev server
+        "https://localhost:3000", # Production HTTPS
+        "https://localhost:5173", # Production HTTPS
+        "http://127.0.0.1:3000",  # Alternative localhost
+        "http://127.0.0.1:5173",  # Alternative localhost
+    ]
     
     # --- Environment (dev or prod) ---
     environment: str = os.getenv("ENVIRONMENT", "dev")

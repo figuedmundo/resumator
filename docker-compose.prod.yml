@@ -54,7 +54,7 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - ALLOWED_ORIGINS=https://${RESUMATOR_DOMAIN}
+      - ALLOWED_ORIGINS=["https://${RESUMATOR_DOMAIN}"]
     volumes:
       - storage_data:/app/storage
     networks:
