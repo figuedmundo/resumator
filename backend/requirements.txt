@@ -28,7 +28,6 @@ requests
 # PDF Generation
 markdown
 jinja2
-pdfkit
 weasyprint
 
 # Storage
