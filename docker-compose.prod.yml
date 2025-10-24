@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile.prod
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     image: resumator-frontend:${VERSION:-latest}
     container_name: resumator-frontend
     restart: unless-stopped
@@ -46,8 +44,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile.prod
+      context: ./backend
+      dockerfile: Dockerfile.prod
     image: resumator-backend:${VERSION:-latest}
     container_name: resumator-backend
     restart: unless-stopped
@@ -75,8 +73,8 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: backend/Dockerfile.prod
+      context: ./backend
+      dockerfile: Dockerfile.prod
     image: resumator-backend:${VERSION:-latest}
     container_name: resumator-worker
     restart: unless-stopped
