@@ -20,7 +20,10 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app.core.database import Base
-from app.models import user, resume, cover_letter, application
+from app.models.user import User
+from app.models.resume import Resume, ResumeVersion
+from app.models.application import Application
+from app.models.cover_letter import CoverLetter, CoverLetterTemplate
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
