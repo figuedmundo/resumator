@@ -1,4 +1,16 @@
+version: '3.8'
+
 services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.prod
+    image: resumator-frontend:${VERSION:-latest}
+    container_name: resumator-frontend
+    restart: unless-stopped
+    networks:
+      - homelab_net # Public facing network for Caddy
+
   db:
     image: postgres:15-alpine
     container_name: resumator-db

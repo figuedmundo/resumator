@@ -80,7 +80,7 @@ alembic revision --autogenerate -m "Initial schema creation"
     echo "Applying database migrations..."
 alembic upgrade head
 echo "Starting Gunicorn server..."
-exec gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+exec "$@"
     ```
 2.  Make it executable: `chmod +x backend/entrypoint.prod.sh`
 
@@ -115,6 +115,16 @@ Create `docker-compose.prod.yml` in `/srv/apps/resumator`. This version uses the
 version: '3.8'
 
 services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.prod
+    image: resumator-frontend:${VERSION:-latest}
+    container_name: resumator-frontend
+    restart: unless-stopped
+    networks:
+      - homelab_net # Public facing network for Caddy
+
   db:
     image: postgres:15-alpine
     container_name: resumator-db
@@ -217,12 +227,15 @@ networks:
     ```caddy
     # Resumator Application
     {$RESUMATOR_DOMAIN} {
-        root * /srv/apps/resumator/frontend/dist
-        file_server
+        # API traffic goes to the backend container
         handle_path /api/* {
             reverse_proxy resumator-backend:8000
         }
-        try_files {path} /index.html
+
+        # All other traffic goes to the frontend container
+        handle {
+            reverse_proxy resumator-frontend:80
+        }
     }
     ```
     Then reload Caddy: `cd /srv/docker && docker-compose restart caddy`
@@ -242,14 +255,8 @@ networks:
 
 ### Step 3: Deploy
 
-1.  **Build Frontend Assets**:
-    ```bash
-    cd /srv/apps/resumator/frontend
-    docker run --rm -v $(pwd):/app -w /app node:18-alpine npm install
-    docker run --rm -v $(pwd):/app -w /app node:18-alpine npm run build
-    ```
-
-2.  **Launch Application**:
+1.  **Launch Application**:
+    From your project root on the production server, run the following command. This will build the production images for both the frontend and backend, and then start all services.
     ```bash
     cd /srv/apps/resumator
     docker-compose -f docker-compose.prod.yml up --build -d
@@ -300,3 +307,4 @@ docker-compose -f /srv/apps/resumator/docker-compose.prod.yml exec backend pytho
 ```
 
 Your application is now deployed using a professional, secure, and maintainable workflow.
+
