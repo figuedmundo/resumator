@@ -23,6 +23,9 @@ FROM base AS production
 
 # Copy application code
 COPY --chown=appuser:appuser . .
+
+# Diagnostic step: list all files to check for missing modules
+RUN ls -lR /app
 COPY --chown=appuser:appuser ./entrypoint.prod.sh /app/entrypoint.prod.sh
 
 # Create necessary directories
