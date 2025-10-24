@@ -158,3 +158,8 @@ The project is designed to be run with Docker and Docker Compose.
 *   **`frontend/src/App.jsx`**: The main React component that defines the application's routes.
 *   **`frontend/src/pages/`**: Directory containing the main pages of the application.
 *   **`frontend/src/services/api.js`**: The frontend service for making API calls.
+
+**IMPORTANT**
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
