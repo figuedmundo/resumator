@@ -61,7 +61,6 @@ generated_pdfs/
 temp_files/
 
 # AI model files
-models/
 *.model
 *.pkl
 
