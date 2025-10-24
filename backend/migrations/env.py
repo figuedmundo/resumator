@@ -1,6 +1,6 @@
 # backend/migrations/env.py
-import os, sys
-
+import os
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -16,6 +16,16 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# --- START OF MODIFICATION ---
+# Get the database URL from the environment variable
+# and override the value in alembic.ini
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
+
+config.set_main_option('sqlalchemy.url', DATABASE_URL)
+# --- END OF MODIFICATION ---
 
 # add your model's MetaData object here
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -82,4 +92,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
