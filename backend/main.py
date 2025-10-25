@@ -8,6 +8,7 @@ from app.api import api_router
 from app.core.database import engine, Base
 from app.core.middleware import SecurityMiddleware
 from app.config.settings import settings
+import urllib.parse
 
 # Configure logging
 logging.basicConfig(
@@ -37,11 +38,18 @@ def create_application() -> FastAPI:
     # Add security middleware first
     app.add_middleware(SecurityMiddleware)
     
+    # Extract hostnames from allowed_origins for TrustedHostMiddleware
+    trusted_hostnames = []
+    for origin in settings.allowed_origins:
+        parsed_uri = urllib.parse.urlparse(origin)
+        if parsed_uri.hostname:
+            trusted_hostnames.append(parsed_uri.hostname)
+
     # Add trusted host middleware
     if not settings.debug:
         app.add_middleware(
-            TrustedHostMiddleware, 
-            allowed_hosts=settings.allowed_origins + ["localhost", "127.0.0.1"]
+            TrustedHostMiddleware,
+            allowed_hosts=trusted_hostnames + ["localhost", "127.0.0.1"]
         )
     
     # Add CORS middleware with development-friendly configuration
@@ -115,3 +123,4 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
+
