@@ -33,7 +33,7 @@ alembic/versions/*.py
 # Environment configuration
 .env
 .env.local
-.env.production
+.env.prod
 .env.development
 
 # FastAPI specific
