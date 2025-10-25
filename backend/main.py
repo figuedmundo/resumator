@@ -4,8 +4,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-# from app.api import api_router # Comment out this line
-from app.api.v1 import auth # Import auth directly
+from app.api import api_router # Revert to importing api_router
+# from app.api.v1 import auth # Comment out this line
 from app.core.database import engine, Base
 from app.core.middleware import SecurityMiddleware
 from app.config.settings import settings
@@ -88,15 +88,7 @@ def create_application() -> FastAPI:
         )
     
     # Include API routes - Fix prefix for Caddy
-    # logger.info(f"Imported auth module: {auth}") # Comment out debugging log
     app.include_router(api_router) # Revert to normal inclusion, no prefix here
-    # logger.info(f"Included auth.router with prefix /api/v1/auth. Router routes: {auth.router.routes}") # Comment out debugging log
-    
-    # Log all registered routes in the app
-    # logger.info("All registered routes in app:") # Comment out debugging log
-    # for route in app.routes:
-    #     logger.info(f"  Route: {route.path}, Methods: {route.methods if hasattr(route, 'methods') else 'N/A'}") # Comment out debugging log
-
     
     @app.get("/")
     async def root():
