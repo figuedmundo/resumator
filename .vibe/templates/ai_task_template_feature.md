@@ -600,7 +600,7 @@ Authorization: Bearer {token}
 ---
 
 [Continue for all endpoints...]
-```
+
 
 ---
 
