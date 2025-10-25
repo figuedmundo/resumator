@@ -89,8 +89,15 @@ def create_application() -> FastAPI:
     
     # Include API routes (TEMPORARY DEBUGGING STEP)
     # app.include_router(api_router, prefix="/api") # Comment out this line
+    logger.info(f"Imported auth module: {auth}")
     app.include_router(auth.router, prefix="/api/v1/auth") # Directly include auth router
+    logger.info(f"Included auth.router with prefix /api/v1/auth. Router routes: {auth.router.routes}")
     
+    # Log all registered routes in the app
+    logger.info("All registered routes in app:")
+    for route in app.routes:
+        logger.info(f"  Route: {route.path}, Methods: {route.methods if hasattr(route, 'methods') else 'N/A'}")
+
     @app.get("/")
     async def root():
         """Root endpoint."""
@@ -125,4 +132,3 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
-
