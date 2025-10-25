@@ -3,6 +3,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_URL=${VITE_API_URL}
     image: resumator-frontend:${VERSION:-latest}
     container_name: resumator-frontend
     restart: unless-stopped

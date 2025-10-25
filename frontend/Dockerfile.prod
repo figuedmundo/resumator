@@ -1,5 +1,9 @@
 # Stage 1: Build the React application
 FROM node:20-alpine AS build
+
+# Declare the build-time argument
+ARG VITE_API_URL
+
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -10,8 +14,12 @@ RUN npm ci
 # Copy the rest of the application source code
 COPY . .
 
+# Create the .env.production file from the build argument
+# The VITE_API_URL key is what Vite expects
+RUN echo "VITE_API_URL=${VITE_API_URL}" > .env.production
+
 # Build the application for production
-# The output will be in /app/build, as per vite.config.mjs
+# Vite will automatically use variables from .env.production
 RUN npm run build
 
 # --- 

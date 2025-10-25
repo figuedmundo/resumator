@@ -1,4 +1,3 @@
-
 import argparse
 from app.core.database import SessionLocal
 from app.models.user import User
