@@ -1,69 +1,93 @@
+cat docker/caddy/Caddyfile
 {
-    # Global options
-    email {$EMAIL}
-    
-    # Security headers
-    header /* {
-        # Remove server info
-        -Server
-        
-        # Security headers
-        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' wss: https:; frame-ancestors 'none';"
-        Permissions-Policy "microphone=(), camera=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), fullscreen=(self)"
+    email {$CLOUDFLARE_EMAIL}
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+    acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
+}
+
+# Nextcloud
+{$NEXTCLOUD_DOMAIN} {
+    root * /var/www/html
+    php_fastcgi nextcloud:9000 {
+			env modHeadersAvailable true # Avoid sending the security headers twice
+			env front_controller_active true # Enable pretty urls
+			
+			header_up X-Forwarded-For {remote_host}
+		    header_up X-Forwarded-Proto {scheme}
+	   		header_up X-Forwarded-Host {host}
+		}
+    file_server
+
+    # Handle .well-known paths for CardDAV/CalDAV
+    redir /.well-known/carddav /remote.php/dav 301
+    redir /.well-known/caldav /remote.php/dav 301
+
+    # Increase upload limits
+    request_body {
+        max_size 10GB
+    }
+
+    header {
+            X-Content-Type-Options "nosniff"
+            X-Robots-Tag "noindex, nofollow"
+            X-Frame-Options "SAMEORIGIN"
+            X-Permitted-Cross-Domain-Policies "none"
+            X-XSS-Protection "1; mode=block"
+            Referrer-Policy "no-referrer"
+            Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+        }
+}
+
+# Vaultwarden
+#{$VAULTWARDEN_DOMAIN} {
+#    handle /notifications/hub {
+#        reverse_proxy vaultwarden:3012
+#    }
+#
+#    reverse_proxy vaultwarden:80 {
+#        header_up Host {host}
+#        header_up X-Real-IP {remote_host}
+#    }
+#}
+
+# Glances
+{$GLANCES_DOMAIN} {
+    reverse_proxy glances:61208 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+    }	
+    tls {
+		dns cloudflare {$CLOUDFLARE_API_TOKEN}
+	}
+}
+
+# Trading Reports
+{$TRADING_REPORT_DOMAIN} {
+    reverse_proxy trading-report:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
     }
 }
 
-# Main application
-{$DOMAIN:localhost} {
-    # Rate limiting
-    rate_limit {
-        zone static_ip_10rs 10r/s 10
-        zone static_ip_100rm 100r/m 10
-        zone dynamic_ip_5rs 5r/s 100
-        zone dynamic_ip_50rm 50r/m 100
+# Tarot API
+{$TAROT_API_DOMAIN} {
+    reverse_proxy tarot-api:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
     }
-    
-    # Frontend (React app)
-    root * /usr/share/caddy
-    file_server
-    
-    # API routes
+}
+
+# Resumator Application
+{$RESUMATOR_DOMAIN} {
+    # API traffic goes to the backend container
     handle_path /api/* {
-        reverse_proxy backend:8000 {
-            # Health check
-            health_uri /health
-            health_interval 30s
-            
-            # Headers
+        reverse_proxy resumator-backend:8000 {
             header_up Host {http.request.host}
-            header_up X-Real-IP {http.request.remote.host}
-            header_up X-Forwarded-For {http.request.remote.host}
-            header_up X-Forwarded-Proto {http.request.scheme}
-            
-            # Timeouts
-            timeout 30s
         }
     }
-    
-    # SPA fallback
-    try_files {path} /index.html
-    
-    # Security
-    encode gzip
-    
-    # Logging
-    log {
-        output file /var/log/caddy/access.log {
-            roll_size 100MB
-            roll_keep 5
-            roll_keep_for 720h
-        }
-        level INFO
-        format json
+
+    # All other traffic goes to the frontend container
+    handle {
+        reverse_proxy resumator-frontend:80
     }
 }

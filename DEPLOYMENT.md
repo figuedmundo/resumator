@@ -3,6 +3,67 @@
 This document provides a final, tailored guide for deploying Resumator, incorporating a professional database migration strategy, secure admin user creation, and a clear networking architecture.
 
 ---
+## 0. Server Information
+
+tree /srv -L 3
+/srv
+|-- apps
+|   |-- resumator [DEPLOYED Resumator project in this folder]
+|   |   |-- ai
+|   |   |-- backend
+|   |   |-- Caddyfile
+|   |   |-- Caddyfile.prod
+|   |   |-- DEPLOYMENT.md
+|   |   |-- docker-compose.prod.yml
+|   |   |-- docker-compose.yml
+|   |   |-- Dockerfile.prod
+|   |   |-- frontend
+|   |   |-- GEMINI.md
+|   |   |-- homelab
+|   |   |-- README.md
+|   |   |-- samples
+|   |   `-- steps.md
+|   |-- tarot-api
+|   |   |-- app
+|   |   |-- docker-compose.yaml
+|   |   |-- Dockerfile
+|   |   |-- generate_env.py
+|   |   |-- README.md
+|   |   `-- requirements.txt
+|   `-- trading-report
+|       `-- docker-compose.yaml
+|-- docker
+|   |-- caddy
+|   |   |-- Caddyfile [Caddyfile in production, in this project is Caddyfile.prod for AI use purpose only]
+|   |   |-- config
+|   |   `-- data
+|   |-- glances
+|   |-- nextcloud
+|   |   |-- config
+|   |   |-- html
+|   |   `-- php
+|   |-- postgres
+|   |   `-- data
+|   |-- proxy
+|   |-- redis
+|   |   `-- data
+|   `-- vaultwarden
+|       `-- data
+|-- docker-compose.yaml
+|-- lost+found
+|-- scripts
+|   |-- nextcloud-cron.log
+|   `-- nextcloud-cron.sh
+`-- shared
+    |-- backups
+    |-- docs
+    `-- media  [error opening dir]
+
+32 directories, 19 files
+
+
+
+---
 
 ## 1. Project State & Recommendations
 

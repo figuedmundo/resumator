@@ -87,17 +87,21 @@ def create_application() -> FastAPI:
             expose_headers=["X-Rate-Limit-Remaining", "X-Rate-Limit-Limit"]
         )
     
-    # Include API routes - Fix prefix for Caddy
-    app.include_router(api_router) # Revert to normal inclusion, no prefix here
+    # Include API routes - conditionally add /api prefix based on environment
+    # In production, Caddy strips /api, so backend expects /v1/...
+    # In development, we need /api/v1/... to match direct curl requests
+    api_prefix = "/api" if settings.debug else ""
+    app.include_router(api_router, prefix=api_prefix)
     
     @app.get("/")
     async def root():
         """Root endpoint."""
+        api_prefix = "/api" if settings.debug else ""
         return {
             "message": "Welcome to Resumator API",
             "version": "1.0.0",
             "docs": "/docs" if settings.debug else "disabled",
-            "health": "/api/v1/health"
+            "health": f"{api_prefix}/health"
         }
     
     @app.get("/health")
