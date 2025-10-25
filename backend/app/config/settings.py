@@ -1,6 +1,7 @@
 """Application configuration settings."""
 
 import os
+import json
 from typing import Optional
 from pydantic_settings import BaseSettings
 
@@ -48,14 +49,18 @@ class Settings(BaseSettings):
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
     
     # CORS - Allow both HTTP and HTTPS for development
-    allowed_origins: list = [
-        "http://localhost:3000",  # React dev server
-        "http://localhost:5173",  # Vite dev server
-        "https://localhost:3000", # Production HTTPS
-        "https://localhost:5173", # Production HTTPS
-        "http://127.0.0.1:3000",  # Alternative localhost
-        "http://127.0.0.1:5173",  # Alternative localhost
-    ]
+    # Dynamically load from environment variable, or use development defaults
+    allowed_origins: list = json.loads(os.getenv(
+        "ALLOWED_ORIGINS",
+        json.dumps([
+            "http://localhost:3000",  # React dev server
+            "http://localhost:5173",  # Vite dev server
+            "https://localhost:3000", # Production HTTPS
+            "https://localhost:5173", # Production HTTPS
+            "http://127.0.0.1:3000",  # Alternative localhost
+            "http://127.0.0.1:5173",  # Alternative localhost
+        ])
+    ))
     
     # --- Environment (dev or prod) ---
     environment: str = os.getenv("ENVIRONMENT", "dev")
