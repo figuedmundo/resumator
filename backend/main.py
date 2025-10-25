@@ -4,7 +4,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from app.api import api_router
+# from app.api import api_router # Comment out this line
+from app.api.v1 import auth # Import auth directly
 from app.core.database import engine, Base
 from app.core.middleware import SecurityMiddleware
 from app.config.settings import settings
@@ -86,8 +87,9 @@ def create_application() -> FastAPI:
             expose_headers=["X-Rate-Limit-Remaining", "X-Rate-Limit-Limit"]
         )
     
-    # Include API routes
-    app.include_router(api_router, prefix="/api")
+    # Include API routes (TEMPORARY DEBUGGING STEP)
+    # app.include_router(api_router, prefix="/api") # Comment out this line
+    app.include_router(auth.router, prefix="/api/v1/auth") # Directly include auth router
     
     @app.get("/")
     async def root():
