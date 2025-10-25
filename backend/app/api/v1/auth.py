@@ -14,7 +14,6 @@ from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-logger.info(f"APIRouter instance created in auth.py: {router}")
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -26,7 +25,6 @@ async def register(
 ):
     """Register a new user with enhanced security."""
     client_ip = get_client_ip(request)
-    logger.info("Register route defined.")
     
     try:
         # Additional rate limiting for registration
@@ -90,7 +88,6 @@ async def login(
 ):
     """Login user and return JWT token pair with audit logging."""
     client_ip = get_client_ip(request)
-    logger.info("Login route defined.")
     
     try:
         user_service = UserService(db)
