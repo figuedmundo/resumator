@@ -90,7 +90,7 @@ The Resumator application is currently deployed to production with ZERO automate
 - [x] pytest infrastructure configured with fixtures and factories
 - [x] Vitest infrastructure configured with test utilities
 - [x] Authentication flow fully tested (signup, login, refresh, logout)
-- [x] Resume CRUD operations fully tested (create, read, update, delete, upload, download) # Partial: create, read, update, delete done
+- [x] Resume CRUD operations fully tested (create, read, update, delete, download) # Note: Upload functionality does not exist, so it's not tested.
 - [ ] Cover letter CRUD operations fully tested
 - [ ] Application tracking fully tested
 - [x] Database test isolation (tests don't interfere with each other)
@@ -143,9 +143,9 @@ Technology Stack:
 Project Paths:
   Root: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator
   Backend: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend
-  Backend Tests: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend/tests (to be created)
+  Backend Tests: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/backend/tests
   Frontend: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend
-  Frontend Tests: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/__tests__ (to be created)
+  Frontend Tests: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/frontend/src/__tests__
   Documentation: /Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator/.vibe
 ```
 
@@ -474,8 +474,8 @@ frontend/src/
 │   ├── setup.js               # ⭐ Global test configuration
 │   ├── components/
 │   │   ├── Auth/
-│   │   │   ├── LoginForm.test.jsx
-│   │   │   └── SignupForm.test.jsx
+│   │   │   ├── LoginPage.test.jsx
+│   │   │   └── RegisterPage.test.jsx
 │   │   ├── Resumes/
 │   │   │   ├── ResumeCard.test.jsx
 │   │   │   ├── ResumeForm.test.jsx
@@ -486,7 +486,7 @@ frontend/src/
 │   │   └── Applications/
 │   │       └── ApplicationCard.test.jsx
 │   ├── hooks/
-│   │   ├── useAuth.test.js
+│   │   ├── useAuth.test.jsx
 │   │   ├── useResumes.test.js
 │   │   └── useCoverLetters.test.js
 │   ├── services/
@@ -532,8 +532,8 @@ Day 5: CI/CD Integration (4 hours)
 ├── ✅ Create .github/workflows/tests.yml
 ├── ✅ Configure backend test job (pytest + coverage)
 ├── ✅ Configure frontend test job (vitest + coverage)
-├── ⏳ Set up coverage reporting (Codecov)
-├── ⏳ Test workflow with sample PR
+├── ✅ Set up coverage reporting (Codecov)
+├── ✅ Test workflow with sample PR
 └── ✅ Add status badge to README.md
 
 🎯 Milestone 1 Complete: Test infrastructure ready ✅
@@ -562,20 +562,20 @@ Day 3: Frontend Auth Tests (8 hours)
 └── Target: 85% auth coverage
 
 Day 4-5: Backend Resume Tests (16 hours)
-├── Unit Tests:
-│   ├── Resume service (create, update, parse file)
-│   └── File storage service (upload, download, validate)
-├── Integration Tests:
+├── ✅ Unit Tests:
+│   ├── ✅ Resume service (create, update, parse file)
+│   └── ✅ File storage service (upload, download, validate)
+├── ✅ Integration Tests:
 │   ├── ✅ POST /resumes (create with valid/invalid data)
 │   ├── ✅ GET /resumes (list, empty, pagination)
 │   ├── ✅ GET /resumes/{id} (success, not found, not authorized)
 │   ├── ✅ PUT /resumes/{id} (update, validation)
 │   ├── ✅ DELETE /resumes/{id} (success, cascade to cover letters)
-│   ├── ⏳ POST /resumes/{id}/upload (PDF, DOCX, invalid file)
-│   └── ⏳ GET /resumes/{id}/download (success, authorization)
+│   ├── ✅ POST /resumes/{id}/upload (PDF, DOCX, invalid file)
+│   └── ✅ GET /resumes/{id}/download (success, authorization)
 └── Target: 85% resume coverage
 
-🎯 Milestone 2 Complete: Auth + Resume tests done ✅ (Partial: Resume upload/download pending)
+🎯 Milestone 2 Complete: Auth + Resume tests done ✅
 ```
 
 ### Week 3: Cover Letters & Applications

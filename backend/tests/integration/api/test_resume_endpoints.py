@@ -184,32 +184,62 @@ def test_delete_resume_not_authorized(client: TestClient, db: Session, sample_us
     assert response.status_code == 404
 
 def test_delete_resume_with_dependent_applications_fails_without_force(client: TestClient, auth_headers: dict, db: Session, authenticated_user):
+
     # Create a resume
+
     resume_data = {
+
         "title": "Resume with Apps",
+
         "markdown": "Content.",
+
     }
+
     response = client.post("/api/v1/resumes", headers=auth_headers, json=resume_data)
+
     resume_id = response.json()["id"]
 
-    # Create a dependent application (requires ApplicationService)
-    # For now, we'll simulate a dependent application by directly adding to DB
-    # In a real scenario, we'd use an application factory or service method
+    version_id = response.json()["versions"][0]["id"]
+
+
+
+    # Create a dependent application
+
     from app.models.application import Application
+
     app_data = Application(
+
         user_id=authenticated_user["user"]["id"],
+
         resume_id=resume_id,
+
+        resume_version_id=version_id,
+
         company="TestCo",
+
         position="Tester",
+
         status="Applied"
+
     )
+
     db.add(app_data)
+
     db.commit()
 
+
+
     # Try to delete the resume without force
+
     response = client.delete(f"/api/v1/resumes/{resume_id}", headers=auth_headers)
+
     assert response.status_code == 400
+
     assert "Cannot delete resume. It is referenced by 1 application(s)." in response.json()["detail"]
+
+
+
+
 
 def test_delete_resume_with_dependent_applications_succeeds_with_force(client: TestClient, auth_headers: dict, db: Session, authenticated_user):
     # Create a resume
@@ -219,12 +249,14 @@ def test_delete_resume_with_dependent_applications_succeeds_with_force(client: T
     }
     response = client.post("/api/v1/resumes", headers=auth_headers, json=resume_data)
     resume_id = response.json()["id"]
+    version_id = response.json()["versions"][0]["id"]
 
     # Create a dependent application
     from app.models.application import Application
     app_data = Application(
         user_id=authenticated_user["user"]["id"],
         resume_id=resume_id,
+        resume_version_id=version_id,
         company="TestCo",
         position="Tester",
         status="Applied"
@@ -242,3 +274,20 @@ def test_delete_resume_with_dependent_applications_succeeds_with_force(client: T
     assert resume is None
     application = db.query(Application).filter(Application.resume_id == resume_id).first()
     assert application is None
+
+
+def test_download_resume_pdf(client: TestClient, auth_headers: dict, db: Session):
+    # Create a resume
+    resume_data = {
+        "title": "My Downloadable Resume",
+        "markdown": "This is the content of my downloadable resume.",
+    }
+    response = client.post("/api/v1/resumes", headers=auth_headers, json=resume_data)
+    assert response.status_code == 201
+    resume_id = response.json()["id"]
+
+    # Download the resume
+    response = client.get(f"/api/v1/resumes/{resume_id}/download", headers=auth_headers)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.content == b"mock pdf content"

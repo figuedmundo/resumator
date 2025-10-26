@@ -6,33 +6,23 @@ import os
 import pytest
 from typing import Generator, Dict, Optional
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 from pathlib import Path
 
+# CRITICAL: Set TESTING environment variable BEFORE any app imports
+# This must be the very first thing to prevent database connection attempts
+os.environ['TESTING'] = '1'
 
+from app.core.database import Base, get_db, engine
 
-from app.core.database import Base, get_db
-
-
-# Use in-memory SQLite for speed
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-test_engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-# Enable foreign keys for SQLite
-@event.listens_for(test_engine, "connect")
+# Enable foreign keys for SQLite (when using test engine)
+@event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_conn, connection_record):
+    """Enable foreign key constraints for SQLite."""
     cursor = dbapi_conn.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
-
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 @pytest.fixture(scope="function")
@@ -41,15 +31,16 @@ def db() -> Generator[Session, None, None]:
     Create fresh database for each test.
     Automatically creates tables, yields session, then drops tables.
     """
-    Base.metadata.create_all(bind=test_engine)
-    session = TestSessionLocal()
+    Base.metadata.create_all(bind=engine)
+    from app.core.database import SessionLocal
+    session = SessionLocal()
 
     try:
         yield session
     finally:
         session.rollback()
         session.close()
-        Base.metadata.drop_all(bind=test_engine)
+        Base.metadata.drop_all(bind=engine)
 
 
 from app.services.storage_service import LocalStorageService
@@ -73,10 +64,8 @@ def client(db: Session, tmp_path: Path) -> Generator[TestClient, None, None]:
     """
     FastAPI test client with database and service overrides.
     """
-    from main import create_application
+    from main import app
     from app.api.deps import get_storage, get_pdf_service
-
-    app = create_application(engine=db.bind)
 
     def override_get_db():
         try:

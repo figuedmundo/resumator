@@ -22,14 +22,9 @@ logger = logging.getLogger(__name__)
 # Create database tables
 
 
-
-def create_application(engine=None) -> FastAPI:
+def create_application() -> FastAPI:
     """Create and configure the FastAPI application with enhanced security."""
-    if engine:
-        Base.metadata.create_all(bind=engine)
-    else:
-        from app.core.database import engine as default_engine
-        Base.metadata.create_all(bind=default_engine)
+    Base.metadata.create_all(bind=engine)
     
     app = FastAPI(
         title="Resumator API",
@@ -120,8 +115,7 @@ def create_application(engine=None) -> FastAPI:
 
 
 # Create the application instance
-from app.core.database import engine
-app = create_application(engine=engine)
+app = create_application()
 
 if __name__ == "__main__":
     import uvicorn
@@ -131,3 +125,4 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
+

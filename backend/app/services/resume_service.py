@@ -567,11 +567,9 @@ class ResumeService:
         force: bool = False
     ) -> Dict[str, Any]:
         """Delete resume and all dependent applications."""
-        from app.services.application_service import ApplicationService
         from app.models.application import Application
         
         db = self._get_db()
-        application_service = ApplicationService(db)
         
         try:
             # Verify ownership
@@ -598,16 +596,9 @@ class ResumeService:
             applications = db.query(Application).filter(
                 Application.resume_id == resume_id
             ).all()
-            
+
             for app in applications:
-                try:
-                    delete_result = application_service.delete_application(
-                        user_id, app.id, dry_run=False
-                    )
-                    if delete_result['success']:
-                        result['applications_deleted'] += 1
-                except Exception as e:
-                    logger.warning(f"Failed to delete application {app.id}: {e}")
+                db.delete(app)
             
             # Count versions before deletion
             version_count = db.query(ResumeVersion).filter(
@@ -621,6 +612,7 @@ class ResumeService:
             result['success'] = True
             result['resume_deleted'] = True
             result['versions_deleted'] = version_count
+            result['applications_deleted'] = len(applications)
             result['message'] = (
                 f"Deleted resume '{resume.title}', "
                 f"{result['applications_deleted']} application(s), "

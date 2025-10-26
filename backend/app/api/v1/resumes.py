@@ -432,7 +432,6 @@ async def download_resume_pdf(
     resume_service: ResumeService = Depends(get_resume_service),
     pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
-    from app.services.pdf_service import PDFService
     """Download resume as PDF."""
     try:
         # Get resume version
