@@ -234,11 +234,12 @@ class ApplicationService:
                 'application_deleted': False,
                 'customized_resume_version_deleted': False,
                 'customized_cover_letter_version_deleted': False,
+                'customized_version_id': None,
+                'original_resume_preserved': True,
+                'original_version_preserved': True,
                 'message': '',
                 'warnings': []
-            }
-            
-            # Check for customized resume version to delete
+            }            # Check for customized resume version to delete
             customized_resume_version_id = application.customized_resume_version_id
             can_delete_custom_resume = False
             if customized_resume_version_id:

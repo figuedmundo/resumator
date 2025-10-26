@@ -145,6 +145,7 @@ const ApplicationForm = ({ applicationId = null, onSuccess }) => {
       newErrors.applied_date = 'Applied date is required';
     }
 
+    console.log('Validating form, newErrors:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

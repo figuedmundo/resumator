@@ -60,7 +60,7 @@ class MockPDFService:
 
 
 @pytest.fixture(scope="function")
-def client(db: Session, tmp_path: Path) -> Generator[TestClient, None, None]:
+def client(db: Session, tmp_path: Path, monkeypatch) -> Generator[TestClient, None, None]:
     """
     FastAPI test client with database and service overrides.
     """
@@ -82,6 +82,11 @@ def client(db: Session, tmp_path: Path) -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_storage] = override_get_storage
     app.dependency_overrides[get_pdf_service] = override_get_pdf_service
+
+    # Even if services use get_storage_service directly, this will patch it
+    monkeypatch.setattr("app.services.resume_service.get_storage_service", override_get_storage)
+    monkeypatch.setattr("app.services.cover_letter_service.get_storage_service", override_get_storage)
+
 
     from app.config import settings
     settings.debug = True

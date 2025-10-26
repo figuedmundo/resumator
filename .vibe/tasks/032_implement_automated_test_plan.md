@@ -91,7 +91,7 @@ The Resumator application is currently deployed to production with ZERO automate
 - [x] Vitest infrastructure configured with test utilities
 - [x] Authentication flow fully tested (signup, login, refresh, logout)
 - [x] Resume CRUD operations fully tested (create, read, update, delete, download) # Note: Upload functionality does not exist, so it's not tested.
-- [ ] Cover letter CRUD operations fully tested
+- [ ] Cover letter CRUD operations fully tested (in progress)
 - [ ] Application tracking fully tested
 - [x] Database test isolation (tests don't interfere with each other)
 - [x] CI/CD pipeline runs tests automatically on every PR
@@ -581,36 +581,36 @@ Day 4-5: Backend Resume Tests (16 hours)
 ### Week 3: Cover Letters & Applications
 ```
 Day 1-2: Backend Cover Letter Tests (14 hours)
-├── Unit Tests:
-│   ├── AI service integration (mocked Groq API)
-│   ├── PDF generation service
-│   └── Content templating
-├── Integration Tests:
-│   ├── POST /cover-letters (create from resume)
-│   ├── GET /cover-letters (list with filters)
-│   ├── PUT /cover-letters/{id} (update content)
-│   ├── DELETE /cover-letters/{id}
-│   ├── POST /cover-letters/{id}/generate (AI generation)
-│   └── POST /cover-letters/{id}/export (PDF export)
+├── ✅ Unit Tests:
+│   ├── ✅ AI service integration (mocked Groq API)
+│   ├── ✅ PDF generation service
+│   └── ✅ Content templating
+├── ✅ Integration Tests:
+│   ├── ✅ POST /cover-letters (create from resume)
+│   ├── ✅ GET /cover-letters (list with filters)
+│   ├── ✅ PUT /cover-letters/{id} (update content)
+│   ├── ✅ DELETE /cover-letters/{id}
+│   ├── ✅ POST /cover-letters/{id}/generate (AI generation)
+│   └── ✅ POST /cover-letters/{id}/export (PDF export)
 └── Target: 85% cover letter coverage
 
 Day 3: Backend Application Tests (10 hours)
-├── Integration Tests:
-│   ├── POST /applications (create new)
-│   ├── GET /applications (list, filter by status)
-│   ├── PUT /applications/{id} (update status, notes)
-│   └── DELETE /applications/{id}
+├── ✅ Integration Tests:
+│   ├── ✅ POST /applications (create new)
+│   ├── ✅ GET /applications (list, filter by status)
+│   ├── ✅ PUT /applications/{id} (update status, notes)
+│   └── ✅ DELETE /applications/{id}
 └── Target: 80% application coverage
 
 Day 4-5: Frontend Resume, Cover Letter, Application Tests (14 hours)
 ├── Component Tests:
-│   ├── ResumeForm, ResumeCard, ResumeList
-│   ├── CoverLetterForm, CoverLetterCard
-│   └── ApplicationForm, ApplicationCard
+│   ├── ⬜ ResumeForm, ResumeCard, ResumeList
+│   ├── ✅ CoverLetterForm, CoverLetterCard
+│   └── 🟨 ApplicationForm, ApplicationCard (ApplicationForm test failing)
 ├── Hook Tests:
-│   ├── useResumes (CRUD operations, file upload)
-│   ├── useCoverLetters (CRUD, AI generation)
-│   └── useApplications (CRUD, status updates)
+│   ├── ⬜ useResumes (CRUD operations, file upload)
+│   ├── ⬜ useCoverLetters (CRUD, AI generation)
+│   └── ⬜ useApplications (CRUD, status updates)
 └── Target: 80% coverage for all
 
 🎯 Milestone 3 Complete: All features have tests
@@ -1511,6 +1511,13 @@ You'll know testing is successful when:
 
 **Troubleshooting:**
 See TESTING.md Section 5: Troubleshooting for common issues and solutions
+
+---
+
+## 🧠 Known Issues & Learnings
+
+- **`replace` tool loop:** The AI agent got into a loop while trying to fix a syntax error using the `replace` tool. This was caused by providing an incorrect `old_string` argument. To avoid this, always read the file content before using the `replace` tool to ensure the `old_string` is accurate.
+
 
 ---
 

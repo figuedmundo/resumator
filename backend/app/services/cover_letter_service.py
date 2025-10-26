@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from app.core.database import get_db
 from app.models.cover_letter import CoverLetter, CoverLetterVersion, CoverLetterTemplate
-from app.core.exceptions import ValidationError, UnauthorizedError
+from app.core.exceptions import ValidationError, UnauthorizedError, CoverLetterNotFoundError
 from app.services.ai_service import AIGeneratorClient
 from app.services.storage_service import StorageService, get_storage_service
 
@@ -70,7 +70,7 @@ class CoverLetterService:
             db.rollback()
             logger.error(f"Failed to create cover letter for user {user_id}: {e}")
             raise ValidationError(f"Failed to create cover letter: {str(e)}")
-    
+
     def get_cover_letter(self, user_id: int, cover_letter_id: int) -> CoverLetter:
         """Get a cover letter by ID with ownership verification."""
         db = self._get_db()
@@ -84,16 +84,16 @@ class CoverLetterService:
             ).first()
             
             if not cover_letter:
-                raise ValidationError(f"Cover letter {cover_letter_id} not found")
+                raise CoverLetterNotFoundError(cover_letter_id)
             
             return cover_letter
             
         except Exception as e:
             logger.error(f"Failed to get cover letter {cover_letter_id}: {e}")
-            if isinstance(e, ValidationError):
+            if isinstance(e, (ValidationError, CoverLetterNotFoundError)):
                 raise
             raise ValidationError(f"Failed to retrieve cover letter: {str(e)}")
-    
+
     def list_user_cover_letters(self, user_id: int) -> List[CoverLetter]:
         """List all cover letters for a user."""
         db = self._get_db()
@@ -120,7 +120,7 @@ class CoverLetterService:
         except Exception as e:
             logger.error(f"Failed to list cover letters for user {user_id}: {e}")
             return []
-    
+
     def update_cover_letter(self, user_id: int, cover_letter_id: int, 
                            title: Optional[str] = None, 
                            is_default: Optional[bool] = None) -> CoverLetter:
@@ -144,10 +144,10 @@ class CoverLetterService:
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to update cover letter {cover_letter_id}: {e}")
-            if isinstance(e, ValidationError):
+            if isinstance(e, (ValidationError, CoverLetterNotFoundError)):
                 raise
             raise ValidationError(f"Failed to update cover letter: {str(e)}")
-    
+
     # ======================================
     # Cover Letter Version Operations
     # ======================================
@@ -503,13 +503,12 @@ class CoverLetterService:
                     })
             
             return result
-            
         except Exception as e:
             logger.error(f"Failed to check cover letter dependencies: {e}")
-            if isinstance(e, ValidationError):
+            if isinstance(e, (ValidationError, CoverLetterNotFoundError)):
                 raise
             raise ValidationError(f"Failed to check dependencies: {str(e)}")
-    
+
     def check_version_dependencies(self, user_id: int, cover_letter_id: int, 
                                    version_id: int) -> Dict[str, Any]:
         """Check what applications depend on this version."""
@@ -620,7 +619,7 @@ class CoverLetterService:
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to delete cover letter {cover_letter_id}: {e}")
-            if isinstance(e, ValidationError):
+            if isinstance(e, (ValidationError, CoverLetterNotFoundError)):
                 raise
             return False
     

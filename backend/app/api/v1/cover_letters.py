@@ -15,8 +15,9 @@ from app.schemas.cover_letter import (
 )
 from app.services.cover_letter_service import CoverLetterService
 from app.services.resume_service import ResumeService
-from app.api.deps import get_current_active_user
-from app.core.exceptions import ValidationError
+from app.api.deps import get_current_active_user, get_pdf_service
+from app.services.pdf_service import PDFService
+from app.core.exceptions import ValidationError, CoverLetterNotFoundError, ResumeNotFoundError
 
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ async def get_template(
 # Cover Letter Master Record Endpoints
 # ======================================
 
-@router.post("", response_model=CoverLetterResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CoverLetterDetailResponse, status_code=status.HTTP_201_CREATED)
 async def create_cover_letter(
     request: CoverLetterCreate,
     current_user: User = Depends(get_current_active_user),
@@ -92,7 +93,11 @@ async def create_cover_letter(
             content=request.content,
             is_default=request.is_default or False
         )
-        return CoverLetterResponse.from_orm(cover_letter)
+        versions = service.list_versions(current_user.id, cover_letter.id)
+        
+        response = CoverLetterDetailResponse.from_orm(cover_letter)
+        response.versions = [CoverLetterVersionResponse.from_orm(v) for v in versions]
+        return response
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -134,6 +139,8 @@ async def get_cover_letter(
         response = CoverLetterDetailResponse.from_orm(cover_letter)
         response.versions = [CoverLetterVersionResponse.from_orm(v) for v in versions]
         return response
+    except CoverLetterNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
@@ -160,6 +167,8 @@ async def update_cover_letter(
             is_default=request.is_default
         )
         return CoverLetterResponse.from_orm(cover_letter)
+    except CoverLetterNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -179,6 +188,8 @@ async def delete_cover_letter(
     """Delete a cover letter (only if no applications reference it)."""
     try:
         service.delete_cover_letter(current_user.id, cover_letter_id)
+    except CoverLetterNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
     except ValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -319,6 +330,57 @@ async def delete_version(
         )
 
 
+@router.get("/{cover_letter_id}/versions/{version_id}/download")
+async def download_cover_letter_version(
+    cover_letter_id: int,
+    version_id: int,
+    template: str = Query("modern", description="PDF template to use"),
+    current_user: User = Depends(get_current_active_user),
+    cover_letter_service: CoverLetterService = Depends(get_cover_letter_service),
+    pdf_service: "PDFService" = Depends(get_pdf_service),
+):
+    """Download a specific version of a cover letter as a PDF."""
+    from app.services.pdf_service import PDFService
+    from fastapi.responses import StreamingResponse
+    import io
+
+    try:
+        version = cover_letter_service.get_version(
+            user_id=current_user.id,
+            cover_letter_id=cover_letter_id,
+            version_id=version_id,
+        )
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Version not found"
+            )
+
+        pdf_bytes = pdf_service.generate_cover_letter_pdf(
+            content=version.markdown_content,
+            company=None,
+            position=None,
+            title=version.cover_letter.title,
+        )
+
+        filename = f"cover_letter_{version.cover_letter.title.replace(' ', '_')}_{version.version}.pdf"
+
+        return StreamingResponse(
+            io.BytesIO(pdf_bytes),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except CoverLetterNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
+    except Exception as e:
+        logger.error(
+            f"Failed to download cover letter version {version_id}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to download cover letter version",
+        )
+
+
 # ======================================
 # Generation Endpoints
 # ======================================
@@ -357,6 +419,8 @@ async def preview_generate_cover_letter(
         return CoverLetterPreviewResponse(content=generated_content)
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ResumeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
     except Exception as e:
         logger.error(f"Failed to generate cover letter preview: {e}")
         raise HTTPException(
@@ -419,6 +483,8 @@ async def generate_cover_letter(
         return response
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ResumeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
     except Exception as e:
         logger.error(f"Failed to generate cover letter: {e}")
         raise HTTPException(

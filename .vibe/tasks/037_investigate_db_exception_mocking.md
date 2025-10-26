@@ -1,0 +1,3 @@
+# Investigate how to properly mock a database exception
+
+The `test_internal_server_error` test in `backend/tests/integration/test_error_handling.py` is failing because the mocked exception is not being raised. This is likely due to the `get_current_active_user` dependency caching the user. We need to investigate how to properly mock a database exception to ensure that the API correctly handles 500 errors.

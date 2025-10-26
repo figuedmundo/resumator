@@ -21,6 +21,16 @@ class ApplicationNotFoundError(HTTPException):
         )
 
 
+class CoverLetterNotFoundError(HTTPException):
+    """Raised when a cover letter is not found."""
+    def __init__(self, cover_letter_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Cover letter with ID {cover_letter_id} not found"
+        )
+
+
+
 class UnauthorizedError(HTTPException):
     """Raised when user is not authorized to access a resource."""
     def __init__(self, detail: str = "Not authorized to access this resource"):

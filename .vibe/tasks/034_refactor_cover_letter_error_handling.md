@@ -1,0 +1,3 @@
+# Refactor cover letter generation error handling
+
+The `POST /api/v1/cover-letters/generate` endpoint currently returns a 503 Service Unavailable error when a `ResumeNotFoundError` is raised. This should be a 4xx client error, as the service itself is available, but the client has provided an invalid resume ID. The endpoint should be refactored to catch this specific exception and return a 400 Bad Request or 404 Not Found.
