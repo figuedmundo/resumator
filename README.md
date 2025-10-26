@@ -1,6 +1,6 @@
 # Resumator
 
-[![Build Status](https://img.shields.io/travis/com/your-username/resumator.svg?style=flat-square)](https://travis-ci.com/your-username/resumator)
+[![Run Tests](https://github.com/<your-username>/<your-repo>/actions/workflows/tests.yml/badge.svg)](https://github.com/<your-username>/<your-repo>/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 Resumator is a full-stack web application designed to help users manage their resumes, cover letters, and job applications. It provides a comprehensive suite of tools for creating, customizing, and tracking career-related documents. A key feature of Resumator is its AI-powered capabilities, which assist users in rewriting resumes and generating personalized cover letters for specific job applications, utilizing the Groq API.

@@ -10,7 +10,7 @@ from app.models.cover_letter import CoverLetter
 from app.schemas.resume import ResumeCreate, ResumeUpdate
 from app.core.exceptions import ResumeNotFoundError, ValidationError, UnauthorizedError
 from app.services.ai_service import AIGeneratorClient
-from app.services.storage_service import storage
+from app.services.storage_service import StorageService, get_storage_service
 
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,14 @@ logger = logging.getLogger(__name__)
 class ResumeService:
     """Service for resume operations."""
     
-    def __init__(self, db: Optional[Session] = None):
+    def __init__(self, db: Optional[Session] = None, storage_service: Optional[StorageService] = None):
         """Initialize resume service."""
         self.db = db
         self.ai_client = AIGeneratorClient()
+        if storage_service:
+            self.storage_service = storage_service
+        else:
+            self.storage_service = get_storage_service()
     
     def _get_db(self) -> Session:
         """Get database session."""
@@ -402,7 +406,7 @@ class ResumeService:
         """Save resume markdown to storage."""
         try:
             file_path = f"users/{user_id}/resumes/{resume_id}/versions/{version}/resume.md"
-            storage.save(file_path, markdown)
+            self.storage_service.save(file_path, markdown)
         except Exception as e:
             logger.warning(f"Failed to save resume to storage: {e}")
     

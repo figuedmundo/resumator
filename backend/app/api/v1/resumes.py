@@ -13,8 +13,7 @@ from app.schemas.resume import (
     ResumePDFRequest, CoverLetterRequest, CoverLetterResponse
 )
 from app.services.resume_service import ResumeService
-from app.services.pdf_service import pdf_service
-from app.api.deps import get_current_active_user, get_resume_service, get_current_user_from_token
+from app.api.deps import get_current_active_user, get_resume_service, get_current_user_from_token, get_pdf_service
 from app.core.exceptions import ResumeNotFoundError, ValidationError, AIServiceError
 import io
 
@@ -430,8 +429,10 @@ async def download_resume_pdf(
     template: str = "modern",
     version_id: Optional[int] = None,
     current_user: User = Depends(get_current_active_user),
-    resume_service: ResumeService = Depends(get_resume_service)
+    resume_service: ResumeService = Depends(get_resume_service),
+    pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
+    from app.services.pdf_service import PDFService
     """Download resume as PDF."""
     try:
         # Get resume version
@@ -482,8 +483,10 @@ async def preview_resume_pdf(
     version_id: Optional[int] = None,
     token: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    resume_service: ResumeService = Depends(get_resume_service)
+    resume_service: ResumeService = Depends(get_resume_service),
+    pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
+    from app.services.pdf_service import PDFService
     """Preview resume as PDF in browser."""
     from fastapi import Request
     
@@ -814,14 +817,15 @@ async def delete_resume(
         )
 
 
-@router.get("/{resume_id}/html")
 async def get_resume_html(
     resume_id: int,
     template: str = "modern",
     version_id: Optional[int] = None,
     current_user: User = Depends(get_current_active_user),
-    resume_service: ResumeService = Depends(get_resume_service)
+    resume_service: ResumeService = Depends(get_resume_service),
+    pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
+    from app.services.pdf_service import PDFService
     """Get resume as HTML for preview."""
     try:
         # Get resume version
@@ -858,8 +862,8 @@ async def get_resume_html(
 
 
 @router.get("/templates/list")
-async def list_pdf_templates():
-    """Get available PDF templates."""
+async def list_pdf_templates(pdf_service: 'PDFService' = Depends(get_pdf_service)):
+    from app.services.pdf_service import PDFService
     try:
         templates = pdf_service.get_available_templates()
         return {"templates": templates}

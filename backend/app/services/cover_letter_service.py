@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.models.cover_letter import CoverLetter, CoverLetterVersion, CoverLetterTemplate
 from app.core.exceptions import ValidationError, UnauthorizedError
 from app.services.ai_service import AIGeneratorClient
-from app.services.storage_service import storage
+from app.services.storage_service import StorageService, get_storage_service
 
 
 logger = logging.getLogger(__name__)
@@ -17,10 +17,14 @@ logger = logging.getLogger(__name__)
 class CoverLetterService:
     """Service for cover letter operations matching Resume workflow."""
     
-    def __init__(self, db: Optional[Session] = None):
+    def __init__(self, db: Optional[Session] = None, storage_service: Optional[StorageService] = None):
         """Initialize cover letter service."""
         self.db = db
         self.ai_client = AIGeneratorClient()
+        if storage_service:
+            self.storage_service = storage_service
+        else:
+            self.storage_service = get_storage_service()
     
     def _get_db(self) -> Session:
         """Get database session."""
@@ -668,6 +672,6 @@ class CoverLetterService:
         """Save cover letter content to storage."""
         try:
             file_path = f"users/{user_id}/cover_letters/{cover_letter_id}/versions/{version}/content.md"
-            storage.save(file_path, content)
+            self.storage_service.save(file_path, content)
         except Exception as e:
             logger.warning(f"Failed to save cover letter to storage: {e}")

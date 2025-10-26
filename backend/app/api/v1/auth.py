@@ -9,6 +9,8 @@ from app.core.middleware import get_client_ip, rate_limit_dependency
 from app.schemas.user import UserCreate, UserLogin, Token, UserResponse, RefreshTokenRequest
 from app.services.user_service import UserService
 from app.core.exceptions import ValidationError
+from app.models.user import User
+from app.api.deps import get_current_user
 from app.config.settings import settings
 
 
@@ -177,10 +179,10 @@ async def refresh_token(
         )
 
 
-@router.post("/logout")
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     request: Request,
-    current_user = Depends(lambda: None)  # Will implement proper dependency
+    current_user: User = Depends(get_current_user)
 ):
     """Logout user and revoke tokens."""
     client_ip = get_client_ip(request)
@@ -196,12 +198,10 @@ async def logout(
             
             # Log logout
             audit_logger.log_sensitive_operation(
-                getattr(current_user, 'id', 0), 
+                current_user.id, 
                 "user_logout", 
                 f"User logged out from {client_ip}"
             )
-        
-        return {"message": "Successfully logged out"}
         
     except Exception as e:
         logger.error(f"Logout failed: {e}")

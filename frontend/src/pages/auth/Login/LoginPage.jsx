@@ -109,7 +109,6 @@ export default function LoginPage() {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   value={formData.email}
                   onChange={handleChange}
                   className={clsx(
@@ -135,7 +134,6 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  required
                   value={formData.password}
                   onChange={handleChange}
                   className={clsx(

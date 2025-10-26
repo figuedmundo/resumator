@@ -3,7 +3,7 @@ import apiService from '../services/api';
 import { devLog } from '@/utils/helpers';
 
 // Auth context
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 // Auth action types
 const AuthActions = {
@@ -17,7 +17,7 @@ const AuthActions = {
 };
 
 // Initial auth state
-const initialState = {
+const defaultInitialState = {
   user: null,
   isAuthenticated: false,
   isLoading: true, // Start with loading true for initial auth check
@@ -87,8 +87,8 @@ function authReducer(state, action) {
 }
 
 // Auth provider component
-export function AuthProvider({ children }) {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+export function AuthProvider({ children, initialState }) {
+  const [state, dispatch] = useReducer(authReducer, initialState || defaultInitialState);
 
   // Use useCallback to memoize functions and prevent re-renders
   const clearError = useCallback(() => {

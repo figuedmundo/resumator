@@ -9,6 +9,17 @@ from app.core.security import AuthService
 from app.models.user import User
 from app.services.user_service import UserService
 
+def get_pdf_service() -> 'PDFService':
+    """Get PDF service dependency."""
+    from app.services.pdf_service import PDFService
+    return PDFService()
+
+from app.services.storage_service import StorageService, get_storage_service
+
+def get_storage() -> StorageService:
+    """Get storage service dependency."""
+    return get_storage_service()
+
 
 # Security scheme
 security = HTTPBearer()
@@ -74,10 +85,10 @@ def get_user_service(db: Session = Depends(get_db)) -> UserService:
     return UserService(db)
 
 
-def get_resume_service(db: Session = Depends(get_db)):
+def get_resume_service(db: Session = Depends(get_db), storage_service: StorageService = Depends(get_storage)):
     """Get resume service instance."""
     from app.services.resume_service import ResumeService
-    return ResumeService(db)
+    return ResumeService(db, storage_service)
 
 
 def get_application_service(db: Session = Depends(get_db)):

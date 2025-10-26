@@ -194,6 +194,3 @@ def get_storage_service() -> StorageService:
     else:
         return LocalStorageService()
 
-
-# Global storage instance
-storage = get_storage_service()

@@ -128,7 +128,6 @@ export default function RegisterPage() {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   value={formData.email}
                   onChange={handleChange}
                   className={clsx(
@@ -154,7 +153,6 @@ export default function RegisterPage() {
                   name="username"
                   type="text"
                   autoComplete="username"
-                  required
                   value={formData.username}
                   onChange={handleChange}
                   className={clsx(
@@ -182,7 +180,6 @@ export default function RegisterPage() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  required
                   value={formData.password}
                   onChange={handleChange}
                   className={clsx(
@@ -228,7 +225,6 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
-                  required
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className={clsx(

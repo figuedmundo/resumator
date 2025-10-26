@@ -20,11 +20,16 @@ logger = logging.getLogger(__name__)
 
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
 
 
-def create_application() -> FastAPI:
+
+def create_application(engine=None) -> FastAPI:
     """Create and configure the FastAPI application with enhanced security."""
+    if engine:
+        Base.metadata.create_all(bind=engine)
+    else:
+        from app.core.database import engine as default_engine
+        Base.metadata.create_all(bind=default_engine)
     
     app = FastAPI(
         title="Resumator API",
@@ -46,12 +51,10 @@ def create_application() -> FastAPI:
         if parsed_uri.hostname:
             trusted_hostnames.append(parsed_uri.hostname)
 
-    # Add trusted host middleware
-    if not settings.debug:
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=trusted_hostnames + ["localhost", "127.0.0.1"]
-        )
+    if settings.debug:
+        trusted_hostnames.append("testserver")
+
+
     
     # Add CORS middleware with development-friendly configuration
     if settings.debug:
@@ -90,7 +93,7 @@ def create_application() -> FastAPI:
     # Include API routes - conditionally add /api prefix based on environment
     # In production, Caddy strips /api, so backend expects /v1/...
     # In development, we need /api/v1/... to match direct curl requests
-    api_prefix = "/api" if settings.debug else ""
+    api_prefix = "/api"
     app.include_router(api_router, prefix=api_prefix)
     
     @app.get("/")
@@ -117,13 +120,13 @@ def create_application() -> FastAPI:
 
 
 # Create the application instance
-app = create_application()
-
+from app.core.database import engine
+app = create_application(engine=engine)
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "main:app",
+        app,
         host="0.0.0.0",
         port=8000,
         reload=True

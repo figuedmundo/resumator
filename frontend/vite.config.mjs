@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -15,9 +16,35 @@ export default defineConfig({
       }
     }
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/__tests__/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'src/__tests__/',
+        '**/*.test.{js,jsx}',
+        '**/*.spec.{js,jsx}',
+        '**/test-utils/**',
+        '**/mocks/**',
+        'src/main.jsx',
+      ],
+      all: true,
+      lines: 70,
+      functions: 70,
+      branches: 70,
+      statements: 70,
+    },
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+    testTimeout: 10000,
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(new URL('.', import.meta.url).pathname, './src'),
     }
   },
   build: {

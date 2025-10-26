@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 import weasyprint
 from app.core.exceptions import StorageError
-from app.services.storage_service import storage
+from app.services.storage_service import StorageService, get_storage_service
 from app.services.html_renderer_service import html_renderer
 
 logger = logging.getLogger(__name__)
@@ -47,9 +47,13 @@ class WeasyPrintRenderer(PDFRenderer):
 class PDFService:
     """Service for PDF operations."""
 
-    def __init__(self):
+    def __init__(self, storage_service: Optional[StorageService] = None):
         """Initialize PDF service."""
         self.renderer = WeasyPrintRenderer()
+        if storage_service:
+            self.storage_service = storage_service
+        else:
+            self.storage_service = get_storage_service()
 
     def generate_resume_pdf(self, markdown_content: str, template_id: str = "modern") -> bytes:
         """Generate PDF from markdown resume."""
@@ -164,8 +168,7 @@ class PDFService:
         """Generate and save resume PDF."""
         try:
             pdf_bytes = self.generate_resume_pdf(markdown_content, template_id)
-            file_path = f"users/{user_id}/resumes/{resume_id}/versions/{version_id}/resume_{template_id}.pdf"
-            storage_path = storage.save(file_path, pdf_bytes)
+            storage_path = self.storage_service.save(file_path, pdf_bytes)
             return storage_path
         except Exception as e:
             logger.error(f"Failed to save resume PDF: {e}")
@@ -193,6 +196,3 @@ class PDFService:
         """Get list of available PDF templates."""
         return html_renderer.get_available_templates()
 
-
-# Global PDF service instance
-pdf_service = PDFService()

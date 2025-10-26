@@ -11,7 +11,7 @@ from app.schemas.application import (
     ApplicationListResponse, ApplicationStats
 )
 from app.services.application_service import ApplicationService
-from app.api.deps import get_current_active_user, get_application_service
+from app.api.deps import get_current_active_user, get_application_service, get_pdf_service
 from app.core.exceptions import ApplicationNotFoundError, ValidationError, UnauthorizedError
 
 
@@ -384,8 +384,10 @@ async def download_application_resume(
     application_id: int,
     template: str = Query("modern", description="PDF template to use"),
     current_user: User = Depends(get_current_active_user),
-    application_service: ApplicationService = Depends(get_application_service)
+    application_service: ApplicationService = Depends(get_application_service),
+    pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
+    from app.services.pdf_service import PDFService
     """Download the resume used for a specific application as PDF."""
     from app.services.resume_service import ResumeService
     from app.services.pdf_service import pdf_service
@@ -585,8 +587,10 @@ async def download_application_cover_letter(
     application_id: int,
     template: str = Query("modern", description="PDF template to use"),
     current_user: User = Depends(get_current_active_user),
-    application_service: ApplicationService = Depends(get_application_service)
+    application_service: ApplicationService = Depends(get_application_service),
+    pdf_service: 'PDFService' = Depends(get_pdf_service)
 ):
+    from app.services.pdf_service import PDFService
     """Download the cover letter used for a specific application as PDF."""
     from app.services.pdf_service import pdf_service
     from fastapi.responses import StreamingResponse
