@@ -1,0 +1,192 @@
+/* Empty State */
+.emptyState {
+  @apply text-center py-12;
+}
+
+.emptyStateIcon {
+  @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.emptyStateTitle {
+  @apply mt-2 text-sm font-medium text-gray-900;
+}
+
+.emptyStateDescription {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.emptyStateActions {
+  @apply mt-6;
+}
+
+/* Success Alert */
+.successAlert {
+  @apply mt-6 bg-green-50 border border-green-200 rounded-md p-4;
+}
+
+.successContent {
+  @apply flex;
+}
+
+.successIcon {
+  @apply h-5 w-5 text-green-400;
+}
+
+.successText {
+  @apply ml-3;
+}
+
+.successMessage {
+  @apply text-sm text-green-800;
+}
+
+/* Error Alert */
+.errorAlert {
+  @apply mt-6 bg-red-50 border border-red-200 rounded-md p-4;
+}
+
+.errorContent {
+  @apply flex;
+}
+
+.errorIcon {
+  @apply h-5 w-5 text-red-400;
+}
+
+.errorText {
+  @apply ml-3;
+}
+
+.errorMessage {
+  @apply text-sm text-red-800;
+}
+
+/* Pagination */
+.pagination {
+  @apply bg-white px-4 py-3 border-t border-gray-200;
+}
+
+@media (min-width: 640px) {
+  .pagination {
+    @apply px-6;
+  }
+}
+
+.paginationContent {
+  @apply flex items-center justify-between;
+}
+
+.paginationMobile {
+  @apply flex-1 flex justify-between;
+}
+
+@media (min-width: 640px) {
+  .paginationMobile {
+    @apply hidden;
+  }
+}
+
+.paginationButton {
+  @apply relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white;
+}
+
+.paginationButtonNext {
+  @apply ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white;
+}
+
+.paginationDesktop {
+  @apply hidden;
+}
+
+@media (min-width: 640px) {
+  .paginationDesktop {
+    @apply flex-1 flex items-center justify-between;
+  }
+}
+
+.paginationNav {
+  @apply relative z-0 inline-flex rounded-md shadow-sm -space-x-px;
+}
+
+.paginationNavButton {
+  @apply relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500;
+}
+
+.paginationNavButtonFirst {
+  @apply rounded-l-md;
+}
+
+.paginationNavButtonLast {
+  @apply rounded-r-md;
+}
+
+.pageNumber {
+  @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.pageNumberActive {
+  @apply z-10 bg-blue-50 border-blue-500 text-blue-600;
+}
+
+.pageNumberInactive {
+  @apply bg-white border-gray-300 text-gray-500;
+}
+
+
+/* Dark mode support */
+.dark .emptyStateIcon {
+  @apply text-gray-600;
+}
+
+.dark .emptyStateTitle {
+  @apply text-gray-100;
+}
+
+.dark .emptyStateDescription {
+  @apply text-gray-400;
+}
+
+.dark .successAlert {
+  @apply bg-green-900 bg-opacity-20 border-green-400;
+}
+
+.dark .successIcon {
+  @apply text-green-400;
+}
+
+.dark .successMessage {
+  @apply text-green-300;
+}
+
+.dark .errorAlert {
+  @apply bg-red-900 bg-opacity-20 border-red-400;
+}
+
+.dark .errorIcon {
+  @apply text-red-400;
+}
+
+.dark .errorMessage {
+  @apply text-red-300;
+}
+
+.dark .pagination {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.dark .paginationButton,
+.dark .paginationButtonNext {
+  @apply bg-gray-700 border-gray-600 text-gray-300;
+}
+
+.dark .paginationNavButton {
+  @apply bg-gray-700 border-gray-600 text-gray-400;
+}
+
+.dark .pageNumberActive {
+  @apply bg-blue-900 border-blue-400 text-blue-300;
+}
+
+.dark .pageNumberInactive {
+  @apply bg-gray-700 border-gray-600 text-gray-400;
+}
