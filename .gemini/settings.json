@@ -25,15 +25,6 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
-    "markitdown-npx": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "markitdown-mcp-npx",
-        "--",
-        "--http"
-      ]
-    },
     "markitdown-stdio": {
       "command": "npx",
       "args": [

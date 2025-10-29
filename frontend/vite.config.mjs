@@ -41,6 +41,9 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx}'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
     testTimeout: 10000,
+    moduleNameMapper: {
+      '\\.module\\.css$': 'identity-obj-proxy',
+    },
   },
   resolve: {
     alias: {
