@@ -43,4 +43,4 @@ export function renderWithProviders(
 
 // Re-export everything from @testing-library/react
 export * from '@testing-library/react';
-export { default as userEvent } from '@testing-library/user-event';
+

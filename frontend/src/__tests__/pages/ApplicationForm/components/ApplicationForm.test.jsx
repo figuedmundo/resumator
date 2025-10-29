@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ApplicationForm from '../../../../pages/ApplicationForm/components/ApplicationForm';
 import { vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -36,7 +37,9 @@ describe('ApplicationForm', () => {
     expect(screen.getByRole('combobox', { name: /Resume$/i })).toBeInTheDocument();
   });
 
+
   it('shows validation errors for required fields', async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter>
         <ApplicationForm />
@@ -44,17 +47,21 @@ describe('ApplicationForm', () => {
     );
     
     await waitFor(() => {
-        expect(screen.getByText('Create Application')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Create Application/i })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Application'));
+    await user.click(screen.getByRole('button', { name: /Create Application/i }));
 
-    expect(await screen.findByText('Company is required')).toBeInTheDocument();
-    expect(await screen.findByText('Position is required')).toBeInTheDocument();
-    expect(await screen.findByText('Please select a resume')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Company is required')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Position is required')).toBeInTheDocument();
+    expect(screen.getByText('Please select a resume')).toBeInTheDocument();
   });
 
+
   it('calls onSuccess on successful submission', async () => {
+    const user = userEvent.setup();
     const onSuccess = vi.fn();
     apiService.createApplication.mockResolvedValue({ id: 1 });
 
@@ -68,17 +75,17 @@ describe('ApplicationForm', () => {
         expect(screen.getByLabelText(/Company/i)).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText(/Company/i), { target: { value: 'Test Company' } });
-    fireEvent.change(screen.getByLabelText(/Position/i), { target: { value: 'Test Position' } });
-    fireEvent.change(screen.getByRole('combobox', { name: /Resume$/i }), { target: { value: '1' } });
+    await user.type(screen.getByLabelText(/Company/i), 'Test Company');
+    await user.type(screen.getByLabelText(/Position/i), 'Test Position');
+    await user.selectOptions(screen.getByRole('combobox', { name: /Resume$/i }), '1');
     
     await waitFor(() => {
         expect(screen.getByRole('combobox', { name: /Resume Version/i })).toBeInTheDocument();
     });
-    fireEvent.change(screen.getByRole('combobox', { name: /Resume Version/i }), { target: { value: '1' } });
+    await user.selectOptions(screen.getByRole('combobox', { name: /Resume Version/i }), '1');
 
 
-    fireEvent.click(screen.getByText('Create Application'));
+    await user.click(screen.getByText('Create Application'));
 
     await waitFor(() => {
       expect(apiService.createApplication).toHaveBeenCalled();

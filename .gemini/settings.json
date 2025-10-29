@@ -1,0 +1,45 @@
+{
+  "context": {
+    "fileName": "GEMINI.md"
+  },
+  "mcpServers": {
+    "context7": {
+      "httpUrl": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-751fadc8-b6ce-4777-8cd8-06d1b3bf62b5",
+        "Accept": "application/json, text/event-stream"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/edmundo.figueroaherbas@medirect.com.mt/projects/resumator"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "markitdown-npx": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "markitdown-mcp-npx",
+        "--",
+        "--http"
+      ]
+    },
+    "markitdown-stdio": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "markitdown-mcp-npx"
+      ]
+    }
+  }
+}

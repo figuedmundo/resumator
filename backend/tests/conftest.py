@@ -100,45 +100,45 @@ def client(db: Session, tmp_path: Path, monkeypatch) -> Generator[TestClient, No
 @pytest.fixture(scope='function')
 def session(db: Session) -> Generator[Session, None, None]:
     """Inject the database session into the factories."""
-    from .factories import user_factory
+    from .factories import user_factory, cover_letter_factory, resume_factory
     user_factory.UserFactory._meta.sqlalchemy_session = db
+    cover_letter_factory.CoverLetterFactory._meta.sqlalchemy_session = db
+    resume_factory.ResumeFactory._meta.sqlalchemy_session = db
     yield db
 
 
 @pytest.fixture
-def sample_user_data() -> Dict[str, str]:
-    """Sample user registration data for tests."""
+def sample_user_data() -> dict:
+    """
+    Provides a sample user data dictionary for registration.
+    """
     return {
         "email": "test@example.com",
-        "username": "testuser",
-        "password": "SecurePass123!",
-        "full_name": "Test User"
+        "password": "password123",
+        "username": "testuser"
     }
 
 
 @pytest.fixture
-def authenticated_user(client: TestClient, sample_user_data: Dict) -> Dict:
+def authenticated_user(client: TestClient, session: Session) -> Dict:
     """
     Creates a user, logs in, returns user data + auth token.
     Most tests need authenticated access, so this is very common.
     """
-    # Register
-    # Note: In debug mode, the prefix is /api
-    response = client.post("/api/v1/auth/register", json=sample_user_data)
-    assert response.status_code == 201
-    token_response = response.json()
-    user = token_response.get("user")
+    from tests.factories.user_factory import UserFactory
+    user = UserFactory()
 
     # Login
     login_response = client.post("/api/v1/auth/login", json={
-        "email": sample_user_data["email"],
-        "password": sample_user_data["password"]
+        "email": user.email,
+        "password": "password"
     })
     assert login_response.status_code == 200
     token_data = login_response.json()
 
     return {
-        "user": user,
+        "user": {"id": user.id, "email": user.email, "username": user.username},
+        "user_id": user.id,
         "token": token_data["access_token"],
         "headers": {"Authorization": f"Bearer {token_data['access_token']}"}
     }

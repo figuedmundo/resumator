@@ -14,7 +14,5 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     id = factory.Sequence(lambda n: n + 1)
     email = factory.LazyAttribute(lambda _: fake.email())
     username = factory.LazyAttribute(lambda _: fake.user_name())
-    full_name = factory.LazyAttribute(lambda _: fake.name())
-    hashed_password = factory.LazyFunction(lambda: AuthService.get_password_hash("password"))
+    hashed_password = factory.LazyFunction(lambda: AuthService.hash_password("password"))
     is_active = True
-    is_superuser = False

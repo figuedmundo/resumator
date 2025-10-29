@@ -1,0 +1,1 @@
+"app.services.ai_service.AIGeneratorClient.generate_cover_letter"

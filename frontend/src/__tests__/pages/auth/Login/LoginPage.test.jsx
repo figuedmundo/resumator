@@ -1,4 +1,5 @@
-import { renderWithProviders, screen, userEvent, waitFor } from '../../../../test-utils/test-utils';
+import { renderWithProviders, screen, waitFor } from '../../../../test-utils/test-utils';
+import userEvent from '@testing-library/user-event';
 import LoginPage from '../../../../pages/auth/Login/LoginPage';
 import { describe, it, expect, vi } from 'vitest';
 
