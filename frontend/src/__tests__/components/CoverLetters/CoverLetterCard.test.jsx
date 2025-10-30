@@ -1,39 +1,49 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import CoverLetterCard from '../../../components/CoverLetters/CoverLetterCard';
-import { vi } from 'vitest';
 
 describe('CoverLetterCard', () => {
-  const coverLetter = {
-    id: 1,
-    title: 'My Cover Letter',
-    content: 'This is the content of my cover letter.',
+  const mockCoverLetter = {
+    id: 'cl123',
+    title: 'My Test CL',
+    content: 'This is the content of the cover letter.',
     updated_at: new Date().toISOString(),
   };
 
-  it('renders the cover letter title and summary', () => {
-    render(<CoverLetterCard coverLetter={coverLetter} />);
-    expect(screen.getByText('My Cover Letter')).toBeInTheDocument();
-    expect(screen.getByText('This is the content of my cover letter.')).toBeInTheDocument();
+  const mockHandlers = {
+    onView: vi.fn(),
+    onEdit: vi.fn(),
+    onDelete: vi.fn(),
+  };
+
+  const renderComponent = (coverLetter = mockCoverLetter) => {
+    return render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <CoverLetterCard coverLetter={coverLetter} {...mockHandlers} />
+      </MemoryRouter>
+    );
+  };
+
+  it('renders cover letter details correctly', () => {
+    renderComponent();
+    expect(screen.getByText('My Test CL')).toBeInTheDocument();
+    expect(screen.getByText(/This is the content/)).toBeInTheDocument();
   });
 
-  it('calls the onView callback when the view button is clicked', () => {
-    const onView = vi.fn();
-    render(<CoverLetterCard coverLetter={coverLetter} onView={onView} />);
-    fireEvent.click(screen.getByTitle('View cover letter'));
-    expect(onView).toHaveBeenCalledWith(1);
-  });
+  it('calls handlers when buttons are clicked', () => {
+    renderComponent();
+    const viewButton = screen.getByTitle('View cover letter');
+    const editButton = screen.getByTitle('Edit cover letter');
+    const deleteButton = screen.getByTitle('Delete cover letter');
 
-  it('calls the onEdit callback when the edit button is clicked', () => {
-    const onEdit = vi.fn();
-    render(<CoverLetterCard coverLetter={coverLetter} onEdit={onEdit} />);
-    fireEvent.click(screen.getByTitle('Edit cover letter'));
-    expect(onEdit).toHaveBeenCalledWith(1);
-  });
+    fireEvent.click(viewButton);
+    expect(mockHandlers.onView).toHaveBeenCalledWith('cl123');
 
-  it('calls the onDelete callback when the delete button is clicked', () => {
-    const onDelete = vi.fn();
-    render(<CoverLetterCard coverLetter={coverLetter} onDelete={onDelete} />);
-    fireEvent.click(screen.getByTitle('Delete cover letter'));
-    expect(onDelete).toHaveBeenCalledWith(coverLetter);
+    fireEvent.click(editButton);
+    expect(mockHandlers.onEdit).toHaveBeenCalledWith('cl123');
+
+    fireEvent.click(deleteButton);
+    expect(mockHandlers.onDelete).toHaveBeenCalledWith(mockCoverLetter);
   });
 });

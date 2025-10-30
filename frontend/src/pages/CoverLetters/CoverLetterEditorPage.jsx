@@ -1,11 +1,12 @@
 import { useRef } from 'react';
 import { EditorView } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
-import { oneDark } => '@codemirror/theme-one-dark';
+import { oneDark } from '@codemirror/theme-one-dark';
 import CodeMirror from '@uiw/react-codemirror';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import PageLayout from '../../components/common/PageLayout';
 import { useCoverLetterEditor } from '../../hooks/useCoverLetterEditor';
 import CoverLetterEditorHeader from './components/CoverLetterEditorHeader';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -56,7 +57,7 @@ export default function CoverLetterEditorPage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <PageLayout>
       <CoverLetterEditorHeader state={state} handlers={handlers} />
 
       {error && (
@@ -120,6 +121,6 @@ export default function CoverLetterEditorPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

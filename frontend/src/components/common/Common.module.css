@@ -132,6 +132,31 @@
   @apply bg-white border-gray-300 text-gray-500;
 }
 
+/* Base Card */
+.baseCard {
+  @apply bg-white overflow-hidden shadow rounded-lg border border-gray-200 transition-shadow duration-200;
+}
+.baseCard:hover {
+  @apply shadow-md;
+}
+
+.baseCardHeader {
+  @apply p-6;
+}
+
+.baseCardBody {
+  @apply p-6;
+}
+
+.baseCardFooter {
+  @apply bg-gray-50 px-6 py-4;
+}
+
+/* Page Layout */
+.pageLayout {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
 
 /* Dark mode support */
 .dark .emptyStateIcon {

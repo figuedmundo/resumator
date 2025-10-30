@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import ConfirmDialog from '../Applications/components/ConfirmDialog';
 import { CoverLetterList } from '../../components/CoverLetters';
 import apiService from '../../services/api';
+import PageLayout from '../../components/common/PageLayout';
 import styles from './CoverLettersPage.module.css';
 
 export default function CoverLettersPage() {
@@ -96,16 +97,16 @@ export default function CoverLettersPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.container}>
+      <PageLayout>
         <div className={styles.loadingContainer}>
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <PageLayout>
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>My Cover Letters</h1>
@@ -259,6 +260,6 @@ export default function CoverLettersPage() {
         variant="danger"
         isLoading={isDeleting}
       />
-    </div>
+    </PageLayout>
   );
 }

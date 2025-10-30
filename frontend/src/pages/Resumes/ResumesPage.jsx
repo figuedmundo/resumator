@@ -6,6 +6,7 @@ import ConfirmDialog from '../Applications/components/ConfirmDialog';
 import ResumeCard from '../../components/resumes/ResumeCard';
 import EmptyState from '../../components/common/EmptyState';
 import Alert from '../../components/common/Alert';
+import PageLayout from '../../components/common/PageLayout';
 import styles from './ResumesPage.module.css';
 
 export default function ResumesPage() {
@@ -15,11 +16,11 @@ export default function ResumesPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.container}>
+      <PageLayout>
         <div className={styles.loadingContainer}>
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -50,7 +51,7 @@ export default function ResumesPage() {
   );
 
   return (
-    <div className={styles.container}>
+    <PageLayout>
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>My Resumes</h1>
@@ -98,6 +99,6 @@ export default function ResumesPage() {
         variant="danger"
         isLoading={isDeleting}
       />
-    </div>
+    </PageLayout>
   );
 }

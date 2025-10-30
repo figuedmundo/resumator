@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from './hooks/useAuth';
+import { ThemeProvider } from './contexts/ThemeContext'; // Import ThemeProvider
 import Header from './components/Header/Header';
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import styles from './App.module.css';
@@ -104,203 +105,205 @@ function App() {
   }
 
   return (
-    <div className={styles.app}>
-      <Routes>
-        {/* Public routes (auth pages) */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <AuthLayout>
-                <LoginPage />
-              </AuthLayout>
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <AuthLayout>
-                <RegisterPage />
-              </AuthLayout>
-            </PublicRoute>
-          }
-        />
+    <ThemeProvider>
+      <div className={styles.app}>
+        <Routes>
+          {/* Public routes (auth pages) */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <AuthLayout>
+                  <LoginPage />
+                </AuthLayout>
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <AuthLayout>
+                  <RegisterPage />
+                </AuthLayout>
+              </PublicRoute>
+            }
+          />
 
-        {/* Protected routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <DashboardPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resumes"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ResumesPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resumes/new"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ResumeEditorPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resumes/:id"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ResumeViewPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resumes/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ResumeEditorPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resumes/:id/customize"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ResumeCustomizePage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/applications"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ApplicationsPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/applications/new"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ApplicationFormPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/applications/:id"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ApplicationDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/applications/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ApplicationFormPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ProfilePage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cover-letters"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <CoverLettersPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cover-letters/new"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <CoverLetterEditorPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cover-letters/generate"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <CoverLetterGeneratePage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cover-letters/:id"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <CoverLetterDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cover-letters/:id/edit"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <CoverLetterEditorPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <DashboardPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ResumesPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ResumeEditorPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ResumeViewPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ResumeEditorPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes/:id/customize"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ResumeCustomizePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ApplicationsPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ApplicationFormPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ApplicationDetailPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ApplicationFormPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ProfilePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cover-letters"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CoverLettersPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cover-letters/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CoverLetterEditorPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cover-letters/generate"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CoverLetterGeneratePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cover-letters/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CoverLetterDetailPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cover-letters/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CoverLetterEditorPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 404 page */}
-        <Route
-          path="*"
-          element={
-            <AuthLayout>
-              <NotFoundPage />
-            </AuthLayout>
-          }
-        />
-      </Routes>
-    </div>
+          {/* 404 page */}
+          <Route
+            path="*"
+            element={
+              <AuthLayout>
+                <NotFoundPage />
+              </AuthLayout>
+            }
+          />
+        </Routes>
+      </div>
+    </ThemeProvider>
   );
 }
 

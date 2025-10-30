@@ -17,7 +17,7 @@ describe('ResumeCard', () => {
 
   const renderComponent = (resume = mockResume) => {
     return render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ResumeCard resume={resume} onDeleteClick={mockOnDeleteClick} />
       </MemoryRouter>
     );

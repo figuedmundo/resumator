@@ -2,11 +2,26 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext'; // Import useTheme
 import { getInitials, generateAvatarColor } from '@/utils/helpers';
 import styles from './Header.module.css';
 
+// Sun and Moon icons for the theme toggle
+const SunIcon = () => (
+  <svg className={styles.themeIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg className={styles.themeIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0112 21a9.003 9.003 0 008.354-5.646z" />
+  </svg>
+);
+
 export default function Header() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme(); // Use the theme hook
   const navigate = useNavigate();
   const location = useLocation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -75,62 +90,67 @@ export default function Header() {
 
           {/* User Menu */}
           {user ? (
-            <div className={styles.userMenuContainer} ref={userMenuRef}>
-              <div className={styles.userMenuInner}>
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={styles.userMenuButton}
-                >
-                  <span className={styles.srOnly}>Open user menu</span>
-                  <div className={clsx(styles.avatar, avatarColor)}>
-                    {userInitials}
-                  </div>
-                  <span className={styles.userName}>
-                    {user.full_name || user.email}
-                  </span>
-                  <svg
-                    className={clsx(
-                      styles.chevron,
-                      isUserMenuOpen && styles.chevronOpen
-                    )}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Dropdown menu */}
-              {isUserMenuOpen && (
-                <div className={styles.dropdown}>
-                  <div className={styles.dropdownHeader}>
-                    <div className={styles.dropdownUserName}>{user.full_name || 'User'}</div>
-                    <div className={styles.dropdownUserEmail}>{user.email}</div>
-                  </div>
-                  
-                  <Link
-                    to="/profile"
-                    className={styles.dropdownItem}
-                    onClick={() => setIsUserMenuOpen(false)}
-                  >
-                    Profile Settings
-                  </Link>
-                  
+            <div className={styles.rightSection}>
+              <button onClick={toggleTheme} className={styles.themeToggleButton} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
+                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+              </button>
+              <div className={styles.userMenuContainer} ref={userMenuRef}>
+                <div className={styles.userMenuInner}>
                   <button
-                    onClick={handleLogout}
-                    className={styles.dropdownButton}
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className={styles.userMenuButton}
                   >
-                    Sign out
+                    <span className={styles.srOnly}>Open user menu</span>
+                    <div className={clsx(styles.avatar, avatarColor)}>
+                      {userInitials}
+                    </div>
+                    <span className={styles.userName}>
+                      {user.full_name || user.email}
+                    </span>
+                    <svg
+                      className={clsx(
+                        styles.chevron,
+                        isUserMenuOpen && styles.chevronOpen
+                      )}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </button>
                 </div>
-              )}
+
+                {/* Dropdown menu */}
+                {isUserMenuOpen && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <div className={styles.dropdownUserName}>{user.full_name || 'User'}</div>
+                      <div className={styles.dropdownUserEmail}>{user.email}</div>
+                    </div>
+                    
+                    <Link
+                      to="/profile"
+                      className={styles.dropdownItem}
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Profile Settings
+                    </Link>
+                    
+                    <button
+                      onClick={handleLogout}
+                      className={styles.dropdownButton}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className={styles.guestActions}>

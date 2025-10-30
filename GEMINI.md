@@ -164,3 +164,21 @@ The project is designed to be run with Docker and Docker Compose.
 *   **`frontend/src/pages/`**: Directory containing the main pages of the application.
 *   **`frontend/src/services/api.js`**: The frontend service for making API calls.
 
+---
+
+## 9. Project-Specific Architectural Rules
+
+These rules have been established during refactoring and must be followed for all future frontend development.
+
+1.  **Logic Extraction to Hooks**: All significant business logic, state management, and API interactions for a given page or complex component **must** be extracted into a custom hook in `frontend/src/hooks/`. Page components should be simple consumers of these hooks.
+
+2.  **Use the Common Component Library**: Before creating any new UI element, I **must** first check `frontend/src/components/common/` for an existing reusable component. This includes, but is not limited to:
+    *   `PageLayout.jsx`: For consistent page width and padding.
+    *   `BaseCard.jsx`: As the foundation for all card-like elements.
+    *   `Alert.jsx`: For all success and error notifications.
+    *   `EmptyState.jsx`: For when a list or data set is empty.
+    *   `Pagination.jsx`: For all paginated lists.
+
+3.  **Consistent Page Layout**: All top-level page components (e.g., `ResumesPage`, `DashboardPage`, `ResumeEditorPage`) **must** be wrapped in the `<PageLayout>` component to ensure a consistent, constrained width across the application.
+
+4.  **Global Theming**: Dark/light mode is handled globally by `ThemeContext`. Individual components should not implement their own theme-switching logic. Styles should be applied via the `.dark` class on the `<html>` element.

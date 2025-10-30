@@ -88,6 +88,11 @@ Frontend:
       * One component per file
       * Extract complex logic into custom hooks
       * Keep components under 300 lines
+  - Architecture & Design Patterns:
+      * **Logic in Hooks**: All business logic, state management, and API calls must be encapsulated in custom hooks (e.g., `useResumes`, `useCoverLetterEditor`). Page components should be simple consumers of these hooks.
+      * **Component-First Approach**: Before writing new UI, always check for a reusable component in `src/components/common/` (`PageLayout`, `BaseCard`, `Alert`, `EmptyState`, `Pagination`).
+      * **Global State**: Use React Context (`src/contexts/`) for global state. The `ThemeContext` manages dark/light mode application-wide.
+      * **Layouts**: All top-level page components must be wrapped in the `PageLayout` component to ensure consistent page width and padding.
   - Error Handling:
       * try-catch for async operations
       * Display user-friendly error messages

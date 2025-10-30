@@ -206,3 +206,20 @@
     @apply hidden;
   }
 }
+
+.rightSection {
+  @apply flex items-center space-x-4;
+}
+
+.themeToggleButton {
+  @apply p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-500;
+  transition: all var(--transition-fast);
+}
+
+.themeIcon {
+  @apply h-5 w-5;
+}
+
+.dark .themeToggleButton {
+  @apply text-gray-500 hover:bg-gray-800 hover:text-gray-400;
+}

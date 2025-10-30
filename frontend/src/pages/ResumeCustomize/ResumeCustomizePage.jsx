@@ -1,434 +1,65 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import ResumeCustomizer from './components/ResumeCustomizer';
-import VersionComparison from '../../components/VersionComparison/VersionComparison';
-import ResumeComparison from '../../components/ResumeComparison/ResumeComparison';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
-import apiService from '../../services/api';
-import { formatDate } from '@/utils/helpers';
-import styles from './ResumeCustomizePage.module.css';
+import CustomizationPreview from './components/CustomizationPreview';
 
 export default function ResumeCustomizePage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const {
+    state,
+    handlers,
+  } = useResumeCustomization();
 
-  // State management
-  const [resume, setResume] = useState(null);
-  const [originalContent, setOriginalContent] = useState(''); // ALWAYS v1 content
-  const [baselineContent, setBaselineContent] = useState(''); // Current baseline for comparison
-  const [customizedContent, setCustomizedContent] = useState('');
-  const [versions, setVersions] = useState([]);
-  const [currentJobDescription, setCurrentJobDescription] = useState('');
-  const [customInstructions, setCustomInstructions] = useState('');
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCustomizing, setIsCustomizing] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
-  
-  // UI state
-  const [showVersions, setShowVersions] = useState(false);
-  const [viewMode, setViewMode] = useState('customize'); // 'customize', 'compare', 'preview'
+  const {
+    resume,
+    originalContent,
+    customizedContent,
+    versions,
+    currentJobDescription,
+    customInstructions,
+    isLoading,
+    isCustomizing,
+    error,
+    successMessage,
+    showVersions,
+    viewMode,
+    hasChanges,
+  } = state;
 
-  // Keep track of last customization result for navigation
-  const [lastCustomizationResult, setLastCustomizationResult] = useState(null);
-
-  useEffect(() => {
-    if (id) {
-      loadResume();
-      loadVersions();
-    }
-  }, [id]);
-
-  // Auto-hide success message
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(''), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  // Navigate to compare view after successful customization
-  useEffect(() => {
-    if (lastCustomizationResult) {
-      setCustomizedContent(lastCustomizationResult.customized_markdown);
-      setViewMode('compare');
-      setSuccessMessage('Resume customized successfully! Review the preview below. Changes are NOT saved yet.');
-      
-      // Update resume state timestamp
-      setResume(prev => ({
-        ...prev,
-        updated_at: new Date().toISOString()
-      }));
-      
-      // Clear the result to prevent repeated navigation
-      setLastCustomizationResult(null);
-    }
-  }, [lastCustomizationResult]);
-
-  const loadResume = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await apiService.getResume(id);
-      setResume(response);
-
-      // Load versions to get the original content
-      const versionsResponse = await apiService.getResumeVersions(id);
-      const allVersions = versionsResponse || [];
-
-      // Find the original version (marked as is_original)
-      const originalVersion = allVersions.find(v => v.is_original);
-      setOriginalContent(originalVersion.markdown_content || '');
-
-      // Set baseline to latest version content
-      const latestVersion = allVersions[0]; // Already sorted by created_at desc
-      const latestContent = latestVersion ? latestVersion.markdown_content || '' : '';
-      setBaselineContent(latestContent);
-
-      // If no customized content yet, use latest content
-      if (!customizedContent) {
-        setCustomizedContent(latestContent);
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadVersions = async () => {
-    try {
-      const response = await apiService.getResumeVersions(id);
-      setVersions(response.versions || []);
-    } catch (err) {
-      console.error('Failed to load versions:', err);
-    }
-  };
-
-  const handleCustomization = async ({ jobDescription, options }) => {
-    try {
-      setIsCustomizing(true);
-      setError(null);
-      
-      // Store form data
-      setCurrentJobDescription(jobDescription);
-      setCustomInstructions(options.custom_instructions || '');
-
-      // Preview customization WITHOUT saving to database
-      const response = await apiService.previewCustomization(id, jobDescription, options);
-      
-      // Store result for processing in useEffect
-      setLastCustomizationResult(response);
-      
-    } catch (err) {
-      // Don't clear form data on error - keep jobDescription and options
-      setError(err.message || 'Failed to customize resume. Please check your inputs and try again.');
-    } finally {
-      setIsCustomizing(false);
-    }
-  };
-
-  const handleSaveAsApplication = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Save the customized content as a new version first
-      await apiService.saveCustomization(
-        id,
-        customizedContent,
-        currentJobDescription,
-        { custom_instructions: customInstructions }
-      );
-      
-      // Reload versions to show the new one
-      await loadVersions();
-      
-      // Navigate to application form with pre-filled data
-      const applicationData = {
-        resume_id: parseInt(id),
-        job_description: currentJobDescription,
-        customized_resume_markdown: customizedContent,
-      };
-      
-      // Store data in sessionStorage to pass to the form
-      sessionStorage.setItem('applicationFormData', JSON.stringify(applicationData));
-      
-      navigate('/applications/new');
-      
-    } catch (err) {
-      setError(err.message || 'Failed to save as application.');
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveCustomization = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Save the customization to database
-      await apiService.saveCustomization(
-        id,
-        customizedContent,
-        currentJobDescription,
-        { custom_instructions: customInstructions }
-      );
-      
-      // Update baseline to the new saved content (but originalContent stays as v1)
-      setBaselineContent(customizedContent);
-      setSuccessMessage('Customized resume saved successfully as a new version!');
-      
-      // Reload versions to show the new one
-      await loadVersions();
-      
-      // Switch to customize mode
-      setViewMode('customize');
-      
-    } catch (err) {
-      setError(err.message || 'Failed to save customized resume.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDiscardCustomization = () => {
-    // Reset to baseline content (preview is discarded, no DB changes)
-    setCustomizedContent(baselineContent);
-    setViewMode('customize');
-    setCurrentJobDescription('');
-    setCustomInstructions('');
-    setSuccessMessage('');
-    setError(null);
-    setLastCustomizationResult(null);
-  };
-
-  const handleVersionRestore = async (version) => {
-    try {
-      // When restoring a version, update both baseline and customized content
-      setBaselineContent(version.markdown_content);
-      setCustomizedContent(version.markdown_content);
-      setViewMode('compare');
-      setShowVersions(false);
-      setSuccessMessage(`Restored to version from ${formatDate(version.created_at, 'relative')}`);
-    } catch (err) {
-      setError('Failed to restore version');
-    }
-  };
-
-  const hasChanges = baselineContent !== customizedContent;
+  const {
+    handleCustomization,
+    handleVersionRestore,
+    setShowVersions,
+    setError,
+  } = handlers;
 
   if (isLoading && !resume) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingContent}>
+      <PageLayout>
+        <div className={styles.loadingContainer}>
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (error && !resume) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="flex">
-            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error Loading Resume</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
-              <button
-                onClick={() => navigate('/resumes')}
-                className="mt-3 text-sm font-medium text-red-800 hover:text-red-900"
-              >
-                Back to Resumes →
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageLayout>
+        <Alert variant="error" message={error} />
+      </PageLayout>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContainer}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerLeft}>
-              <button
-                onClick={() => navigate(`/resumes/${id}`)}
-                className={styles.backButton}
-              >
-                <svg className={styles.backIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Resume
-              </button>
-              
-              <div className={styles.headerInfo}>
-                <h1 className={styles.title}>
-                  Customize: {resume?.title}
-                </h1>
-                <p className={styles.subtitle}>
-                  Use AI to tailor your resume for specific job descriptions
-                </p>
-              </div>
-            </div>
+    <PageLayout>
+      <ResumeCustomizeHeader state={state} handlers={handlers} />
 
-            <div className={styles.headerRight}>
-              {/* View Mode Toggle */}
-              <div className={styles.viewModeToggle}>
-                <button
-                  onClick={() => setViewMode('customize')}
-                  className={clsx(
-                    styles.viewModeButton,
-                    viewMode === 'customize' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
-                  )}
-                >
-                  Customize
-                </button>
-                <button
-                  onClick={() => setViewMode('compare')}
-                  disabled={!hasChanges}
-                  className={clsx(
-                    styles.viewModeButton,
-                    viewMode === 'compare' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
-                  )}
-                >
-                  Compare
-                </button>
-                <button
-                  onClick={() => setViewMode('preview')}
-                  disabled={!hasChanges}
-                  className={clsx(
-                    styles.viewModeButton,
-                    viewMode === 'preview' ? styles.viewModeButtonActive : styles.viewModeButtonInactive
-                  )}
-                >
-                  Preview
-                </button>
-              </div>
-
-              {/* Version History */}
-              {versions.length > 0 && (
-                <button
-                  onClick={() => setShowVersions(!showVersions)}
-                  className="p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-                  title="Version History"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-              )}
-
-              {/* Action buttons for changed content */}
-              {hasChanges && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleDiscardCustomization}
-                    className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    Discard Changes
-                  </button>
-                  <button
-                    onClick={handleSaveCustomization}
-                    disabled={isLoading}
-                    className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    {isLoading ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save as Version'
-                    )}
-                  </button>
-                  <button
-                    onClick={handleSaveAsApplication}
-                    disabled={isLoading}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                  >
-                    {isLoading ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Save as Application'
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      <div className={styles.messagesContainer}>
+        <Alert variant="success" message={successMessage} />
+        <Alert variant="error" message={error} />
       </div>
 
-      {/* Messages */}
-      {(error || successMessage) && (
-        <div className={styles.messagesContainer}>
-          <div className={styles.messagesContent}>
-            {error && (
-              <div className={styles.errorMessage}>
-                <div className={styles.messageContent}>
-                  <svg className={styles.messageIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className={styles.messageText}>
-                    <p>{error}</p>
-                  </div>
-                  <button
-                    onClick={() => setError(null)}
-                    className={styles.messageClose}
-                  >
-                    <svg className={styles.messageCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className={styles.successMessage}>
-                <div className={styles.messageContent}>
-                  <svg className={styles.messageIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className={styles.messageText}>
-                    <p>{successMessage}</p>
-                  </div>
-                  <button
-                    onClick={() => setSuccessMessage('')}
-                    className={styles.messageClose}
-                  >
-                    <svg className={styles.messageCloseIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex h-full space-x-6 py-6">
-            {/* Version History Sidebar */}
             {showVersions && (
               <div className="w-80 flex-shrink-0">
                 <VersionComparison
@@ -440,7 +71,6 @@ export default function ResumeCustomizePage() {
               </div>
             )}
 
-            {/* Main Content Area */}
             <div className="flex-1 min-w-0">
               {viewMode === 'customize' && (
                 <ResumeCustomizer
@@ -448,7 +78,6 @@ export default function ResumeCustomizePage() {
                   onCustomizationComplete={handleCustomization}
                   onError={setError}
                   isLoading={isCustomizing}
-                  // Pass stored form data to preserve on errors
                   initialJobDescription={currentJobDescription}
                   initialCustomInstructions={customInstructions}
                   className="h-full overflow-auto"
@@ -464,42 +93,16 @@ export default function ResumeCustomizePage() {
               )}
 
               {viewMode === 'preview' && hasChanges && (
-                <div className="h-full bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">Customized Resume Preview</h3>
-                    <p className="text-sm text-gray-600">
-                      Preview of your AI-customized resume
-                    </p>
-                  </div>
-                  <div className="p-8 overflow-auto h-full">
-                    <div className="max-w-4xl mx-auto">
-                      <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {customizedContent}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CustomizationPreview customizedContent={customizedContent} />
               )}
 
-              {/* Empty state for compare/preview without changes */}
               {(viewMode === 'compare' || viewMode === 'preview') && !hasChanges && (
                 <div className="h-full flex items-center justify-center bg-white border border-gray-200 rounded-lg">
                   <div className="text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <h3 className="mt-4 text-sm font-medium text-gray-900">No Customization Yet</h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Create a customized version to see the comparison or preview.
-                    </p>
-                    <button
-                      onClick={() => setViewMode('customize')}
-                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200"
-                    >
-                      Start Customizing
-                    </button>
+                    <p className="mt-2 text-sm text-gray-500">Create a customized version to see the comparison or preview.</p>
+                    <button onClick={() => handlers.setViewMode('customize')} className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">Start Customizing</button>
                   </div>
                 </div>
               )}
@@ -507,6 +110,7 @@ export default function ResumeCustomizePage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
+

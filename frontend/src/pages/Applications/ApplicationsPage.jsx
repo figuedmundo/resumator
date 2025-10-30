@@ -1,10 +1,10 @@
 import ApplicationList from './components/ApplicationList';
-import styles from './ApplicationsPage.module.css';
+import PageLayout from '../../components/common/PageLayout';
 
 export default function ApplicationsPage() {
   return (
-    <div className={styles.container}>
+    <PageLayout>
       <ApplicationList />
-    </div>
+    </PageLayout>
   );
 }

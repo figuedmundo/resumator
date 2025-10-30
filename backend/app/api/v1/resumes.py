@@ -816,6 +816,7 @@ async def delete_resume(
         )
 
 
+@router.get("/{resume_id}/html", response_model=dict)
 async def get_resume_html(
     resume_id: int,
     template: str = "modern",

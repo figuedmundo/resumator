@@ -6,6 +6,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import PageLayout from '../../components/common/PageLayout';
 import { useResumeEditor } from '../../hooks/useResumeEditor';
 import ResumeEditorHeader from './components/ResumeEditorHeader';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -64,7 +65,7 @@ export default function ResumeEditorPage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <PageLayout>
       <ResumeEditorHeader state={state} handlers={handlers} />
 
       {showUploadZone && (
@@ -160,6 +161,6 @@ export default function ResumeEditorPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

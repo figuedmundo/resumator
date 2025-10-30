@@ -33,7 +33,7 @@ describe('ApplicationCard', () => {
 
   const renderComponent = (application = mockApplication) => {
     return render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ApplicationCard application={application} {...mockHandlers} operationLoading={false} />
       </MemoryRouter>
     );

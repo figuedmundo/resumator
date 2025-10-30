@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import apiService from '../../services/api';
+import PageLayout from '../../components/common/PageLayout';
 import styles from './DashboardPage.module.css';
 
 export default function DashboardPage() {
@@ -67,16 +68,16 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.container}>
+      <PageLayout>
         <div className={styles.loadingContainer}>
           <LoadingSpinner size="lg" />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <PageLayout>
       {/* Welcome Header */}
       <div className={styles.welcomeSection}>
         <h1 className={styles.welcomeTitle}>
@@ -371,6 +372,6 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
